@@ -1,0 +1,11 @@
+{
+  "summary": "当前数据不足，无法对经营异常或区域收益作出确定判断。",
+  "findings": [],
+  "regionComparison": [],
+  "recommendations": ["补齐观察窗口数据后重新运行。"],
+  "toolCalls": [
+    { "toolName": "run_audit", "status": "error" },
+    { "toolName": "compare_regions", "status": "error" }
+  ],
+  "assumptions": ["可比对象少于 3 个或关键字段缺失。"]
+}

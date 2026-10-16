@@ -1,0 +1,7 @@
+{
+  "scenario": "improved-task",
+  "status": "closed",
+  "verifyMetric": "refund_rate",
+  "targetMet": true,
+  "expectedAction": "保存复核证据并关闭任务"
+}

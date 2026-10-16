@@ -71,8 +71,8 @@ flowchart TD
 
     PLAN --> DASH[get_dashboard<br/>经营摘要]
     PLAN --> AUDIT[run_audit<br/>异常规则与风险等级]
-    PLAN --> PEER[compare_peers<br/>可比门店与差距]
-    PLAN --> LOC[score_locations<br/>区域评分与收益]
+    PLAN --> PEER[compare_regions<br/>可比区域与差距]
+    PLAN --> LOC[estimate_region_roi<br/>区域评分与收益]
 
     DASH --> DOMAIN[领域服务层<br/>指标 / 规则 / 对标 / 评分]
     AUDIT --> DOMAIN
@@ -163,16 +163,9 @@ API 层负责认证、参数校验、权限检查、分页、错误码和响应�
 
 ```text
 GET  /api/v1/dashboard
-GET  /api/v1/audits
-POST /api/v1/audits/run
-GET  /api/v1/benchmarks
-POST /api/v1/location-scores
-POST /api/v1/agent/runs
-GET  /api/v1/agent/runs/:runId/events
-POST /api/v1/tasks
-PATCH /api/v1/tasks/:taskId
-POST /api/v1/tasks/:taskId/verify
-GET  /api/v1/reports/:reportId
+GET  /api/v1/audit
+GET  /api/v1/regions
+POST /api/v1/agent/run
 ```
 
 所有请求携带 `tenant_id`、操作者身份、区域范围和数据版本；后端从认证上下文取得租户和权限，不信任前端传入的身份字段。
@@ -230,6 +223,15 @@ identity         用户、角色、区域权限和租户隔离
 
 Agent 不直接创建高风险任务。涉及外部经营动作时，必须先生成待确认行动卡，由用户确认后调用 `create_task`。
 
+Agent 工具名使用 snake_case；后端函数名使用 camelCase。适配关系固定为：
+
+```text
+get_dashboard        -> getDashboardMetrics
+run_audit            -> auditOperations
+compare_regions      -> compareRegions
+estimate_region_roi  -> estimateRegionROI
+```
+
 ### 6.3 工具接口
 
 工具统一返回结构化结果：
@@ -252,8 +254,8 @@ Agent 不直接创建高风险任务。涉及外部经营动作时，必须先�
 |---|---|---:|
 | `get_dashboard` | 查询经营摘要 | 否 |
 | `run_audit` | 按固定规则运行审计 | 否 |
-| `compare_peers` | 计算可比门店和差距 | 否 |
-| `score_locations` | 计算区域评分和收益 | 否 |
+| `compare_regions` | 计算可比区域和差距 | 否 |
+| `estimate_region_roi` | 计算区域评分和收益 | 否 |
 | `create_task` | 创建已确认的行动任务 | 是 |
 | `verify_task` | 根据复核指标关闭或升级任务 | 是 |
 | `write_report` | 保存结构化报告 | 是 |

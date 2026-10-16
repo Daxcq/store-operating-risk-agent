@@ -8,6 +8,7 @@
 - 本轮目标：支持一天内完成的前后端并行开发和 Demo 集成。
 - 变更规则：后续只能由 A/B/C 共同确认后修改版本；破坏性修改必须升级主版本。
 - 共享类型位置：`contracts/src/index.ts`。
+- API 基础路径：`/api/v1`。
 - 当前仓库没有 TypeScript 后端；类型文件先作为无依赖共享包，后端建立后直接引用。
 
 ## 2. 通用约定
@@ -73,7 +74,17 @@ interface AuditResult {
 
 `findings` 没有异常时返回空数组，不返回 `null`。
 
-### 3.3 RegionResult
+### 3.3 RiskStatus
+
+门店或区域整体状态使用 `RiskStatus`，不要与单条发现的 `severity` 混用：
+
+```ts
+type RiskStatus = 'normal' | 'watch' | 'possible' | 'unavailable'
+```
+
+`severity` 描述一条审计发现的严重程度；`riskStatus` 描述一个门店或区域的整体状态。
+
+### 3.4 RegionResult
 
 | 字段 | 类型 | 必填 | 规则 |
 |---|---|---:|---|
@@ -85,7 +96,7 @@ interface AuditResult {
 | `reasons` | `string[]` | 是 | 评分或收益的主要理由 |
 | `assumptions` | `string[]` | 是 | 计算假设；无假设时返回 `[]` |
 
-### 3.4 AgentRequest
+### 3.5 AgentRequest
 
 ```ts
 interface AgentRequest {
@@ -95,7 +106,7 @@ interface AgentRequest {
 
 `query` 必填且必须是非空字符串。Demo 建议限制为不超过 2,000 个字符。
 
-### 3.5 AgentResponse
+### 3.6 AgentResponse
 
 | 字段 | 类型 | 必填 | 规则 |
 |---|---|---:|---|
@@ -108,10 +119,12 @@ interface AgentRequest {
 
 ```ts
 interface AgentToolCall {
-  toolName: string
+  toolName: AgentToolName
   status: 'success' | 'error'
 }
 ```
+
+Agent 工具名固定为：`get_dashboard`、`run_audit`、`compare_regions`、`estimate_region_roi`、`create_task`、`verify_task`、`write_report`。
 
 Agent 不得在 `summary` 或 `recommendations` 中新增工具结果不存在的数值事实。
 
@@ -124,7 +137,7 @@ getDashboardMetrics(filters?: DashboardFilters): Promise<DashboardMetrics>
 auditOperations(filters?: AuditFilters): Promise<AuditResult>
 compareRegions(regionIds?: string[]): Promise<RegionResult[]>
 estimateRegionROI(regionId: string): Promise<RegionResult>
-runAgent(query: string): Promise<AgentResponse>
+runAgent(request: AgentRequest): Promise<AgentResponse>
 ```
 
 ### 4.1 filters
@@ -146,18 +159,32 @@ interface AuditFilters extends DashboardFilters {
 
 ### 4.2 DashboardMetrics
 
-当前接口只冻结返回类型为 `Record<string, number>`，具体指标键由 B 在实现中登记并同步给 A/C；不得把金额格式化为字符串。
+Dashboard 指标键已冻结，B 不得临时增加或改名：
+
+```ts
+interface DashboardMetrics {
+  salesAmount: number       // 人民币元
+  estimatedProfit: number   // 人民币元
+  deviceCount: number       // 台
+  onlineRate: number        // 0..1
+  openFindingCount: number  // 条
+}
+```
+
+金额不得格式化为字符串；计数不得为负数；`onlineRate` 必须在 `0..1`。
 
 ## 5. HTTP API
 
-### 5.1 GET `/api/dashboard`
+所有 HTTP 路径统一使用 `/api/v1` 前缀。
+
+### 5.1 GET `/api/v1/dashboard`
 
 调用 `getDashboardMetrics(filters?)`。
 
 请求示例：
 
 ```http
-GET /api/dashboard?regionId=changchun&from=2026-10-12&to=2026-10-18
+GET /api/v1/dashboard?regionId=changchun&from=2026-10-12&to=2026-10-18
 ```
 
 成功响应示例：
@@ -174,14 +201,14 @@ GET /api/dashboard?regionId=changchun&from=2026-10-12&to=2026-10-18
 
 数值单位由指标名称决定：金额为人民币元，`onlineRate` 为 `0` 到 `1` 的比例，计数为非负整数。未知指标不返回 `null`，应省略或返回错误。
 
-### 5.2 GET `/api/audit`
+### 5.2 GET `/api/v1/audit`
 
 调用 `auditOperations(filters?)`。
 
 请求示例：
 
 ```http
-GET /api/audit?deviceId=device-A-001&severity=high
+GET /api/v1/audit?deviceId=device-A-001&severity=high
 ```
 
 成功响应示例：
@@ -202,14 +229,14 @@ GET /api/audit?deviceId=device-A-001&severity=high
 }
 ```
 
-### 5.3 GET `/api/regions`
+### 5.3 GET `/api/v1/regions`
 
 调用 `compareRegions(regionIds?)`，省略 `regionIds` 时比较默认候选区域。
 
 请求示例：
 
 ```http
-GET /api/regions?regionIds=chaoyang,nanguan
+GET /api/v1/regions?regionIds=chaoyang,nanguan
 ```
 
 成功响应示例：
@@ -239,14 +266,14 @@ GET /api/regions?regionIds=chaoyang,nanguan
 
 `score` 必须在 `0` 到 `100`；`estimatedMonthlyProfit` 为人民币元/月；无法合理估算回本周期时必须为 `null`，不能使用 `0`、空字符串或负数代替。
 
-### 5.4 POST `/api/agent/run`
+### 5.4 POST `/api/v1/agent/run`
 
-调用 `runAgent(query)`。
+调用 `runAgent(request)`。
 
 请求示例：
 
 ```http
-POST /api/agent/run
+POST /api/v1/agent/run
 Content-Type: application/json
 
 {
@@ -273,8 +300,8 @@ Content-Type: application/json
   ],
   "recommendations": ["优先对朝阳区进行现场核查，再决定投放。"],
   "toolCalls": [
-    { "toolName": "compareRegions", "status": "success" },
-    { "toolName": "estimateRegionROI", "status": "success" }
+    { "toolName": "compare_regions", "status": "success" },
+    { "toolName": "estimate_region_roi", "status": "success" }
   ],
   "assumptions": ["当前结果使用 demo_v1 模拟数据。"]
 }
@@ -313,19 +340,34 @@ Content-Type: application/json
 
 ### C：Agent、API、系统集成
 
-- 实现 `runAgent(query)` 以及四个 HTTP 路由的适配。
-- POST `/api/agent/run` 只接受 `{ "query": string }`。
+- 实现 `runAgent(request)` 以及四个 HTTP 路由的适配。
+- POST `/api/v1/agent/run` 只接受 `{ "query": string }`。
 - Agent 只能编排 B 的函数或等价白名单工具，不自行计算业务指标。
 - API 失败统一返回 `{ error: { code, message } }`。
 - 不修改共享字段、枚举和空值规则；需要变更时先更新本文件和共享类型，并通知 A/B。
 
-## 7. 冻结后的修改规则
+## 7. Fixture 约定
+
+共享最小 fixture 位于 `contracts/fixtures/`，用于 A 的 Mock API、B 的规则测试和 C 的接口联调：
+
+| 文件 | 目标场景 |
+|---|---|
+| `normal.json` | 无异常，空 findings |
+| `single-finding.json` | 单条中风险发现 |
+| `multiple-findings.json` | 多条发现，含高/低严重级别 |
+| `insufficient-data.json` | 数据不足，无法给出确定结论 |
+| `improved-task.json` | 复核达标，可关闭任务 |
+| `unresolved-task.json` | 复核未达标，需要升级 |
+
+Fixture 只能使用共享类型中的字段和枚举；修改 fixture 预期时必须同步测试说明。
+
+## 8. 冻结后的修改规则
 
 契约变更必须同时更新：
 
 1. `contracts/src/index.ts`；
 2. 本文档的字段表和示例；
-3. 受影响分工的实现和验证；
+3. 受影响的 fixture、实现和验证；
 4. 版本记录和团队确认。
 
 未完成上述同步前，不得在单个分支中私自增加字段、改变枚举或更换 `null` 规则。

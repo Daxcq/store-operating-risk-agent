@@ -1,0 +1,19 @@
+{
+  "summary": "发现 1 个中风险经营发现，当前证据不足以创建高优先级任务。",
+  "findings": [
+    {
+      "id": "finding-single-001",
+      "deviceId": "device-B-001",
+      "severity": "medium",
+      "title": "订单数低于观察窗口基准",
+      "evidence": ["近 7 天订单数较前周期下降 9%。"],
+      "recommendation": "核对客流、营业时段和近期促销记录。"
+    }
+  ],
+  "regionComparison": [],
+  "recommendations": ["先核对门店营业时段，再决定是否创建任务。"],
+  "toolCalls": [
+    { "toolName": "run_audit", "status": "success" }
+  ],
+  "assumptions": ["销售额和订单数口径已按 demo_v1 固定。"]
+}

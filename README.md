@@ -62,6 +62,7 @@ TECHNICAL_ARCHITECTURE.md
 
 - [PROJECT.md](./PROJECT.md)：产品定位、页面范围、数据契约和 Demo 验收标准。
 - [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md)：前后端分离、Agent 工具、数据层和生产演进方案。
+- [docs/API_CONTRACT.md](./docs/API_CONTRACT.md)：A、B、C 共同冻结的 API、类型和 fixture 契约。
 
 ## 当前限制
 

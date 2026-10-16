@@ -7,6 +7,8 @@
 
 export type AuditSeverity = 'high' | 'medium' | 'low'
 
+export type RiskStatus = 'normal' | 'watch' | 'possible' | 'unavailable'
+
 export interface AuditFinding {
   id: string
   deviceId: string
@@ -37,8 +39,17 @@ export interface AgentRequest {
 
 export type ToolCallStatus = 'success' | 'error'
 
+export type AgentToolName =
+  | 'get_dashboard'
+  | 'run_audit'
+  | 'compare_regions'
+  | 'estimate_region_roi'
+  | 'create_task'
+  | 'verify_task'
+  | 'write_report'
+
 export interface AgentToolCall {
-  toolName: string
+  toolName: AgentToolName
   status: ToolCallStatus
 }
 
@@ -69,7 +80,13 @@ export interface AuditFilters extends DashboardFilters {
   severity?: AuditSeverity
 }
 
-export type DashboardMetrics = Record<string, number>
+export interface DashboardMetrics {
+  salesAmount: number
+  estimatedProfit: number
+  deviceCount: number
+  onlineRate: number
+  openFindingCount: number
+}
 
 export type RegionIds = string[]
 
@@ -90,6 +107,6 @@ export type EstimateRegionROI = (
 ) => Promise<RegionResult>
 
 export type RunAgent = (
-  query: string,
+  request: AgentRequest,
 ) => Promise<AgentResponse>
 

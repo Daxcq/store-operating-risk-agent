@@ -1,0 +1,7 @@
+{
+  "scenario": "unresolved-task",
+  "status": "escalated",
+  "verifyMetric": "refund_rate",
+  "targetMet": false,
+  "expectedAction": "保留原证据并升级任务"
+}
