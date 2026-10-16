@@ -117,8 +117,11 @@ CONDITION_PEER_METRIC = {
 
 def metric_peers(rows, sid, o, w, code):
     """该可比门店在本指标上是否可用（本指标算得出数值）。"""
-    m = metrics(rows, o, w)
-    return m.get(code) is not None
+    cur = metrics(rows, o, w)
+    base = metrics(rows, o, BASELINE)
+    cur["sales_change_pct"] = pct(cur["sales_amount"], base["sales_amount"])
+    cur["aov_change_pct"] = pct(cur["aov"], base["aov"])
+    return cur.get(code) is not None
 
 
 def evaluate(rows, sid):

@@ -644,6 +644,9 @@ export function scoreLocations(input: ScoreInput): {
     // 改成直接对分项做加权平均：四个分项都按 0~100 定义（cost_score 是负担，
     // 作减项），结果天然落在 0~100，阈值就是它字面上的意思。
     // 分母用 Σw = 1.0，所以四个分项齐全时分数 = Σ(w_i * value_i)。
+    const available = components.filter((c) => c.value !== null);
+    const availableWeight = available.reduce((acc, c) => acc + c.weight, 0);
+
     let score: number | null = null;
     let confidence: LocationScore["confidence"];
 

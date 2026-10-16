@@ -7,16 +7,19 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate:contracts": "node scripts/validate-contracts.mjs"
+    "validate:contracts": "node scripts/validate-contracts.mjs",
+    "test:agent": "node scripts/verify-agent-layers.mjs"
   },
   "dependencies": {
+    "@langchain/core": "^1.2.18",
+    "@langchain/langgraph": "^1.5.0",
     "@vitejs/plugin-react": "latest",
     "leaflet": "latest",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
     "react-leaflet": "latest",
-    "vite": "latest"
-  },
-  "devDependencies": {}
+    "vite": "latest",
+    "zod": "^4.6.7"
+  }
 }

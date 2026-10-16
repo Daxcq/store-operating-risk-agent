@@ -19,8 +19,8 @@ import type {
   MetricUnit,
   Window,
   Evidence,
-} from "../../contracts/b/index";
-import type { RawRow } from "./data_loader";
+} from "../../contracts/b/index.ts";
+import type { RawRow } from "./data_loader.ts";
 import {
   sumField,
   safeRatio,
@@ -28,7 +28,7 @@ import {
   safeChangePoints,
   assessQuality,
   shiftWindow,
-} from "./data_loader";
+} from "./data_loader.ts";
 
 /** 指标定义表。与 configs/metrics.yaml 对应，代码里只放计算所需的部分。 */
 const METRIC_DEFS: {
