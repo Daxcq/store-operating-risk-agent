@@ -1,0 +1,138 @@
+# 区域投放决策与评分权重 (任务B 拥有)
+#
+# score_location 工具的权重来自这里，不由 LLM 临场设定。
+# 每个分项必须记录：输入、权重、版本、evidence_ids。否则分数无法复盘。
+#
+# ⚠️ 【2026-10-17 必读：本文件当前是**文档**，不是运行时生效的配置】
+# 代码里没有任何地方加载这些 yaml（全仓库搜 yaml / readFileSync 只出现在注释里），
+# 实际生效的常量硬编码在 src/services/：
+#   WEIGHTS / RANGES / THRESHOLDS / ROI  -> region_score.ts
+#   STORE_RULE_CONDITIONS                -> rule_engine.ts
+#   METRIC_DEFS                          -> metric_service.ts
+# 也就是说：改这个文件**不会改变任何计算结果**。
+# 这次校准（cost_score 的 min/max）是先把代码改对，再回来同步本文件，
+# 不是为了让它生效。
+#
+# 【待办，请 A/C/D 一起定】要么给 B 一个加载这文件的小模块（几行 JSON/YAML 解析），
+# 要么把本文件的标题改成「口径说明（非配置）」。现在这种状态最危险：
+# 评审看到 yaml 里的 0~120000，代码里却是 40000~230000，
+# 会以为是 bug，而实际两边都不算错，只是没有任何机制保证它们一致。
+
+version: demo_v1
+
+# 总分公式（PROJECT.md 3.3）：需求 + 竞争 + 毛利 - 成本
+# 每一项先归一化到 0~100，再加权后再按有效权重归一化。
+# 归一化基准写死在本文件与 region_score.ts 的 RANGES，保证可复现。
+score:
+  formula: "score = (w1*demand + w2*competition + w3*margin - w4*cost) / (w1+w2+w3+w4)"
+  weights:
+    w1_demand: 0.35
+    w2_competition: 0.25
+    w3_margin: 0.25
+    w4_cost: 0.15
+
+  components:
+    demand_score:
+      display_name: 需求强度
+      direction: higher_is_better
+      inputs: [sales_amount, order_count, aov]
+      # 相对同区域同业态档口的百分位，不是绝对值
+      normalize: percentile_within_region_grade
+      basis_metric: sales_amount
+
+    competition_score:
+      display_name: 竞争压力
+      direction: lower_is_better      # 同档口密度越高，得分越低
+      inputs: [same_grade_store_count_within_radius]
+      normalize: inverse_minmax
+      min: 1
+      max: 8
+
+    margin_score:
+      display_name: 毛利空间
+      direction: higher_is_better
+      inputs: [sales_amount, cost_amount]
+      # 实现上用的是「退货率」作为毛利空间的代理指标（越低毛利越厚），
+      # 归一化区间 0~8（百分点），见 region_score.ts 的 RANGES.refund_rate_as_margin_proxy。
+      # 这里保留原字段名是为了不动契约，但口径要与代码一致，否则评审会对不上。
+      normalize: minmax
+      min: 0
+      max: 8
+      note: 成本数据缺失时该分项记 null，总分按剩余权重重新归一化并标记 degraded
+
+    cost_score:
+      display_name: 运营成本
+      direction: lower_is_better
+      inputs: [rent_amount, labor_cost_amount]
+      normalize: minmax
+      # 【2026-10-17 校准】原来是 0~120000，那是「只有租金」的口径；
+      # 实际归一化的是「租金 + 人力」，Demo 五个区域落在 11.5 万 ~ 21.6 万。
+      # 用 0~120000 会让除丰台区外每家都顶到 100 分（成本负担全为 0），
+      # 分项失去区分度，也把总分整体抬高。区间改为实测口径。
+      min: 40000
+      max: 230000
+
+# 排名与可信度
+ranking:
+  min_stores_for_ranking: 3
+  # 低于该分数不走「推荐」，走「不建议」
+  recommend_threshold: 65
+  watch_threshold: 45          # 45~65 走「继续调研」
+  # 分项缺失导致降级时的可信度
+  confidence:
+    full: 1.0
+    degraded: 0.6              # 有分项为 null
+    low: 0.3
+
+# 输出时必须带上的东西，缺一不可
+output_contract:
+  require_evidence_ids: true
+  require_weights_version: true
+  require_inputs_snapshot: true
+  require_confidence: true
+  # 分数只作为排序依据，不得单独作为投放结论
+  allow_auto_decision: false
+
+# 免责边界：区域评分涉及成本与租金等外部数据，B 只算分，不替客户下投资结论
+disclaimer: "评分基于当前可比数据集与当前权重版本，仅用于排序与继续调研的优先级参考，不构成投资建议。"
+
+# ---------------------------------------------------------------------------
+# 区域 ROI 估算的假设参数 (2026-10-17 新增，对应 API_CONTRACT.md 的
+# RegionResult.estimatedMonthlyProfit / estimatedPaybackMonths)
+#
+# 为什么这些数字必须放在配置文件里而不是写死在代码里：
+# ROI 估算是整个数据层里唯一一个「带商业假设」的输出。毛利率、单台设备造价、
+# 折旧年限都不是数据算出来的，是假设。假设一旦混进代码，报告里就会变成
+# 看起来像事实的数字。放在这里，一是可以在界面上原样展示给用户，
+# 二是改假设时不需要碰计算逻辑，三是评审时能一眼看到我们承认了哪些假设。
+#
+# 契约要求：无法合理估算时返回 null，禁止用 0 或负数代替。
+# 月利润可以为负（亏损区域必须如实为负），但回本周期在月利润 <= 0 时无意义，
+# 必须是 null。
+# ---------------------------------------------------------------------------
+roi:
+  version: demo_v1
+
+  # 商品毛利率。无人零售（饮料零食为主）的常见区间是 25%~35%，
+  # Demo 取中值。这是假设，不是从数据算出来的。
+  gross_margin_ratio: 0.30
+
+  # 单台设备的一次性投入（设备本体 + 安装 + 首批铺货），人民币。
+  capex_per_device: 32000
+
+  # 折旧年限，用于把一次性投入摊回月度（仅用于展示口径，不参与回本周期计算）。
+  depreciation_years: 5
+
+  # 月度运营人力成本没有单独数据源，按租金的固定比例估算。
+  # 无人零售的人力主要集中在补货与运维，通常低于租金。
+  labor_cost_ratio_to_rent: 0.35
+
+  # 估算窗口折算成月：7 天窗口 * 4.345 周/月
+  days_per_month: 30.44
+
+notes:
+  - "单店月利润 = 该店窗口日均销售额 x 天/月 x 毛利率 - 月租金 - 月度人力"
+  - "区域月利润 = 区域内各门店月利润的中位数（不是加总：加总会让区域利润变成门店数量比较）"
+  - "区域回本周期 = median(各店「该店设备数 x 单台造价 / 该店月利润」)；月利润 <= 0 的门店不参与该中位数，无正利润门店时返回 null"
+  - "回本周期刻意不跨店加总投入：原写法「区域总造价 / 典型门店利润」会让 5 家店的区域比 3 家店的区域回本慢 67%，退化成门店数量比较"
+  - "以上均为估算口径，用于区域间横向比较，不构成投资建议"

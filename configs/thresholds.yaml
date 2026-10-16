@@ -1,0 +1,103 @@
+# 异常规则阈值 (任务B 拥有)
+#
+# 原设计：阈值和权重全部走配置文件，禁止在代码里硬编码，也禁止由 LLM 临时决定。
+# rule_engine.ts 只做一件事：读本文件 + 读指标结果 -> 输出 verdict。
+#
+# ⚠️ 【2026-10-17 诚实说明：上面那段设计目前**没有实现**】
+# 代码里没有任何地方加载本文件（全仓库搜 yaml / readFileSync 只出现在注释里）。
+# 真正生效的是 src/services/rule_engine.ts 里的 STORE_RULE_CONDITIONS 常量，
+# 数值与本文件当前一致，但一致性靠人肉维持。
+# 改本文件不会改变任何判定结果 —— 这正是原设计要避免的状态。
+#
+# 【待办，请 A/C/D 一起定】要么给 B 补一个几行的配置加载器，让本文件真的生效；
+# 要么把标题改成「口径说明（非配置）」。在两者之间悬着最危险：
+# 评审改这里的 -20 发现结果没变，会认为整条规则链是假的。
+# 在此之前，请把本文件当作**规则文档**，以代码常量为准。
+
+version: demo_v1
+
+# 门店级规则：命中几条决定 risk_level，这是 Demo 的核心叙事
+store_rule:
+  definition: store_anomaly_v1
+  decision: at_least_2          # 至少 2 条命中才构成 possible
+  conditions:
+    - id: sales_drop
+      display_name: 销售下滑
+      metric: sales_change_pct
+      op: "<="
+      threshold: -20
+      unit: percent
+      severity: high
+      description: 当前 7 日销售金额较前 7 日下降 20% 及以上。
+
+    - id: refund_high
+      display_name: 退款率偏高
+      metric: refund_rate
+      op: ">="
+      threshold: 5
+      unit: percent
+      severity: high
+      description: 当前 7 日退款率 5% 及以上。
+
+    - id: aov_drop
+      display_name: 客单价下滑
+      metric: aov_change_pct
+      op: "<="
+      threshold: -10
+      unit: percent
+      severity: medium
+      description: 当前 7 日客单价较前 7 日下降 10% 及以上。
+
+  # 证据不足的判定顺序：先看数据能不能用，再看命中几条
+  # 顺序不能反。否则「数据缺失」会被误判成「无异常」——这是最危险的假阴性。
+  verdict_order:
+    - unavailable        # 当前窗口有效天数 < 5，或关键字段整体未上报
+    - insufficient       # 数据够算指标，但不足以支撑结论（命中 1 条 / 可比门店不足）
+    - possible           # 命中 >= 2 条，且可比门店充足
+    - none               # 无命中
+
+# 可比门店的准入条件（PROJECT.md 3.3 的落地）
+peer_group:
+  require_same_region: true
+  require_same_grade: true      # 同业态档口，compact 不与 standard 混比
+  min_peers: 3                  # 少于 3 家 -> 不出确定性建议
+  exclude_audited_subjects: true
+  # 【2026-10-17 口径变更】原为 true，现已废弃。
+  # 「窗口数据完整」不再作为整店准入条件，改为**逐指标**判定：
+  # 一家店只要在某指标上算得出数值，就是该指标的可比对象。
+  # 反例（本 Demo 真实存在）：S004 自 2026-10-06 起退款字段整片断报，
+  # 空值率 33% > 20%。按整店口径它会被踢出朝阳区可比池，
+  # 而朝阳区标准档只有 5 家店，踢掉它和 S001 自己就只剩 3 家 ——
+  # 销售类可比数压在 min_peers 临界值上，任何扰动都会让 S001 从
+  # possible 掉成 insufficient，主线演示当场翻车。
+  # 而 S004 的销售额与订单数是完整的，它对「销售变化率」明明是可比的。
+  # 实现见 benchmark_service.ts 的两层准入 + metrics[].dropped_for_this_metric。
+  require_complete_window: false
+
+# 区域级规则：区域整体异常的判定
+region_rule:
+  definition: region_anomaly_v1
+  # 区域内命中 possible 的门店占比达到阈值 -> 区域性波动
+  share_of_stores_possible_gte: 40
+  min_stores_for_region_result: 2
+  # 区域均值下降但区域内门店离散度大 -> 不是区域性问题，是单店问题
+  dispersion_flag_cv_gte: 25
+  # 区域整体下滑时，不得直接归因于单店，必须标注为「待核查假设」
+  label_when_triggered: 区域性波动
+
+# 升级 / 关闭条件（供任务C 的 verify_task 使用，B 只提供判定函数）
+escalation:
+  auto_escalate_when:
+    - conditions_hit_gte: 3        # 3 条全中，自动升级
+    - refund_rate_gte: 8           # 退款率极端值
+    - sales_drop_pct_lte: -40      # 销售腰斩
+  min_evidence_for_escalation: 3   # 证据条数不足不得升级
+
+# 数据质量门槛：这些不满足时，Agent 应该说「我不能判断」，而不是猜
+data_quality:
+  min_window_days: 5
+  max_null_ratio_in_key_fields: 0.2   # 关键字段空值率超过 20% -> unavailable
+  key_fields:
+    - sales_amount
+    - order_count
+    - refund_amount

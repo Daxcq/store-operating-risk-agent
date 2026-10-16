@@ -1,0 +1,117 @@
+# 门店经营指标契约 (任务B 拥有)
+#
+# 这份文件是「指标公式」的口径说明。
+# 同名枚举定义在 contracts/b/index.ts，计算实现在 src/services/metric_service.ts 的 METRIC_DEFS。
+# 前端只允许展示 unit / display_name / 返回值，不允许自己算。
+#
+# ⚠️ 【2026-10-17 说明】原文写「metric_service.ts 按 code 读取本文件」——
+# 实际没有加载（全仓库搜 yaml / readFileSync 只出现在注释里），
+# 计算函数硬编码在 METRIC_DEFS 里，数值与本文件当前一致。
+# 也就是说本文件是**文档**，改它不会改变任何计算结果。
+# 三个 configs/*.yaml 现在是同一状况，需要 A/C/D 一起定：补加载器，还是改标题。
+#
+# 硬约束（来自 PROJECT.md 3.2）：
+#   1. 所有金额和数量先聚合，再计算比率。禁止「平均每日比率」。
+#   2. 每个分式必须 NULLIF/0 保护，分母为 0 时返回 value=null + insufficient，不得返回 0 或 Infinity。
+#   3. 每个返回值必须携带 evidence_ids 和 data_version。
+
+version: demo_v1
+
+metrics:
+  - code: sales_amount
+    display_name: 销售金额
+    unit: currency
+    kind: sum
+    source_field: sales_amount
+    precision: 2
+    description: 已确认且未退货的销售金额合计。
+
+  - code: order_count
+    display_name: 有效订单数
+    unit: count
+    kind: sum
+    source_field: order_count
+    precision: 0
+    description: 有效订单数合计，不含测试单与员工单。
+
+  - code: refund_amount
+    display_name: 退款金额
+    unit: currency
+    kind: sum
+    source_field: refund_amount
+    precision: 2
+    description: 退款金额合计。
+
+  - code: refund_rate
+    display_name: 退款率
+    unit: percent
+    kind: ratio
+    numerator: sum(refund_amount)
+    denominator: sum(sales_amount)
+    scale: 100
+    precision: 2
+    description: 退款金额占销售金额的百分比。按区间聚合后再计算。
+
+  - code: refund_order_rate
+    display_name: 退款单率
+    unit: percent
+    kind: ratio
+    numerator: sum(refund_order_count)
+    denominator: sum(order_count)
+    scale: 100
+    precision: 2
+    description: 退款订单数占有效订单数的百分比。
+
+  - code: aov
+    display_name: 客单价
+    unit: currency
+    kind: ratio
+    numerator: sum(sales_amount)
+    denominator: sum(order_count)
+    scale: 1
+    precision: 2
+    description: 销售金额 / 有效订单数，即 average order value。
+
+  - code: online_rate
+    display_name: 在线率
+    unit: percent
+    kind: ratio
+    numerator: sum(online_device_count)
+    denominator: sum(device_count)
+    scale: 100
+    precision: 2
+    description: 在线设备数占设备总数的百分比。
+
+  - code: inventory_diff_amount
+    display_name: 盘点差异金额
+    unit: currency
+    kind: sum
+    source_field: inventory_diff_amount
+    precision: 2
+    description: 盘点差异金额合计，正负均保留。
+
+# 环比 / 变化率：当前窗口 vs 基准窗口
+# baseline 优先取「前一等长窗口」，不可用时降级为「前一自然周」，并标记 baseline_fallback=true
+changes:
+  - code: sales_change_pct
+    based_on: sales_amount
+    unit: percent
+  - code: order_change_pct
+    based_on: order_count
+    unit: percent
+  - code: refund_rate_change_pct
+    based_on: refund_rate
+    unit: percent_point   # 比率型指标的变化用百分点，不是百分比，避免歧义
+  - code: aov_change_pct
+    based_on: aov
+    unit: percent
+  - code: online_rate_change_pct
+    based_on: online_rate
+    unit: percent_point
+
+# 聚合口径：周窗口定义为周一至周日，Demo 使用最近 7 个完整业务日
+windows:
+  current_default: 7d
+  baseline_default: prev_7d
+  min_days_for_result: 5      # 当前窗口有效天数少于 5 天 -> unavailable
+  min_days_for_comparison: 3  # 基准窗口有效天数少于 3 天 -> 不参与可比
