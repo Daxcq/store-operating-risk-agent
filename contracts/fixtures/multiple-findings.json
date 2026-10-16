@@ -1,0 +1,28 @@
+{
+  "summary": "发现多个经营发现，其中高风险发现需要优先核查退款订单。",
+  "findings": [
+    {
+      "id": "finding-multiple-001",
+      "deviceId": "device-A-001",
+      "severity": "high",
+      "title": "退款率高于同类设备",
+      "evidence": ["近 7 天退款率 7.0%，同类中位数 2.1%。"],
+      "recommendation": "抽查最近 20 笔退款订单并核对退款原因。"
+    },
+    {
+      "id": "finding-multiple-002",
+      "deviceId": "device-A-001",
+      "severity": "low",
+      "title": "订单数低于观察窗口基准",
+      "evidence": ["近 7 天订单数较前周期下降 31%。"],
+      "recommendation": "核对客流、营业时段和商品结构。"
+    }
+  ],
+  "regionComparison": [],
+  "recommendations": ["优先处理退款率异常，再复核订单数变化。"],
+  "toolCalls": [
+    { "toolName": "run_audit", "status": "success" },
+    { "toolName": "compare_regions", "status": "success" }
+  ],
+  "assumptions": ["同类设备数量不少于 3 台。"]
+}

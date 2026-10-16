@@ -1,0 +1,10 @@
+{
+  "summary": "当前经营数据未发现需要升级的异常。",
+  "findings": [],
+  "regionComparison": [],
+  "recommendations": [],
+  "toolCalls": [
+    { "toolName": "run_audit", "status": "success" }
+  ],
+  "assumptions": ["使用 demo_v1 模拟数据。"]
+}
