@@ -22,7 +22,7 @@
 - 日期使用 `YYYY-MM-DD`；本契约不要求时间戳。
 - 数组字段始终返回数组，不用 `null` 表示空数组。
 - 只有明确允许的字段返回 `null`；无法合理估算回本周期时，`estimatedPaybackMonths` 返回 `null`。
-- 当前版本不要求分页、鉴权和多租户字段；后续增加时不得改变本文件定义的业务字段含义。
+- 当前 Demo 不实现登录、鉴权和多租户隔离；生产版本通过认证上下文注入操作者、租户和区域权限，不由前端请求体自行声明身份。后续增加这些能力时不得改变本文件定义的业务字段含义。
 
 ### 2.2 统一错误
 
@@ -157,7 +157,18 @@ interface AuditFilters extends DashboardFilters {
 
 所有 filter 字段可省略。省略时使用 Demo 默认区域和默认观察窗口。`from` 与 `to` 必须同时提供，且 `from <= to`。
 
-### 4.2 DashboardMetrics
+### 4.2 `regionIds` 查询参数
+
+HTTP 查询参数使用逗号分隔的字符串，后端必须转换为函数所需的数组：
+
+```text
+regionIds=chaoyang,nanguan
+-> ['chaoyang', 'nanguan']
+```
+
+去除每个 ID 两侧空格；空字符串按未提供处理；重复 ID 去重并保持首次出现顺序。
+
+### 4.3 DashboardMetrics
 
 Dashboard 指标键已冻结，B 不得临时增加或改名：
 
@@ -348,7 +359,7 @@ Content-Type: application/json
 
 ## 7. Fixture 约定
 
-共享最小 fixture 位于 `contracts/fixtures/`，用于 A 的 Mock API、B 的规则测试和 C 的接口联调：
+共享最小 fixture 位于 `contracts/fixtures/`，用于 A 的 Mock API、B 的规则测试和 C 的接口联调。前四个文件是 `AgentResponse` fixture；最后两个文件是 `TaskVerificationFixture` 场景文件，不是 HTTP 响应：
 
 | 文件 | 目标场景 |
 |---|---|
@@ -356,8 +367,8 @@ Content-Type: application/json
 | `single-finding.json` | 单条中风险发现 |
 | `multiple-findings.json` | 多条发现，含高/低严重级别 |
 | `insufficient-data.json` | 数据不足，无法给出确定结论 |
-| `improved-task.json` | 复核达标，可关闭任务 |
-| `unresolved-task.json` | 复核未达标，需要升级 |
+| `improved-task.json` | `TaskVerificationFixture`：复核达标，可关闭任务 |
+| `unresolved-task.json` | `TaskVerificationFixture`：复核未达标，需要升级 |
 
 Fixture 只能使用共享类型中的字段和枚举；修改 fixture 预期时必须同步测试说明。
 

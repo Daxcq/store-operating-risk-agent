@@ -62,6 +62,16 @@ export interface AgentResponse {
   assumptions: string[]
 }
 
+export type TaskVerificationStatus = 'closed' | 'escalated'
+
+export interface TaskVerificationFixture {
+  scenario: 'improved-task' | 'unresolved-task'
+  status: TaskVerificationStatus
+  verifyMetric: string
+  targetMet: boolean
+  expectedAction: string
+}
+
 export interface ApiErrorBody {
   error: {
     code: string
