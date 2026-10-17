@@ -53,6 +53,7 @@ async function plannerNode(state) {
     },
     state.messages,
     state.memoryContext,
+    { engineMode: state.engineMode },
   )
 
   const nextKvStats = [...(state.kvCacheStats || [])]
@@ -121,7 +122,7 @@ async function evidenceVerifierNode(state) {
  * Node 5A: 正常模式受控总结节点 (Synthesize - 支持第三方 LLM + KV Cache 复用)
  */
 async function normalSynthesizerNode(state) {
-  const synth = await synthesizeWithThirdPartyLLMOrFallback(state)
+  const synth = await synthesizeWithThirdPartyLLMOrFallback(state, { engineMode: state.engineMode })
   const nextKvStats = [...(state.kvCacheStats || [])]
   if (synth.cacheMetrics) {
     nextKvStats.push({ stage: 'synthesizer', ...synth.cacheMetrics })
@@ -136,6 +137,9 @@ async function normalSynthesizerNode(state) {
   return {
     draftSummary: synth.draftSummary,
     draftRecommendations: synth.draftRecommendations,
+    draftThinkingSteps: synth.draftThinkingSteps || [],
+    draftStructuredBlocks: synth.draftStructuredBlocks || null,
+    draftDecisionProposal: synth.draftDecisionProposal || null,
     messages: synth.messages || state.messages,
     kvCacheStats: nextKvStats,
     phase: PLAN_EXECUTE_PHASES.SYNTHESIZED,
@@ -175,6 +179,12 @@ async function outputGuardNode(state) {
     fallbackSummary: fallback.draftSummary,
     fallbackRecommendations: fallback.draftRecommendations,
     dashboardMetrics: state.dashboardMetrics,
+    thinkingSteps: state.draftThinkingSteps,
+    structuredBlocks: state.draftStructuredBlocks,
+    decisionProposal: state.draftDecisionProposal,
+    fallbackThinkingSteps: fallback.draftThinkingSteps,
+    fallbackStructuredBlocks: fallback.draftStructuredBlocks,
+    fallbackDecisionProposal: fallback.draftDecisionProposal,
   })
 
   if (state.sessionId) {
@@ -259,6 +269,7 @@ export async function runAgent(request, options = {}) {
       traceId,
       sessionId,
       request,
+      engineMode: options.engineMode || 'quick',
       messages: priorMemory.messages,
       memoryContext: priorMemory.memoryContext,
       // 重置当轮瞬态执行槽位，避免上一轮 findings 混入当轮响应
@@ -299,6 +310,7 @@ export async function runAgentWithDiagnostics(request, options = {}) {
       traceId,
       sessionId,
       request,
+      engineMode: options.engineMode || 'auto',
       messages: priorMemory.messages,
       memoryContext: priorMemory.memoryContext,
       toolCalls: [],
@@ -361,6 +373,7 @@ export function createAgentSession(customSessionId = null) {
           traceId,
           sessionId,
           request,
+          engineMode: 'auto',
           messages: baseMessages,
           memoryContext: baseMemoryContext,
           toolCalls: [],

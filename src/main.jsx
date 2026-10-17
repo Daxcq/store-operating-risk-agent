@@ -1,277 +1,3 @@
-<<<<<<< HEAD
-/**
- * 应用外壳。
- *
- * 职责只有四件，全部围绕一个原则：**数据层的失败必须在界面上可见**。
- *
- *   1. 载入两份 CSV，失败就把原因和下一步操作直接印在页面上（不显示空图表）
- *   2. 全店审计扫描一次，五个页面共用同一批 trace_id（详见 datasets.js）
- *   3. 五页切换 + 一个全局证据抽屉
- *   4. 页面外壳的「口径条」：窗口、数据版本、门店数、加载状态
- *
- * 为什么外壳不放业务状态：五个页面各有各的筛选，任何共享状态都会让
- * 「驾驶舱选了 C1，切到审计中心发现还在 C1」这类误会发生。共享的只有
- * 数据集、扫描结果、当前选中门店这三样 —— 它们确实需要跨页一致。
- */
-
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { createRoot } from "react-dom/client";
-import {
-  LayoutDashboard,
-  ShieldAlert,
-  Radar,
-  Bot,
-  ListChecks,
-  Database,
-  Loader2,
-  PackageX,
-} from "lucide-react";
-
-import { loadDataset, sweepPortfolio } from "./data/datasets";
-import { EvidenceDrawer, windowLabel } from "./ui/primitives";
-import DashboardPage from "./pages/Dashboard";
-import AuditPage from "./pages/Audit";
-import RegionsPage from "./pages/Regions";
-import WorkbenchPage from "./pages/Workbench";
-import ActionsPage from "./pages/Actions";
-import "./styles.css";
-
-const PAGES = [
-  {
-    key: "dashboard",
-    name: "经营驾驶舱",
-    icon: LayoutDashboard,
-    lead: "21 家店现在什么样，先看哪儿",
-    blurb: "规模指标 · 日序列 · 判定格阵",
-  },
-  {
-    key: "audit",
-    name: "智能审计中心",
-    icon: ShieldAlert,
-    lead: "判定凭什么成立",
-    blurb: "条件逐条 · 可比门店 · 证据链",
-  },
-  {
-    key: "regions",
-    name: "区域投放决策",
-    icon: Radar,
-    lead: "往哪儿投，比一比",
-    blurb: "星图总览 · 分项拆解 · 区域比对",
-  },
-  {
-    key: "workbench",
-    name: "Agent 决策工作台",
-    icon: Bot,
-    lead: "把一次决策摊开看",
-    blurb: "工具调用 · 计算时间线 · 口径自检",
-  },
-  {
-    key: "actions",
-    name: "经营行动中心",
-    icon: ListChecks,
-    lead: "结论变成待办",
-    blurb: "按严重度排序 · 推进状态",
-  },
-];
-
-function App() {
-  const [boot, setBoot] = useState({ phase: "loading" });
-  const [page, setPage] = useState("dashboard");
-  const [sweep, setSweep] = useState(null);
-  const [sweepError, setSweepError] = useState(null);
-  const [selectedStore, setSelectedStore] = useState(null);
-  const [drawer, setDrawer] = useState(null);
-
-  // --- 载入并扫描 ---
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      const ds = await loadDataset();
-      if (!alive) return;
-      if (!ds.ok) {
-        setBoot({ phase: "no-data", reason: ds.reason, detail: ds.detail });
-        return;
-      }
-      setBoot({ phase: "sweeping", dataset: ds });
-      try {
-        const results = await sweepPortfolio(ds.dl, ds.stores);
-        if (!alive) return;
-        setSweep(results);
-        setBoot({ phase: "ready", dataset: ds });
-      } catch (error) {
-        if (!alive) return;
-        setSweepError(`全店审计扫描失败：${error?.message ?? error}`);
-        setBoot({ phase: "ready", dataset: ds });
-        setSweep([]);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const openEvidence = useCallback((payload) => setDrawer(payload), []);
-
-  const dataset = boot.dataset ?? null;
-  const active = PAGES.find((p) => p.key === page) ?? PAGES[0];
-
-  const pageProps = useMemo(
-    () => ({
-      dataset,
-      sweep,
-      window: dataset?.window,
-      selectedStore,
-      onSelectStore: (id) => {
-        setSelectedStore(id);
-        if (page !== "audit") setPage("audit");
-      },
-      onEvidence: openEvidence,
-    }),
-    [dataset, sweep, selectedStore, page, openEvidence],
-  );
-
-  // ------------------------------------------------------------------ 无数据
-  if (boot.phase === "no-data") {
-    return (
-      <div className="boot-screen">
-        <div className="boot-card">
-          <PackageX size={26} />
-          <h1>数据文件还没有生成</h1>
-          <p className="boot-lead">
-            这个前端不含任何写死的数字。五个页面全部由 <code>data/</code> 下的两份 CSV 驱动，
-            文件不在，就没有可显示的内容 —— 这是刻意的，防止演示时把假的当成真的。
-          </p>
-          <pre className="boot-cmd">python data/_generate.py</pre>
-          <p className="boot-detail">{boot.detail}</p>
-          <ul className="boot-steps">
-            <li>
-              在仓库根目录运行上面这条命令，会按固定随机种子生成 21 店 × 42 天的
-              <code> store_operations_daily.csv</code>。
-            </li>
-            <li>
-              再确认 <code>data/region_cost_input.csv</code> 存在（这个文件是提交进仓库的，不需要生成）。
-            </li>
-            <li>刷新本页即可。生成器是确定性的，同一份脚本跑出来的异常门店永远是 S001 与 S005。</li>
-          </ul>
-        </div>
-      </div>
-    );
-  }
-
-  const loading = boot.phase === "loading" || boot.phase === "sweeping";
-
-  return (
-    <div className="app">
-      {/* -------- 左侧图标栏 -------- */}
-      <nav className="rail" aria-label="主导航">
-        <div className="rail-mark" title="莱森购 · 经营风险侦察">
-          莱
-        </div>
-        {PAGES.map((p) => {
-          const Icon = p.icon;
-          return (
-            <button
-              key={p.key}
-              className={`rail-btn ${page === p.key ? "is-on" : ""}`}
-              onClick={() => setPage(p.key)}
-              aria-current={page === p.key ? "page" : undefined}
-              title={p.name}
-            >
-              <Icon size={19} />
-              <span className="rail-tip">{p.name}</span>
-            </button>
-          );
-        })}
-        <div className="rail-foot" title="数据来源">
-          <Database size={16} />
-        </div>
-      </nav>
-
-      {/* -------- 主体 -------- */}
-      <div className="main">
-        <header className="topbar">
-          <div className="topbar-title">
-            <h1>{active.name}</h1>
-            <p>{active.lead}</p>
-          </div>
-
-          <div className="topbar-meta">
-            <MetaItem label="窗口" value={windowLabel(dataset?.window)} />
-            <MetaItem label="数据版本" value="demo_v1" mono />
-            <MetaItem label="门店" value={dataset ? `${dataset.stores.length} 家` : "—"} />
-            <MetaItem
-              label="扫描"
-              value={
-                boot.phase === "sweeping" ? (
-                  <span className="inline-busy">
-                    <Loader2 size={12} className="spin" />
-                    进行中
-                  </span>
-                ) : sweep ? (
-                  `${sweep.filter((s) => s.evaluation?.verdict === "possible").length} 疑似 / ${sweep.length} 已审`
-                ) : (
-                  "—"
-                )
-              }
-            />
-          </div>
-        </header>
-
-        {sweepError ? <div className="banner is-error">{sweepError}</div> : null}
-
-        <main className="content">
-          {loading && page !== "regions" ? (
-            <div className="boot-inline">
-              <Loader2 size={16} className="spin" />
-              <span>
-                正在载入 {dataset?.rowCount?.toLocaleString("zh-CN") ?? ""} 行门店日数据并逐店审计…
-              </span>
-            </div>
-          ) : null}
-
-          {page === "dashboard" ? <DashboardPage {...pageProps} /> : null}
-          {page === "audit" ? <AuditPage {...pageProps} /> : null}
-          {page === "regions" ? <RegionsPage {...pageProps} /> : null}
-          {page === "workbench" ? <WorkbenchPage {...pageProps} /> : null}
-          {page === "actions" ? <ActionsPage {...pageProps} /> : null}
-        </main>
-
-        <footer className="footbar">
-          <span>
-            {active.blurb} · 数据 {dataset?.opsPath ?? "—"}（{dataset?.rowCount?.toLocaleString("zh-CN") ?? 0} 行）
-            + {dataset?.costPath ?? "—"}
-          </span>
-          <span className="footbar-right">
-            每个数字都可沿 evidence_id → trace_id 回放到所属计算 · 估值口径为假设，非观测值
-          </span>
-        </footer>
-      </div>
-
-      <EvidenceDrawer
-        open={Boolean(drawer)}
-        onClose={() => setDrawer(null)}
-        title={drawer?.title ?? ""}
-        traceId={drawer?.traceId}
-        dataVersion={drawer?.dataVersion}
-        events={drawer?.events}
-        evidenceIds={drawer?.evidenceIds}
-        warnings={drawer?.warnings}
-      />
-    </div>
-  );
-}
-
-function MetaItem({ label, value, mono = false }) {
-  return (
-    <div className="meta-item">
-      <span>{label}</span>
-      <strong className={mono ? "is-mono" : ""}>{value}</strong>
-    </div>
-  );
-}
-
-createRoot(document.getElementById("root")).render(<App />);
-=======
 import React, { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MapContainer, TileLayer, CircleMarker, Popup, GeoJSON, Polyline, Marker, useMap } from 'react-leaflet'
@@ -313,6 +39,7 @@ import './styles.css'
 import changchunGeo from './data/changchun_geo.json'
 import { AgentWorkbench } from './AgentWorkbench.jsx'
 import { AgentLoopPanel } from './AgentLoopPanel.jsx'
+import { AgentStructuredOutput, AgentLiveThinkingState } from './AgentStructuredOutput.jsx'
 
 const DISTRICT_PEER_SERIES = {
   chaoyang: [346246, 342926, 344797, 345014, 342520, 347223],
@@ -322,8 +49,17 @@ const DISTRICT_PEER_SERIES = {
   luyuan: [274808, 272688, 270639, 271125, 271748, 272413],
 }
 
+const NAME_TO_REGION_ID = {
+  朝阳区: 'chaoyang',
+  南关区: 'nanguan',
+  宽城区: 'kuancheng',
+  二道区: 'erdao',
+  绿园区: 'luyuan',
+}
+
 const DISTRICT_META = {
-  朝阳区: {
+  chaoyang: {
+    name: '朝阳区',
     regionId: 'chaoyang',
     color: '#c74743',
     fillColor: '#e05a54',
@@ -331,7 +67,8 @@ const DISTRICT_META = {
     tag: '存量抢修优先 · 商圈高密',
     shortDesc: '契约评分 86.5 · 实测月租+人力 ¥21.4万 · 含 A店/S001 异常与 S004 缺失保护',
   },
-  南关区: {
+  nanguan: {
+    name: '南关区',
     regionId: 'nanguan',
     color: '#bd7b13',
     fillColor: '#d99326',
@@ -339,7 +76,8 @@ const DISTRICT_META = {
     tag: '基线补齐与调优 · 办公核心',
     shortDesc: '契约评分 71.0 (回本周期 null 保护) · 含 B店/S005 单指标退款波动',
   },
-  宽城区: {
+  kuancheng: {
+    name: '宽城区',
     regionId: 'kuancheng',
     color: '#2563eb',
     fillColor: '#3b82f6',
@@ -347,7 +85,8 @@ const DISTRICT_META = {
     tag: '紧凑档扩店 #2 · 5.3月回本',
     shortDesc: '全区 CSV 门店均为 compact 紧凑档 · 月租+人力仅 ¥11.5万 · 枢纽客流稳',
   },
-  二道区: {
+  erdao: {
+    name: '二道区',
     regionId: 'erdao',
     color: '#1b6ca8',
     fillColor: '#2980b9',
@@ -355,7 +94,8 @@ const DISTRICT_META = {
     tag: '标准档扩店 #1 · CSV得分第一',
     shortDesc: 'CSV 四维综合分 45.54 全城第一 · 单店月净现金流 ¥25.0万 · 5.7月回本',
   },
-  绿园区: {
+  luyuan: {
+    name: '绿园区',
     regionId: 'luyuan',
     color: '#258b68',
     fillColor: '#2ea87e',
@@ -1192,8 +932,67 @@ function App() {
       role: 'assistant',
       at: '10:30',
       summary:
-        '您好！我是莱森云值守经营 Copilot。当前已同步长春市五区（朝阳/南关/宽城/二道/绿园）共 26 家门店（5 家标杆店 + 21 家 CSV 实测店）的 42 天流水与防损数据。您可以随时向我提问或直接派发核查任务。',
-      toolCalls: ['audit_operations', 'score_regions'],
+        '您好！我是莱森云值守经营 Copilot。当前已同步长春市五区（朝阳/南关/宽城/二道/绿园）共 26 家门店（5 家标杆店 + 21 家实测店）近 42 天流水与防损数据。您可以用自然语言自由提问任何经营、归因或选址问题。',
+      thinkingSteps: [
+        {
+          phase: 'thinking',
+          title: '思考环节 · 初始化全城五区经营监测上下文',
+          detail: '锁定长春市五区 26 家无人零售网点与云值守终端监控范围，准备响应自由问数与诊断诉求。',
+          status: 'done',
+          durationMs: 35,
+        },
+        {
+          phase: 'query',
+          title: '数据查询 · 同步近 42 天门店流水与同城可比基线',
+          detail: '已完成全城周度销售额、退款率、云值守盘点差异及五区选址四维指标同步。',
+          status: 'done',
+          durationMs: 92,
+        },
+        {
+          phase: 'retry',
+          title: '执行状态与重试校验 · 数据完整性核验与缺失保护',
+          detail: '检测到 S004/E 店部分周期核心退款流水缺失，已自动启用防编造熔断保护，杜绝虚假归因。',
+          status: 'retried',
+          durationMs: 48,
+        },
+        {
+          phase: 'analysis',
+          title: '分析步骤 · 生成高风险门店预警与区域投放优先级',
+          detail: '定位朝阳旗舰店与 S001 店为多指标共振高优异常，同时完成五区投资回本周期排序。',
+          status: 'done',
+          durationMs: 74,
+        },
+      ],
+      structuredBlocks: {
+        questionFocus: '全城 26 店经营体检与区域投放全景速览',
+        directAnswer:
+          '当前全城近 7 天总销售额 ¥1,001,220，云值守终端在线率 95.2%。其中朝阳旗舰店（A店）与 S001 店出现销售额下滑、退款率偏高及盘点差异三项共振异常；增量开店方面，朝阳区综合评分 86.5 分居首（预计 8.4 个月回本），南关区因缺少投资额基线已触发回本周期暂缓估算保护。',
+        keyMetrics: [
+          { label: '全城周总销售额', value: '¥1,001,220', trend: 'neutral' },
+          { label: '高优异常门店', value: 'A店 / S001店', trend: 'negative' },
+          { label: '缺失保护门店', value: 'S004 / E店', trend: 'warning' },
+          { label: '首选投放区域', value: '朝阳区 (86.5分)', trend: 'positive' },
+        ],
+        diagnosisItems: [],
+        comparisonRows: [],
+      },
+      decisionProposal: {
+        proposalType: 'store_rectification_plan',
+        title: '高优异常门店（朝阳旗舰店 / S001）专项防损核查方案',
+        targetLabel: '朝阳旗舰店 (A店)',
+        decisionBasis: [
+          '近 7 天销售额环比下滑 24%，退款率升至 7.0%（高于同区同行中位数 2.1% 达 4.9 个百分点）',
+          '订单数变动贡献度达 -78%，云值守夜间货柜盘点差异达 -¥1,200',
+        ],
+        analysis:
+          '通过双因子拆解确认销售额下滑并非客单价波动所致，而是夜间订单流失与异常退款集中爆发引起，需优先排查夜间视觉防损告警录像与 02 号冷柜锁控状态。',
+        expectedImpact:
+          '预计 24 小时内修复异常锁控并拦截重复退款后，门店退款率可回落至 4.1% 安全线以内，周销售额预计挽回约 ¥18,000。',
+        ownerRole: '区域经理 · 张伟',
+        dueHours: 24,
+        primaryActionLabel: '批准并派发整改任务',
+        secondaryActionLabel: '暂缓执行',
+      },
       evidence: ['A店/S001 命中3项异常规则', 'S004/E店 触发缺失保护', '朝阳区选址评分 Top 1'],
       recommendations: ['抽查朝阳店近 20 笔异常退款单并调取云值守夜间录像'],
     },
@@ -1230,6 +1029,12 @@ function App() {
     if (!q) return
     if (!fromCopilot) setAgentInput(q)
     setAgentLoading(true)
+
+    // 当用户使用“这家店 / 当前门店 / 本店”等指代词时，自动绑定当前选中的门店上下文
+    const contextualQuery = /(这家门店|这家店|当前门店|当前店|本店)/.test(q)
+      ? q.replace(/(这家门店|这家店|当前门店|当前店|本店)/g, `${selected?.id || 'A'}店（${selected?.name || '朝阳旗舰店'}）`)
+      : q
+
     setCopilotMessages((prev) => [
       ...prev,
       {
@@ -1244,7 +1049,8 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: q,
+          query: contextualQuery,
+          sessionId: 'workspace_copilot_session',
           context: {
             regionId: selected?.regionId || 'chaoyang',
             storeId: selected?.id || 'A',
@@ -1258,8 +1064,13 @@ function App() {
         {
           role: 'assistant',
           at: new Date().toTimeString().slice(0, 5),
-          summary: data.summary || '已完成确定性工具链审计。',
-          toolCalls: (data.toolCalls || []).map((tc) => tc.tool || tc),
+          summary: data.summary || '已完成业务数据核验与归因分析。',
+          thinkingSteps: data.thinkingSteps || [],
+          structuredBlocks: data.structuredBlocks || null,
+          decisionProposal: data.decisionProposal || null,
+          findings: data.findings || [],
+          regionComparison: data.regionComparison || [],
+          assumptions: data.assumptions || [],
           evidence: data.evidence || [],
           recommendations: data.recommendations || [],
         },
@@ -1268,7 +1079,22 @@ function App() {
       const fallbackMsg = `请求失败：${err?.message || '网络异常'}`
       setAgentResult({
         summary: fallbackMsg,
-        toolCalls: [],
+        thinkingSteps: [
+          {
+            phase: 'retry',
+            title: '执行状态与失败重试 · 网络通信异常拦截',
+            detail: `服务端连接暂时不可用（${err?.message || '网络异常'}），已启动本地防幻觉保护，不生成未经证实的结论。`,
+            status: 'degraded',
+            durationMs: 120,
+          },
+        ],
+        structuredBlocks: {
+          questionFocus: q,
+          directAnswer: fallbackMsg,
+          keyMetrics: [],
+          diagnosisItems: [],
+          comparisonRows: [],
+        },
         evidence: [],
         recommendations: [],
       })
@@ -1278,13 +1104,52 @@ function App() {
           role: 'assistant',
           at: new Date().toTimeString().slice(0, 5),
           summary: fallbackMsg,
-          toolCalls: [],
+          thinkingSteps: [
+            {
+              phase: 'retry',
+              title: '执行状态与失败重试 · 网络通信异常拦截',
+              detail: `服务端连接暂时不可用（${err?.message || '网络异常'}），已启动本地防幻觉保护。`,
+              status: 'degraded',
+              durationMs: 120,
+            },
+          ],
           evidence: [],
           recommendations: [],
         },
       ])
     } finally {
       setAgentLoading(false)
+    }
+  }
+
+  function handleApproveDecisionProposal(proposal, responseObj) {
+    if (!proposal) return
+    if (proposal.proposalType === 'region_investment_plan') {
+      triggerTaskAction('create_from_agent', {
+        customTask: {
+          storeId: selected?.id || 'A',
+          storeName: `${proposal.targetLabel || '首选区域'} · 新店筹建组`,
+          regionName: proposal.targetLabel || selected?.district || '朝阳区',
+          problem: `${proposal.title}：${(proposal.decisionBasis || [])[0] || '依据四维选址评分模型推进落位'}`,
+          action: `采纳区域投放方案并启动点位勘测与物业排期（预期：${proposal.expectedImpact || '按测算周期回本'}）`,
+          ownerRole: proposal.ownerRole || '城市拓展总监 · 赵鹏',
+        },
+      })
+      showToast(`已确认采纳「${proposal.title}」，并同步生成拓展执行工单`)
+    } else {
+      triggerTaskAction('create_from_agent', {
+        customTask: {
+          storeId: selected?.id || 'A',
+          storeName: proposal.targetLabel || selected?.name || '朝阳旗舰店',
+          regionName: selected?.district || '朝阳区',
+          problem: (proposal.decisionBasis || [])[0] || responseObj?.summary?.slice(0, 88) || '门店多项经营与防损指标偏离同行基线',
+          action:
+            responseObj?.recommendations?.[0] ||
+            proposal.analysis ||
+            '抽查异常退款订单并调取云值守夜间录像核对原因',
+          ownerRole: proposal.ownerRole || '区域经理 · 张伟',
+        },
+      })
     }
   }
 
@@ -1760,8 +1625,8 @@ function App() {
               <div className="ai-quick-bar">
                 <div className="ai-quick-top">
                   <div className="ai-quick-brand">
-                    <span className="wb-badge ok">AGENT / 确定性工具链</span>
-                    <strong>自然语言经营问数与诊断</strong>
+                    <span className="wb-badge ok">AGENT / 经营智能顾问</span>
+                    <strong>自由提问 · 经营归因与投放决策工作台</strong>
                   </div>
                   <div className="ai-quick-chips">
                     {QUICK_PROMPTS.map((item) => (
@@ -1779,67 +1644,36 @@ function App() {
                 <div className="ai-quick-input-row">
                   <input
                     className="ai-quick-input"
-                    placeholder="输入经营问题（如：为什么朝阳店销售额下滑？长春哪个区适合新开无人店？对比 S001 和 S004）"
+                    placeholder="自由输入任何经营问题（如：为什么朝阳店最近销售额下滑？如果去长春开新店选哪个区？对比 S001 和 S004）"
                     value={agentInput}
                     onChange={(e) => setAgentInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && runQuickAgent()}
                   />
                   <button className="primary-button" onClick={() => runQuickAgent()} disabled={agentLoading}>
-                    {agentLoading ? 'Agent 诊断中...' : '发送诊断'}
+                    {agentLoading ? '思考与分析中...' : '发送提问'}
                   </button>
-                  {agentResult && (
+                  {agentResult && !agentLoading && (
                     <button className="secondary-button" onClick={() => setAgentResult(null)}>
-                      收起结论
+                      收起结论面板
                     </button>
                   )}
                 </div>
 
-                {agentResult && (
-                  <div className="ai-quick-result">
-                    <div className="ai-result-main">
-                      <div className="ai-result-meta">
-                        <span className="wb-badge info">
-                          调用工具：
-                          {agentResult.toolCalls?.map((tc) => tc.tool || tc).join(' → ') || '无工具调用'}
-                        </span>
-                        <span className="wb-mono">数字零编造 · 100% 来自确定性服务层</span>
-                      </div>
-                      <p className="ai-result-summary">{agentResult.summary}</p>
-                      {agentResult.evidence?.length > 0 && (
-                        <div className="ai-evidence-pills">
-                          {agentResult.evidence.map((ev, idx) => (
-                            <span key={idx} className="ai-ev-pill">
-                              {ev}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="ai-result-actions">
-                      <button
-                        className="primary-button"
-                        disabled={actionBusy}
-                        onClick={() =>
-                          triggerTaskAction('create_from_agent', {
-                            customTask: {
-                              storeId: selected?.id || 'A',
-                              storeName: selected?.name || '朝阳旗舰店',
-                              regionName: selected?.district || '朝阳区',
-                              problem: agentResult.summary?.slice(0, 88),
-                              action:
-                                agentResult.recommendations?.[0] ||
-                                '抽查近 20 笔异常退款单并调取云值守夜间录像',
-                              ownerRole: '区域经理 · 张伟',
-                            },
-                          })
-                        }
-                      >
-                        一键转派为行动任务 <ChevronRight size={15} />
-                      </button>
-                      <button className="outline-button" onClick={() => setView('tasks')}>
-                        前往行动中心
-                      </button>
-                    </div>
+                {agentLoading && (
+                  <div className="ai-quick-structured-wrap">
+                    <AgentLiveThinkingState query={agentInput} />
+                  </div>
+                )}
+
+                {agentResult && !agentLoading && (
+                  <div className="ai-quick-structured-wrap">
+                    <AgentStructuredOutput
+                      response={agentResult}
+                      compact={false}
+                      actionBusy={actionBusy}
+                      onApproveDecision={handleApproveDecisionProposal}
+                      onNavigateTasks={() => setView('tasks')}
+                    />
                   </div>
                 )}
               </div>
@@ -2342,19 +2176,10 @@ function App() {
         selectedStore={selected}
         messages={copilotMessages}
         loading={agentLoading}
+        actionBusy={actionBusy}
         onSend={(q) => runQuickAgent(q, true)}
-        onCreateTask={(msg) =>
-          triggerTaskAction('create_from_agent', {
-            customTask: {
-              storeId: selected?.id || 'A',
-              storeName: selected?.name || '朝阳旗舰店',
-              regionName: selected?.district || '朝阳区',
-              problem: msg.summary?.slice(0, 88),
-              action: msg.recommendations?.[0] || '抽查异常退款订单并核对云值守夜间录像',
-              ownerRole: '区域经理 · 张伟',
-            },
-          })
-        }
+        onApproveDecision={handleApproveDecisionProposal}
+        onNavigateTasks={() => setView('tasks')}
       />
 
       {caseOpen && (
@@ -3386,8 +3211,10 @@ function FloatingAgentCopilot({
   selectedStore,
   messages = [],
   loading = false,
+  actionBusy = false,
   onSend,
-  onCreateTask,
+  onApproveDecision,
+  onNavigateTasks,
 }) {
   const [draft, setDraft] = useState('')
 
@@ -3423,7 +3250,7 @@ function FloatingAgentCopilot({
             <Sparkles size={15} />
           </div>
           <div>
-            <strong>莱森经营 Copilot · 随航助手</strong>
+            <strong>莱森经营 Copilot · 随航决策顾问</strong>
             <span>
               当前上下文：{selectedStore?.id} {selectedStore?.name} ({selectedStore?.district})
             </span>
@@ -3432,7 +3259,7 @@ function FloatingAgentCopilot({
         <div className="copilot-window-controls">
           <button
             className="copilot-ctrl-btn"
-            title={size === 'expanded' ? '恢复标准窗口' : '放大为宽屏窗口'}
+            title={size === 'expanded' ? '恢复标准窗口' : '放大为宽屏决策视图'}
             onClick={() => onChangeSize(size === 'expanded' ? 'normal' : 'expanded')}
           >
             {size === 'expanded' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -3459,35 +3286,20 @@ function FloatingAgentCopilot({
         {messages.map((msg, idx) => (
           <div key={idx} className={`copilot-msg ${msg.role}`}>
             <div className="copilot-msg-meta">
-              <strong>{msg.role === 'user' ? '运营总监 (You)' : 'Laisen Agent · 确定性内核'}</strong>
+              <strong>{msg.role === 'user' ? '运营总监 (You)' : '莱森经营智能顾问'}</strong>
               <span>{msg.at}</span>
             </div>
             {msg.role === 'user' ? (
               <p className="copilot-user-text">{msg.text}</p>
             ) : (
               <div className="copilot-assistant-body">
-                {msg.toolCalls && msg.toolCalls.length > 0 && (
-                  <div className="copilot-tools-row">
-                    <span className="wb-badge info">工具链：{msg.toolCalls.join(' → ')}</span>
-                  </div>
-                )}
-                <p>{msg.summary}</p>
-                {msg.evidence && msg.evidence.length > 0 && (
-                  <div className="copilot-ev-list">
-                    {msg.evidence.slice(0, 3).map((ev, i) => (
-                      <span key={i} className="copilot-ev-tag">
-                        {ev}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {idx > 0 && onCreateTask && (
-                  <div className="copilot-msg-foot">
-                    <button className="copilot-task-btn" onClick={() => onCreateTask(msg)}>
-                      <ClipboardCheck size={13} /> 一键转派为区域核查任务
-                    </button>
-                  </div>
-                )}
+                <AgentStructuredOutput
+                  response={msg}
+                  compact={size !== 'expanded'}
+                  actionBusy={actionBusy}
+                  onApproveDecision={onApproveDecision}
+                  onNavigateTasks={onNavigateTasks}
+                />
               </div>
             )}
           </div>
@@ -3495,17 +3307,17 @@ function FloatingAgentCopilot({
         {loading && (
           <div className="copilot-msg assistant">
             <div className="copilot-msg-meta">
-              <strong>Laisen Agent</strong>
-              <span>执行中...</span>
+              <strong>莱森经营智能顾问</strong>
+              <span>正在分析...</span>
             </div>
-            <p className="copilot-thinking">正在调用确定性工具链 (audit_operations / score_regions) 校验契约证据...</p>
+            <AgentLiveThinkingState query={draft} compact={true} />
           </div>
         )}
       </div>
 
       <footer className="copilot-footer">
         <input
-          placeholder={`针对 ${selectedStore?.id} 店或长春五区提问...`}
+          placeholder={`自由输入经营问题（如：这家店为什么退款高？去哪个区开店回本最快？）`}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -3520,4 +3332,3 @@ function FloatingAgentCopilot({
 
 createRoot(document.getElementById('root')).render(<App />)
 
->>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)

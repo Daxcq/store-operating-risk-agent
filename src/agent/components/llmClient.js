@@ -18,7 +18,7 @@ import {
   verifyStaticPrefixIntegrity,
 } from './contextBuilder.js'
 import { parseIntentAndPlanTools } from './intentParser.js'
-import { synthesizeNormalResponse } from './synthesizer.js'
+import { synthesizeNormalResponse, scrubInternalToolNames } from './synthesizer.js'
 import { enforceToolPlanContract } from '../safety.js'
 
 /**
@@ -64,7 +64,7 @@ let runtimeLLMConfig = {
     process.env.LLM_BASE_URL || 'https://platform.stepfun.com/step-plan',
   ),
   model: normalizeModelName(process.env.LLM_MODEL || 'stepfun5 preview'),
-  timeoutMs: Number(process.env.LLM_TIMEOUT_MS) || 45000,
+  timeoutMs: Number(process.env.LLM_TIMEOUT_MS) || 3000,
   customFetch: null, // 支持测试注入 Mock Fetch 验证多轮 KV Cache 命中
 }
 
@@ -101,7 +101,7 @@ export function getLLMConfig() {
     model: normalizeModelName(
       runtimeLLMConfig.model || process.env.LLM_MODEL || 'stepfun5 preview',
     ),
-    timeoutMs: runtimeLLMConfig.timeoutMs || 45000,
+    timeoutMs: runtimeLLMConfig.timeoutMs || 3000,
     customFetch: runtimeLLMConfig.customFetch,
   }
 }
@@ -224,12 +224,13 @@ export async function planWithThirdPartyLLMOrFallback(
   runtimeMeta = {},
   existingMessages = null,
   memoryContext = null,
+  options = {},
 ) {
   const initialMessages = initOrAppendSessionMessages(query, runtimeMeta, existingMessages)
   const deterministicPlan = parseIntentAndPlanTools(query, memoryContext)
 
   // 如果是显式探测数据不足场景，或未配置第三方 API Key，走确定性规则但保持标准 messages 结构
-  if (deterministicPlan.intent.forceInsufficient || !isLLMConfigured()) {
+  if (options.engineMode === 'deterministic' || options.engineMode === 'quick' || deterministicPlan.intent.forceInsufficient || !isLLMConfigured()) {
     const plannedWithIds = deterministicPlan.plannedTools.map((t, idx) => ({
       id: `call_plan_${initialMessages.length}_${idx + 1}`,
       toolName: t.toolName,
@@ -292,9 +293,9 @@ export async function planWithThirdPartyLLMOrFallback(
 /**
  * 第三阶段（Synthesize）：基于末尾追加的 tool 结果，调用第三方 LLM 生成总结与建议（失败或幻觉时自动回退）
  */
-export async function synthesizeWithThirdPartyLLMOrFallback(state) {
+export async function synthesizeWithThirdPartyLLMOrFallback(state, options = {}) {
   const deterministicSynth = synthesizeNormalResponse(state)
-  if (!isLLMConfigured() || !Array.isArray(state.messages) || state.messages.length === 0) {
+  if (options.engineMode === 'deterministic' || options.engineMode === 'quick' || !isLLMConfigured() || !Array.isArray(state.messages) || state.messages.length === 0) {
     return {
       ...deterministicSynth,
       cacheMetrics: null,
@@ -316,11 +317,79 @@ export async function synthesizeWithThirdPartyLLMOrFallback(state) {
         const parsed = JSON.parse(jsonMatch[0])
         if (typeof parsed.summary === 'string' && parsed.summary.trim().length > 0) {
           const completedMessages = appendAssistantTextMessage(state.messages, rawText)
+          const cleanSummary = scrubInternalToolNames(parsed.summary.trim())
+          const cleanRecs = Array.isArray(parsed.recommendations)
+            ? parsed.recommendations.map(scrubInternalToolNames).filter(Boolean)
+            : deterministicSynth.draftRecommendations
+
+          const mergedThinkingSteps =
+            Array.isArray(parsed.thinkingSteps) && parsed.thinkingSteps.length >= 2
+              ? parsed.thinkingSteps.map((step) => ({
+                  phase: ['thinking', 'query', 'analysis', 'retry'].includes(step.phase)
+                    ? step.phase
+                    : 'analysis',
+                  phaseLabel:
+                    step.phase === 'thinking'
+                      ? '思考环节'
+                      : step.phase === 'query'
+                        ? '数据查询'
+                        : step.phase === 'retry'
+                          ? '执行状态与重试'
+                          : '分析步骤',
+                  title: scrubInternalToolNames(step.title || '执行业务核查步骤'),
+                  detail: scrubInternalToolNames(step.detail || ''),
+                  status: ['completed', 'retried', 'degraded'].includes(step.status)
+                    ? step.status
+                    : 'completed',
+                }))
+              : deterministicSynth.draftThinkingSteps
+
+          const mergedStructuredBlocks = {
+            ...deterministicSynth.draftStructuredBlocks,
+            ...(parsed.structuredBlocks && typeof parsed.structuredBlocks === 'object'
+              ? {
+                  questionFocus:
+                    scrubInternalToolNames(parsed.structuredBlocks.questionFocus) ||
+                    deterministicSynth.draftStructuredBlocks?.questionFocus,
+                  directAnswer:
+                    scrubInternalToolNames(parsed.structuredBlocks.directAnswer) ||
+                    cleanSummary,
+                }
+              : {
+                  directAnswer: cleanSummary,
+                }),
+          }
+
+          const mergedDecisionProposal =
+            parsed.decisionProposal && typeof parsed.decisionProposal === 'object'
+              ? {
+                  ...deterministicSynth.draftDecisionProposal,
+                  title:
+                    scrubInternalToolNames(parsed.decisionProposal.title) ||
+                    deterministicSynth.draftDecisionProposal?.title,
+                  decisionBasis:
+                    Array.isArray(parsed.decisionProposal.decisionBasis) &&
+                    parsed.decisionProposal.decisionBasis.length > 0
+                      ? parsed.decisionProposal.decisionBasis.map(scrubInternalToolNames)
+                      : deterministicSynth.draftDecisionProposal?.decisionBasis,
+                  analysis:
+                    scrubInternalToolNames(parsed.decisionProposal.analysis) ||
+                    deterministicSynth.draftDecisionProposal?.analysis,
+                  expectedImpact:
+                    scrubInternalToolNames(parsed.decisionProposal.expectedImpact) ||
+                    deterministicSynth.draftDecisionProposal?.expectedImpact,
+                  recommendedAction:
+                    scrubInternalToolNames(parsed.decisionProposal.recommendedAction) ||
+                    deterministicSynth.draftDecisionProposal?.recommendedAction,
+                }
+              : deterministicSynth.draftDecisionProposal
+
           return {
-            draftSummary: parsed.summary.trim(),
-            draftRecommendations: Array.isArray(parsed.recommendations)
-              ? parsed.recommendations
-              : deterministicSynth.draftRecommendations,
+            draftSummary: cleanSummary,
+            draftRecommendations: cleanRecs,
+            draftThinkingSteps: mergedThinkingSteps,
+            draftStructuredBlocks: mergedStructuredBlocks,
+            draftDecisionProposal: mergedDecisionProposal,
             messages: completedMessages,
             cacheMetrics: llmResult.cacheMetrics,
             usedLLM: true,
@@ -340,8 +409,10 @@ export async function synthesizeWithThirdPartyLLMOrFallback(state) {
     const completedMessages = appendAssistantTextMessage(state.messages, assistantReplyText)
 
     return {
-      draftSummary: rawText ? rawText.split('\n')[0].trim() : deterministicSynth.draftSummary,
-      draftRecommendations: deterministicSynth.draftRecommendations,
+      ...deterministicSynth,
+      draftSummary: rawText
+        ? scrubInternalToolNames(rawText.split('\n')[0].trim())
+        : deterministicSynth.draftSummary,
       messages: completedMessages,
       cacheMetrics: llmResult.cacheMetrics,
       usedLLM: true,

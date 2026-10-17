@@ -26,10 +26,6 @@ import {
   validateAgentRequest,
   enforceToolPlanContract,
 } from '../agent/safety.js'
-<<<<<<< HEAD
-import { runAgent } from '../agent/orchestrator.js'
-import { registerDataLayerServices } from './registerDataLayer.js'
-=======
 import {
   STATIC_PREFIX_FINGERPRINT,
   STATIC_SYSTEM_MESSAGE,
@@ -57,7 +53,6 @@ import {
   resetMonitorLoop,
   simulateDeviceOffline,
 } from '../agent/monitorLoop.js'
->>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)
 
 /**
  * 契约规定的 5 个后端标准函数导出（对齐 docs/API_CONTRACT.md §4）
@@ -141,10 +136,15 @@ export async function handleApiRequest({ method = 'GET', url = '/', body = null 
     if (upperMethod === 'POST' && pathname === '/api/v1/agent/run') {
       const parsedBody = parseJsonBody(body)
       validateAgentRequest(parsedBody)
-      const data = await runAgent({
-        query: parsedBody.query,
-        sessionId: typeof parsedBody.sessionId === 'string' ? parsedBody.sessionId : null,
-      })
+      const data = await runAgent(
+        {
+          query: parsedBody.query,
+          sessionId: typeof parsedBody.sessionId === 'string' ? parsedBody.sessionId : null,
+        },
+        {
+          engineMode: typeof parsedBody.engineMode === 'string' ? parsedBody.engineMode : 'quick',
+        },
+      )
       return { status: 200, body: data }
     }
 
@@ -473,14 +473,6 @@ export async function handleApiRequest({ method = 'GET', url = '/', body = null 
  * 供 Vite DevServer / PreviewServer 或 Node http.Server 挂载的中间件
  */
 export function createApiMiddleware() {
-  try {
-    Promise.resolve(registerDataLayerServices())
-      .then(({ source, detail }) => console.info(`[data-layer] ${source}: ${detail}`))
-      .catch((error) => console.warn('[data-layer] 初始化失败：', error.message))
-  } catch (error) {
-    console.warn('[data-layer] 初始化失败：', error.message)
-  }
-
   return async (req, res, next) => {
     if (!req.url || !req.url.startsWith('/api/v1')) {
       return next()

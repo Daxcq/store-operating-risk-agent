@@ -237,7 +237,7 @@ export function hasHallucinatedNumbers(text, findings, regionComparison, dashboa
 }
 
 /**
- * 输出护栏：强制归一化并校验 AgentResponse 严格符合 contracts/src/index.ts
+ * 输出护栏：强制归一化并校验 AgentResponse 严格符合 contracts/src/index.ts，并附加结构化思考链与人工审核提案
  */
 export function enforceOutputGuardrails({
   summary,
@@ -249,6 +249,12 @@ export function enforceOutputGuardrails({
   fallbackSummary,
   fallbackRecommendations,
   dashboardMetrics,
+  thinkingSteps,
+  structuredBlocks,
+  decisionProposal,
+  fallbackThinkingSteps,
+  fallbackStructuredBlocks,
+  fallbackDecisionProposal,
 }) {
   const safeFindings = Array.isArray(findings)
     ? findings.map((f, idx) => ({
@@ -308,8 +314,10 @@ export function enforceOutputGuardrails({
       ? summary.trim()
       : fallbackSummary || '已完成经营数据分析。'
 
+  let summaryHallucinated = false
   if (hasHallucinatedNumbers(finalSummary, safeFindings, safeRegions, dashboardMetrics, safeAssumptions)) {
     finalSummary = fallbackSummary || '已基于白名单工具完成经营数据核查，请参考下方证据与区域对比明细。'
+    summaryHallucinated = true
   }
 
   let finalRecommendations = Array.isArray(recommendations)
@@ -324,7 +332,24 @@ export function enforceOutputGuardrails({
     finalRecommendations = Array.isArray(fallbackRecommendations) ? fallbackRecommendations : []
   }
 
-  return {
+  const finalThinkingSteps =
+    Array.isArray(thinkingSteps) && thinkingSteps.length > 0
+      ? thinkingSteps
+      : Array.isArray(fallbackThinkingSteps)
+        ? fallbackThinkingSteps
+        : []
+
+  const finalStructuredBlocks =
+    !summaryHallucinated && structuredBlocks && typeof structuredBlocks === 'object'
+      ? structuredBlocks
+      : fallbackStructuredBlocks || null
+
+  const finalDecisionProposal =
+    !summaryHallucinated && decisionProposal && typeof decisionProposal === 'object'
+      ? decisionProposal
+      : fallbackDecisionProposal || null
+
+  const result = {
     summary: finalSummary,
     findings: safeFindings,
     regionComparison: safeRegions,
@@ -332,6 +357,18 @@ export function enforceOutputGuardrails({
     toolCalls: safeToolCalls,
     assumptions: safeAssumptions,
   }
+
+  if (finalThinkingSteps.length > 0) {
+    result.thinkingSteps = finalThinkingSteps
+  }
+  if (finalStructuredBlocks) {
+    result.structuredBlocks = finalStructuredBlocks
+  }
+  if (finalDecisionProposal) {
+    result.decisionProposal = finalDecisionProposal
+  }
+
+  return result
 }
 
 /**
