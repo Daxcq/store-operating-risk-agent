@@ -41,10 +41,10 @@ import type {
   MetricResult,
   Window,
   Evidence,
-} from "../../contracts/b/index";
-import type { RawRow } from "./data_loader";
-import { sliceStore, median } from "./data_loader";
-import { computeMetrics } from "./metric_service";
+} from "../../contracts/b/index.ts";
+import type { RawRow } from "./data_loader.ts";
+import { sliceStore, median } from "./data_loader.ts";
+import { computeMetrics } from "./metric_service.ts";
 
 export const MIN_PEERS = 3;
 

@@ -10,7 +10,7 @@
  *   3. 原始行不做覆盖或修正，只标记质量。审计现场要能回放原始数据。
  */
 
-import type { Window, MetricStatus } from "../../contracts/b/index";
+import type { Window, MetricStatus } from "../../contracts/b/index.ts";
 
 /** 原始行。数值型字段用 number | null，null 表示未上报。 */
 export interface RawRow {

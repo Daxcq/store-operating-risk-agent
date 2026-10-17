@@ -25,9 +25,9 @@ import type {
   Evidence,
   Window,
   RuleConditionId,
-} from "../../contracts/b/index";
-import { pick } from "./metric_service";
-import type { DataQuality } from "./data_loader";
+} from "../../contracts/b/index.ts";
+import { pick } from "./metric_service.ts";
+import type { DataQuality } from "./data_loader.ts";
 
 /** 规则定义。与 configs/thresholds.yaml 的 store_rule.conditions 一一对应。 */
 export const STORE_RULE_CONDITIONS: RuleConditionDef[] = [
