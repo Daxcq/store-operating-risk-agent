@@ -8,7 +8,6 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Bell,
-  Bot,
   CheckCircle2,
   ChevronRight,
   CircleHelp,
@@ -27,7 +26,6 @@ import {
   Send,
   ShieldAlert,
   SlidersHorizontal,
-  Sparkles,
   Target,
   TrendingDown,
   TrendingUp,
@@ -40,6 +38,7 @@ import changchunGeo from './data/changchun_geo.json'
 import { AgentWorkbench } from './AgentWorkbench.jsx'
 import { AgentLoopPanel } from './AgentLoopPanel.jsx'
 import { AgentStructuredOutput, AgentLiveThinkingState } from './AgentStructuredOutput.jsx'
+import laicaiAvatar from './assets/laicai.jpg'
 
 const DISTRICT_PEER_SERIES = {
   chaoyang: [346246, 342926, 344797, 345014, 342520, 347223],
@@ -926,7 +925,7 @@ function App() {
   const [agentInput, setAgentInput] = useState('')
   const [agentLoading, setAgentLoading] = useState(false)
   const [agentResult, setAgentResult] = useState(null)
-  const [copilotSize, setCopilotSize] = useState('normal') // 'minimized' | 'normal' | 'expanded'
+  const [copilotSize, setCopilotSize] = useState('minimized') // 'minimized' 只显示莱财头像；normal / expanded 显示气泡框
   const [copilotMessages, setCopilotMessages] = useState([
     {
       role: 'assistant',
@@ -1287,8 +1286,15 @@ function App() {
             <Bell size={17} />
             {openTaskCount > 0 && <span className="notification-dot" />}
           </button>
-          <div className="avatar">RM</div>
-          <span className="role">区域运营总监</span>
+          <button
+            className="avatar avatar-character"
+            title="打开莱财对话"
+            aria-label="打开莱财对话"
+            onClick={() => setCopilotSize('normal')}
+          >
+            <img src={laicaiAvatar} alt="莱财" />
+          </button>
+          <span className="role">莱财 · 区域运营总监</span>
         </div>
       </header>
 
@@ -3225,54 +3231,47 @@ function FloatingAgentCopilot({
     onSend(q)
   }
 
+  const characterButton = (
+    <button
+      className="laicai-character-button"
+      title={size === 'minimized' ? '打开莱财对话' : '收起莱财对话'}
+      aria-label={size === 'minimized' ? '打开莱财对话' : '收起莱财对话'}
+      onClick={() => onChangeSize(size === 'minimized' ? 'normal' : 'minimized')}
+    >
+      <img src={laicaiAvatar} alt="莱财" />
+      {size === 'minimized' && messages.length > 0 ? <span className="laicai-unread-dot" /> : null}
+    </button>
+  )
+
   if (size === 'minimized') {
-    return (
-      <div className="floating-copilot-pill" onClick={() => onChangeSize('normal')}>
-        <span className="live-dot" />
-        <Bot size={17} />
-        <div>
-          <strong>莱森经营 Copilot</strong>
-          <small>
-            已锁定 {selectedStore?.id} · {selectedStore?.district}
-          </small>
-        </div>
-        <span className="copilot-pill-badge">{messages.length}</span>
-        <Maximize2 size={14} />
-      </div>
-    )
+    return <div className="laicai-widget">{characterButton}</div>
   }
 
   return (
-    <aside className={`floating-copilot-window size-${size}`}>
-      <header className="copilot-header">
-        <div className="copilot-title">
-          <div className="copilot-bot-icon">
-            <Sparkles size={15} />
+    <div className="laicai-widget is-open">
+      <aside className={`laicai-speech-bubble size-${size}`}>
+        <header className="copilot-header">
+          <div className="copilot-title">
+            <div>
+              <strong>莱财 · 随航决策顾问</strong>
+              <span>
+                当前上下文：{selectedStore?.id} {selectedStore?.name} ({selectedStore?.district})
+              </span>
+            </div>
           </div>
-          <div>
-            <strong>莱森经营 Copilot · 随航决策顾问</strong>
-            <span>
-              当前上下文：{selectedStore?.id} {selectedStore?.name} ({selectedStore?.district})
-            </span>
+          <div className="copilot-window-controls">
+            <button
+              className="copilot-ctrl-btn"
+              title={size === 'expanded' ? '恢复标准气泡框' : '放大气泡框'}
+              onClick={() => onChangeSize(size === 'expanded' ? 'normal' : 'expanded')}
+            >
+              {size === 'expanded' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
+            <button className="copilot-ctrl-btn" title="收起至莱财头像" onClick={() => onChangeSize('minimized')}>
+              <X size={15} />
+            </button>
           </div>
-        </div>
-        <div className="copilot-window-controls">
-          <button
-            className="copilot-ctrl-btn"
-            title={size === 'expanded' ? '恢复标准窗口' : '放大为宽屏决策视图'}
-            onClick={() => onChangeSize(size === 'expanded' ? 'normal' : 'expanded')}
-          >
-            {size === 'expanded' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-          <button
-            className="copilot-ctrl-btn"
-            title="最小化至右下角胶囊"
-            onClick={() => onChangeSize('minimized')}
-          >
-            <X size={15} />
-          </button>
-        </div>
-      </header>
+        </header>
 
       <div className="copilot-quick-prompts">
         {QUICK_PROMPTS.slice(0, 4).map((p) => (
@@ -3286,7 +3285,12 @@ function FloatingAgentCopilot({
         {messages.map((msg, idx) => (
           <div key={idx} className={`copilot-msg ${msg.role}`}>
             <div className="copilot-msg-meta">
-              <strong>{msg.role === 'user' ? '运营总监 (You)' : '莱森经营智能顾问'}</strong>
+              <span className="copilot-msg-identity">
+                <span className="laicai-avatar laicai-avatar-message">
+                  <img src={laicaiAvatar} alt="莱财" />
+                </span>
+                <strong>{msg.role === 'user' ? '莱财用户' : '莱财决策顾问'}</strong>
+              </span>
               <span>{msg.at}</span>
             </div>
             {msg.role === 'user' ? (
@@ -3307,7 +3311,12 @@ function FloatingAgentCopilot({
         {loading && (
           <div className="copilot-msg assistant">
             <div className="copilot-msg-meta">
-              <strong>莱森经营智能顾问</strong>
+              <span className="copilot-msg-identity">
+                <span className="laicai-avatar laicai-avatar-message">
+                  <img src={laicaiAvatar} alt="莱财" />
+                </span>
+                <strong>莱财决策顾问</strong>
+              </span>
               <span>正在分析...</span>
             </div>
             <AgentLiveThinkingState query={draft} compact={true} />
@@ -3315,18 +3324,20 @@ function FloatingAgentCopilot({
         )}
       </div>
 
-      <footer className="copilot-footer">
-        <input
-          placeholder={`自由输入经营问题（如：这家店为什么退款高？去哪个区开店回本最快？）`}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-        />
-        <button className="copilot-send-btn" onClick={handleSend} disabled={loading}>
-          <Send size={14} />
-        </button>
-      </footer>
-    </aside>
+        <footer className="copilot-footer">
+          <input
+            placeholder={`自由输入经营问题（如：这家店为什么退款高？去哪个区开店回本最快？）`}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          />
+          <button className="copilot-send-btn" onClick={handleSend} disabled={loading}>
+            <Send size={14} />
+          </button>
+        </footer>
+      </aside>
+      {characterButton}
+    </div>
   )
 }
 

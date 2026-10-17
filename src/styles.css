@@ -20,6 +20,8 @@ button { border: 0; cursor: pointer; }
 .icon-button:hover, .small-icon:hover { background: rgba(255,255,255,.1); }
 .notification-dot { position: absolute; top: 8px; right: 8px; width: 5px; height: 5px; border-radius: 50%; background: #d4a453; }
 .avatar { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: #31425d; color: #fff; font: 500 10px 'DM Mono', monospace; }
+.avatar-character { width: 38px; height: 38px; padding: 0; overflow: hidden; border: 2px solid #91d63e; border-radius: 6px; background: #202536; cursor: pointer; }
+.avatar-character img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .role { color: #d9e0e9; font-size: 12px; }
 .workspace { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: calc(100vh - 66px); }
 .sidebar { background: #f7f9fb; border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 28px 18px 16px; }
@@ -1058,6 +1060,9 @@ button { border: 0; cursor: pointer; }
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+.floating-copilot-pill:focus-visible,
+.laicai-avatar:focus-visible,
+.avatar-character:focus-visible { outline: 2px solid #a7e34b; outline-offset: 3px; }
 .floating-copilot-pill:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(16, 26, 45, 0.3);
@@ -1071,6 +1076,78 @@ button { border: 0; cursor: pointer; }
   color: #9fb0c7;
   font-size: 9px;
 }
+.laicai-avatar { display: inline-grid; place-items: center; flex: 0 0 auto; overflow: hidden; border-radius: 50%; border: 1px solid rgba(154, 222, 65, 0.78); background: #222637; }
+.laicai-avatar img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.laicai-avatar-small { width: 30px; height: 30px; }
+.laicai-avatar-header { width: 32px; height: 32px; padding: 0; cursor: pointer; }
+.laicai-avatar-message { width: 20px; height: 20px; border-width: 1px; }
+.copilot-msg-identity { display: inline-flex; align-items: center; gap: 5px; }
+
+/* 莱财独立形象与方形气泡框 */
+.laicai-widget { position: relative; z-index: 950; }
+.laicai-character-button {
+  position: fixed;
+  right: 26px;
+  bottom: 22px;
+  width: 112px;
+  height: 112px;
+  padding: 0;
+  overflow: hidden;
+  border: 3px solid #91d63e;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(16, 26, 45, 0.24);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.laicai-character-button:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(16, 26, 45, 0.3); }
+.laicai-character-button img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.laicai-unread-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #e05a54;
+}
+.laicai-speech-bubble {
+  position: fixed;
+  right: 26px;
+  bottom: 152px;
+  z-index: 951;
+  display: flex;
+  flex-direction: column;
+  width: 382px;
+  height: 450px;
+  overflow: visible;
+  border: 2px solid #25345f;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 38px rgba(16, 26, 45, 0.24);
+}
+.laicai-speech-bubble::after {
+  content: '';
+  position: absolute;
+  right: 42px;
+  bottom: -11px;
+  width: 19px;
+  height: 19px;
+  border-right: 2px solid #25345f;
+  border-bottom: 2px solid #25345f;
+  background: #ffffff;
+  transform: rotate(45deg);
+}
+.laicai-speech-bubble.size-expanded { width: 560px; height: 620px; }
+.laicai-speech-bubble .copilot-header,
+.laicai-speech-bubble .copilot-quick-prompts,
+.laicai-speech-bubble .copilot-messages,
+.laicai-speech-bubble .copilot-footer { position: relative; z-index: 1; }
+.laicai-speech-bubble .copilot-header { border-radius: 5px 5px 0 0; }
+.laicai-speech-bubble .copilot-messages { min-height: 0; }
+.laicai-speech-bubble .copilot-footer { border-radius: 0 0 5px 5px; }
+.laicai-speech-bubble .copilot-msg-identity .laicai-avatar-message { border-radius: 4px; }
 .copilot-pill-badge {
   padding: 2px 6px;
   border-radius: 10px;
