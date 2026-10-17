@@ -19,8 +19,7 @@ import {
 } from './contextBuilder.js'
 import { parseIntentAndPlanTools } from './intentParser.js'
 import { synthesizeNormalResponse } from './synthesizer.js'
-
-const VALID_TOOLS = new Set(WHITELISTED_TOOL_NAMES)
+import { enforceToolPlanContract } from '../safety.js'
 
 /**
  * 规范化第三方 API BaseURL：
@@ -239,6 +238,7 @@ export async function planWithThirdPartyLLMOrFallback(
     return {
       intent: deterministicPlan.intent,
       plannedTools: plannedWithIds,
+      contractViolations: [],
       messages: initialMessages,
       cacheMetrics: null,
       usedLLM: false,
@@ -251,43 +251,24 @@ export async function planWithThirdPartyLLMOrFallback(
       toolChoice: 'auto',
     })
 
-    const validCalls = llmResult.toolCalls.filter((tc) => VALID_TOOLS.has(tc.toolName))
-    if (validCalls.length > 0) {
-      const hasRegionCompare = validCalls.some(
-        (c) => c.toolName === 'compare_regions' || c.toolName === 'estimate_region_roi',
-      )
-      const hasAudit = validCalls.some((c) => c.toolName === 'run_audit')
-      const hasDash = validCalls.some((c) => c.toolName === 'get_dashboard')
+    // 核心合同门禁：将 LLM 原生 tool_calls 送入《Agent 工具规划合同校验器》
+    // 1. 拦截非白名单工具；2. 拦截未获授权写操作；3. 归一化中文/别名参数；4. 补齐伴随证据；5. 严禁开放式无工具裸答
+    const contractOutcome = enforceToolPlanContract({
+      candidateTools: llmResult.toolCalls,
+      deterministicPlan,
+      messageIndex: initialMessages.length,
+    })
 
-      let inferredType = deterministicPlan.intent.type
-      if (hasRegionCompare && !hasAudit) inferredType = INTENT_TYPES.REGION_COMPARISON
-      else if (hasDash && !hasAudit && !hasRegionCompare) inferredType = INTENT_TYPES.DASHBOARD_OVERVIEW
-      else if (hasRegionCompare && hasAudit) inferredType = INTENT_TYPES.COMPREHENSIVE
-
-      // 补齐契约要求的伴随工具（例如 compare_regions 伴随 estimate_region_roi）
-      const existingNames = new Set(validCalls.map((c) => c.toolName))
-      const mergedCalls = [...validCalls]
-      for (const reqTool of deterministicPlan.plannedTools) {
-        if (!existingNames.has(reqTool.toolName)) {
-          mergedCalls.push({
-            id: `call_comp_${initialMessages.length}_${mergedCalls.length + 1}`,
-            toolName: reqTool.toolName,
-            args: reqTool.args,
-          })
-          existingNames.add(reqTool.toolName)
-        }
-      }
-
-      return {
-        intent: {
-          ...deterministicPlan.intent,
-          type: inferredType,
-        },
-        plannedTools: mergedCalls,
-        messages: initialMessages,
-        cacheMetrics: llmResult.cacheMetrics,
-        usedLLM: true,
-      }
+    return {
+      intent: {
+        ...deterministicPlan.intent,
+        type: contractOutcome.resolvedIntentType,
+      },
+      plannedTools: contractOutcome.plannedTools,
+      contractViolations: contractOutcome.contractViolations,
+      messages: initialMessages,
+      cacheMetrics: llmResult.cacheMetrics,
+      usedLLM: true,
     }
   } catch {
     // 第三方 API 超时或报错时平滑回退到确定性规划器
@@ -301,6 +282,7 @@ export async function planWithThirdPartyLLMOrFallback(
   return {
     intent: deterministicPlan.intent,
     plannedTools: fallbackPlanned,
+    contractViolations: [],
     messages: initialMessages,
     cacheMetrics: null,
     usedLLM: false,

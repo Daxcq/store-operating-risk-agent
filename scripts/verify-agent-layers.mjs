@@ -7,12 +7,15 @@ import {
   AGENT_IDENTITY,
   WHITELISTED_TOOL_NAMES,
   AGENT_PATTERN_META,
+  AGENT_PLANNING_CONTRACT,
   STATIC_PREFIX_FINGERPRINT,
   verifyStaticPrefixIntegrity,
   configureLLMClient,
   getLLMConfig,
   normalizeBaseUrl,
   normalizeModelName,
+  parseIntentAndPlanTools,
+  enforceToolPlanContract,
   runAgent,
   createAgentSession,
   retrieveRelevantLongTermMemory,
@@ -372,9 +375,210 @@ async function main() {
   )
   console.log(`Memory Check | 指代消解继承: device-B-001 | 压缩摘要复用 Hash: ${compact1.summaryHash.slice(0, 12)}`)
 
+  // 9. 验证复杂开放式问题解析 + 《Agent 工具规划合同》（enforceToolPlanContract 五大条款）
+  console.log('\n=== 4. 开始验证复杂开放问题受控拆解与《Agent 工具规划合同》五大条款拦截 ===')
+  assert(
+    AGENT_PLANNING_CONTRACT.disallowOpenEndedDirectAnswer === true,
+    '定义层必须声明 disallowOpenEndedDirectAnswer = true，严禁开放式无工具裸答',
+  )
+
+  const complexOpenQuery = '全面盘点目前整体生意状况，排查高风险门店，并看看下一步往朝阳区还是南关区扩张更划算？'
+  const complexPlan = parseIntentAndPlanTools(complexOpenQuery)
+  const complexToolNames = complexPlan.plannedTools.map((t) => t.toolName)
+  assert(
+    complexPlan.intent.type === 'comprehensive' &&
+      complexPlan.intent.contractFlags.isComplexOpenQuery === true,
+    '跨维度开放式提问必须识别为 comprehensive 且标记 isComplexOpenQuery',
+  )
+  assert(
+    complexToolNames.includes('get_dashboard') &&
+      complexToolNames.includes('run_audit') &&
+      complexToolNames.includes('compare_regions') &&
+      complexToolNames.includes('estimate_region_roi'),
+    '复杂开放问题必须自动拆解并组合 get_dashboard + run_audit + compare_regions + estimate_region_roi 四类证据工具',
+  )
+
+  // 9.1 检验合同条款 1~4：拦截非白名单工具、拦截未授权写操作、中文参数名归一化、拓扑排序
+  const contractTest1 = enforceToolPlanContract({
+    candidateTools: [
+      { id: 'c1', toolName: 'execute_raw_sql', args: { sql: 'SELECT * FROM stores' } }, // 非白名单工具
+      { id: 'c2', toolName: 'create_task', args: { action: '擅自建单' } }, // 用户未授权写操作
+      { id: 'c3', toolName: 'estimate_region_roi', args: { regionId: '朝阳区' } }, // 中文区域名需归一为 chaoyang
+      { id: 'c4', toolName: 'run_audit', args: { deviceId: 'A店', severity: 'invalid_level' } }, // 中文门店名需归一为 device-A-001，非法 severity 需修正
+    ],
+    deterministicPlan: complexPlan,
+    messageIndex: 2,
+  })
+  assert(
+    !contractTest1.plannedTools.some((t) => t.toolName === 'execute_raw_sql'),
+    '合同条款 1：必须拦截非白名单工具 execute_raw_sql',
+  )
+  assert(
+    !contractTest1.plannedTools.some((t) => t.toolName === 'create_task'),
+    '合同条款 2：用户未明确要求建单时，必须拦截 LLM 擅自规划的写操作 create_task',
+  )
+  const sanitizedAudit = contractTest1.plannedTools.find((t) => t.toolName === 'run_audit')
+  const sanitizedRoi = contractTest1.plannedTools.find((t) => t.toolName === 'estimate_region_roi')
+  assert(
+    sanitizedAudit.args.deviceId === 'device-A-001' && sanitizedAudit.args.severity === 'high',
+    '合同条款 3：必须将中文“A店”归一为 device-A-001 并剔除非法枚举值',
+  )
+  assert(
+    sanitizedRoi.args.regionId === 'chaoyang',
+    '合同条款 3：必须将中文“朝阳区”归一为契约 ID chaoyang',
+  )
+
+  // 9.2 检验合同条款 5：禁止 LLM 开放式无工具裸答（candidateTools 为空时强制挂载白名单证据工具）
+  const contractTest2 = enforceToolPlanContract({
+    candidateTools: [],
+    deterministicPlan: parseIntentAndPlanTools('目前公司整体生意怎么看，给我个下一步建议'),
+    messageIndex: 2,
+  })
+  assert(
+    contractTest2.plannedTools.length >= 3 &&
+      contractTest2.contractViolations.some((v) => v.includes('开放式无工具裸答')),
+    '合同条款 5：当 LLM 返回 0 个工具企图开放式裸答时，必须强制拦截并挂载白名单证据采集工具',
+  )
+  console.log(
+    `Contract Check | 复杂问题组合工具: [${contractTest1.plannedTools.map((t) => t.toolName).join(', ')}] | 拦截违规项: ${contractTest1.contractViolations.length + contractTest2.contractViolations.length} 项`,
+  )
+
+  // 10. 验证成员 B 确定性数据层（createDataLayer）与 4 套验收样例（S006/S005/S001/S004）全链路联调
+  console.log('\n=== 5. 开始验证成员 B 确定性数据层 (CSV + 规则引擎 + 区域评分) 与 Agent 全链路联调 ===')
+  const { getRealDataLayer } = await import('../src/agent/index.js')
+  const { FIXTURES } = await import('../src/fixtures/index.ts')
+  const dl = getRealDataLayer()
+  assert(Boolean(dl), '成员 B 真实数据层实例 getRealDataLayer() 必须成功加载 CSV 并完成初始化')
+
+  // 10.1 逐一核对成员 B 4 套确定性验收样例（normal / insufficient / possible / unavailable）
+  for (const fx of FIXTURES) {
+    const storeId = fx.subject.store_id
+    const auditOut = await dl.runAudit({
+      store_id: storeId,
+      window: fx.window,
+    })
+    assert(auditOut.data !== null, `Fixture [${fx.id}] (${storeId}) 必须返回有效 RuleEvaluation`)
+    assert(
+      auditOut.data.verdict === fx.expected.verdict,
+      `Fixture [${fx.id}] (${storeId}) verdict 应为 ${fx.expected.verdict}，实际为 ${auditOut.data.verdict}`,
+    )
+    assert(
+      auditOut.data.risk_level === fx.expected.risk_level,
+      `Fixture [${fx.id}] (${storeId}) risk_level 应为 ${fx.expected.risk_level}，实际为 ${auditOut.data.risk_level}`,
+    )
+    const actualHits = auditOut.data.hit_ids
+    assert(
+      JSON.stringify(actualHits) === JSON.stringify(fx.expected.hit_ids),
+      `Fixture [${fx.id}] (${storeId}) 命中规则应为 ${JSON.stringify(fx.expected.hit_ids)}，实际为 ${JSON.stringify(actualHits)}`,
+    )
+    const peerOut = await dl.comparePeers({
+      store_id: storeId,
+      window: fx.window,
+    })
+    assert(peerOut.data !== null, `Fixture [${fx.id}] (${storeId}) 必须返回有效 PeerComparison`)
+    for (const expectedMp of fx.expected.metric_peers) {
+      const actualMp = peerOut.data.metrics.find((m) => m.metric_code === expectedMp.metric)
+      assert(
+        actualMp &&
+          actualMp.peer_count === expectedMp.usable &&
+          actualMp.peer_sufficient === expectedMp.sufficient &&
+          JSON.stringify(actualMp.dropped_for_this_metric) === JSON.stringify(expectedMp.dropped),
+        `Fixture [${fx.id}] (${storeId}) 指标 ${expectedMp.metric} 逐项可比门店数/剔除门店必须与 expected.metric_peers 一致`,
+      )
+    }
+  }
+
+  // 10.2 验证 Agent 对成员 B 4 套典型门店的端到端诊断响应
+  // (a) S006 (南关活力城店) -> 正常无异常 (verdict: none)
+  const s006Res = await runAgent({ query: '查看 S006 门店近期经营情况' })
+  assert(s006Res.findings.length === 0, 'S006 为正常门店，findings 必须为空数组')
+
+  // (b) S005 (南关重庆路店) -> 单指标波动证据不足 (verdict: insufficient)
+  const s005Res = await runAgent({ query: '审计 S005 门店近期异常' })
+  assert(
+    s005Res.findings.length === 1 && s005Res.findings[0].severity === 'medium',
+    'S005 仅单条退款率规则命中，应映射为 1 条 medium 风险发现且不升级为高优异常',
+  )
+
+  // (c) S001 (朝阳红旗街店) -> 多指标共振疑似异常 (verdict: possible)
+  const s001Res = await runAgent({ query: '为什么 S001 最近表现差，先改什么？' })
+  assert(
+    s001Res.findings.length === 3 &&
+      s001Res.findings.filter((f) => f.severity === 'high').length === 2 &&
+      s001Res.findings.filter((f) => f.severity === 'medium').length === 1,
+    'S001 命中 3 条规则（销售额 high / 退款率 high / 客单价 medium），应映射为 3 条发现并包含同行分位证据',
+  )
+  assert(
+    s001Res.findings[0].evidence.some((e) => e.includes('同行中位数')),
+    'S001 审计证据链必须包含成员 B 基准对比服务生成的同行中位数与排名说明',
+  )
+
+  // (d) S004 (朝阳欧亚商都店) -> 关键指标缺失不可判断 (verdict: unavailable)
+  const s004Res = await runAgent({ query: '核查 S004 门店经营异常' })
+  assert(s004Res.findings.length === 0, 'S004 数据缺失不可判断时 findings 必须为空')
+  assert(
+    s004Res.recommendations.length === 0,
+    'S004 数据缺失不可判断时不得给出建议动作（对齐成员 B 验收铁律 #4）',
+  )
+
+  // 10.3 验证长春市真实区域对比与 ROI 测算（compare_regions + estimate_region_roi）
+  const ccRegionsRes = await runAgent({
+    query: '比较朝阳区和二道区的投放收益，并说明主要风险',
+  })
+  assert(
+    ccRegionsRes.regionComparison.length === 2 &&
+      ccRegionsRes.regionComparison.some((r) => r.regionId === 'erdao') &&
+      ccRegionsRes.regionComparison.some((r) => r.regionId === 'chaoyang'),
+    '长春区域对比应返回成员 B 数据层计算的 erdao 与 chaoyang 评分及回本周期',
+  )
+  console.log(
+    `DataLayer Check | S006=none, S005=insufficient(1), S001=possible(3), S004=unavailable(0) | 二道区评分=${ccRegionsRes.regionComparison.find((r) => r.regionId === 'erdao')?.score}`,
+  )
+
+  // 11. 验证 Agent 检测台 (Inspection Workbench) 诊断接口
+  const inspectMetaRes = await handleApiRequest({
+    method: 'GET',
+    url: '/api/v1/agent/inspect?sessionId=session_wb_test',
+  })
+  assert(
+    inspectMetaRes.status === 200 &&
+      inspectMetaRes.body.kvCache.integrityPassed === true &&
+      inspectMetaRes.body.whitelistedTools.length === 7,
+    'GET /api/v1/agent/inspect 应返回 7 个白名单工具元信息与 KV Cache 静态前缀完整性校验状态',
+  )
+
+  const inspectRunRes = await handleApiRequest({
+    method: 'POST',
+    url: '/api/v1/agent/inspect/run',
+    body: JSON.stringify({
+      query: '为什么 S001 最近表现差，先改什么？',
+      sessionId: 'session_wb_test',
+      engineMode: 'kv-sim',
+    }),
+  })
+  assert(
+    inspectRunRes.status === 200 &&
+      inspectRunRes.body.response.findings.length === 3 &&
+      Array.isArray(inspectRunRes.body.trace?.events) &&
+      inspectRunRes.body.kvCacheStats.length >= 1,
+    'POST /api/v1/agent/inspect/run 应返回完整契约响应、LangGraph 节点级 Trace 与 KV Cache 统计',
+  )
+
+  const inspectContractRes = await handleApiRequest({
+    method: 'POST',
+    url: '/api/v1/agent/inspect/contract-test',
+  })
+  assert(
+    inspectContractRes.status === 200 &&
+      inspectContractRes.body.results.length === 3 &&
+      inspectContractRes.body.results.every((r) => r.passed),
+    'POST /api/v1/agent/inspect/contract-test 五大规划合同对抗压测必须全部通过',
+  )
+
   const traces = getRecentTraces()
-  console.log(`\n✅ 全部 7 层架构 + 三层记忆系统 + 第三方 API + 10 轮 KV Cache 单调增长验收标准全部通过！（当前累计 Trace 数：${traces.length}）`)
+  console.log(`\n✅ 全部 7 层架构 + 成员 B 确定性数据层 + 三层记忆系统 + 第三方 API + Agent 规划合同 + Agent 检测台 + 10 轮 KV Cache 单调增长验收标准全部通过！（当前累计 Trace 数：${traces.length}）`)
 }
 
 await main()
+
 

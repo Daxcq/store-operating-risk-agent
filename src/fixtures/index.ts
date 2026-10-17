@@ -18,7 +18,7 @@
  * 所以 expected.metric_peers 是这套 fixture 的回归防线，不是装饰。
  */
 
-import type { Window, RuleVerdict } from "../../contracts/b/index";
+import type { Window, RuleVerdict } from "../../contracts/b/index.ts";
 
 export interface Fixture {
   id: string;
@@ -64,7 +64,11 @@ export const FIXTURES: Fixture[] = [
     name: "正常门店",
     demo_line: "S006 各项指标与同区域中位数持平，四值判定为 none。",
     window: CURRENT,
+<<<<<<< HEAD
     subject: { store_id: "S006", region: "C2", grade: "standard" },
+=======
+    subject: { store_id: "S006", region: "南关区", grade: "standard" },
+>>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)
     data_version: "demo_v1",
     expected: {
       verdict: "none",
@@ -91,7 +95,11 @@ export const FIXTURES: Fixture[] = [
     name: "只命中 1 条 -> 证据不足",
     demo_line: "S005 只有退款率异常，命中 1 条规则，系统明确回答证据不足，而不是说它正常。",
     window: CURRENT,
+<<<<<<< HEAD
     subject: { store_id: "S005", region: "C2", grade: "standard" },
+=======
+    subject: { store_id: "S005", region: "南关区", grade: "standard" },
+>>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)
     data_version: "demo_v1",
     expected: {
       verdict: "insufficient",
@@ -140,7 +148,11 @@ export const FIXTURES: Fixture[] = [
         { what: "客单价变化率", value: "低于 -10% 阈值" },
         { what: "销售口径可比门店数", value: "S002/S003/S004/S021 共 4 家，满足 min_peers=3" },
         { what: "退款口径可比门店数", value: "S002/S003/S021 共 3 家，满足 min_peers=3" },
+<<<<<<< HEAD
         { what: "被剔除门店", value: "仅 C3（原西城区）4 家 compact 因业态档口不同被剔除" },
+=======
+        { what: "被剔除门店", value: "仅宽城区 4 家 compact 因业态档口不同被剔除" },
+>>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)
       ],
     },
     proves: "核心链路完整走通，且每个数字都能回到 evidence_id。",

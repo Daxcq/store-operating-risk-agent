@@ -23,9 +23,9 @@ import type {
   Window,
   Evidence,
   TraceEvent,
-} from "../../contracts/b/index";
-import { toRatio } from "../../contracts/b/index";
-import type { RawRow } from "./data_loader";
+} from "../../contracts/b/index.ts";
+import { toRatio } from "../../contracts/b/index.ts";
+import type { RawRow } from "./data_loader.ts";
 import {
   parseCsv,
   sliceStore,
@@ -33,22 +33,22 @@ import {
   assessQuality,
   shiftWindow,
   median,
-} from "./data_loader";
-import { computeMetrics, decomposeSalesChange } from "./metric_service";
-import { evaluateStoreRule, evaluateRegion } from "./rule_engine";
+} from "./data_loader.ts";
+import { computeMetrics, decomposeSalesChange } from "./metric_service.ts";
+import { evaluateStoreRule, evaluateRegion } from "./rule_engine.ts";
 import {
   comparePeers,
   deriveProfiles,
   DEFAULT_PEER_METRICS,
   buildMetricsMemoKey,
-} from "./benchmark_service";
+} from "./benchmark_service.ts";
 import {
   scoreLocations,
   parseCostCsv,
   aggregateRegionROI,
-} from "./region_score";
-import type { StoreROI, UnestimableStore } from "./region_score";
-import { toRegionId, toRegionName } from "./region_code";
+} from "./region_score.ts";
+import type { StoreROI, UnestimableStore } from "./region_score.ts";
+import { toRegionId, toRegionName } from "./region_code.ts";
 
 /** 默认审计窗口：最近 7 个完整业务日 */
 export const DEFAULT_WINDOW: Window = { from: "2026-10-06", to: "2026-10-12" };
@@ -57,10 +57,12 @@ export const DEFAULT_DATA_VERSION = "demo_v1";
 /** 简易 trace 收集器。真实系统写入 trace_event 表，Demo 里在内存累积后返回。 */
 class TraceCollector {
   private events: TraceEvent[] = [];
-  constructor(
-    private traceId: string,
-    private dataVersion: string,
-  ) {}
+  private traceId: string;
+  private dataVersion: string;
+  constructor(traceId: string, dataVersion: string) {
+    this.traceId = traceId;
+    this.dataVersion = dataVersion;
+  }
 
   push(type: TraceEvent["type"], payload: Partial<TraceEvent> = {}) {
     this.events.push({

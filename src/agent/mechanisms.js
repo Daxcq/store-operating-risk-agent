@@ -31,6 +31,7 @@ export async function executePlannedToolsMechanism(state) {
   const toolCalls = [...(state.toolCalls || [])]
   let findings = [...(state.findings || [])]
   let auditSummary = state.auditSummary || ''
+  let auditVerdict = state.auditVerdict || null
   let regionComparison = [...(state.regionComparison || [])]
   let dashboardMetrics = state.dashboardMetrics || null
   const createdTasks = [...(state.createdTasks || [])]
@@ -62,6 +63,7 @@ export async function executePlannedToolsMechanism(state) {
         dashboardMetrics = result
       } else if (toolName === 'run_audit' && result) {
         auditSummary = result.summary || auditSummary
+        auditVerdict = result.verdict || auditVerdict
         if (Array.isArray(result.findings)) {
           findings = result.findings
         }
@@ -69,9 +71,7 @@ export async function executePlannedToolsMechanism(state) {
         regionComparison = result
       } else if (toolName === 'estimate_region_roi' && result) {
         const existsIdx = regionComparison.findIndex((r) => r.regionId === result.regionId)
-        if (existsIdx >= 0) {
-          regionComparison[existsIdx] = result
-        } else {
+        if (existsIdx < 0) {
           regionComparison.push(result)
         }
       } else if (toolName === 'create_task' && result) {
@@ -119,6 +119,7 @@ export async function executePlannedToolsMechanism(state) {
     toolCalls,
     findings,
     auditSummary,
+    auditVerdict,
     regionComparison,
     dashboardMetrics,
     createdTasks,
@@ -135,7 +136,7 @@ export async function executePlannedToolsMechanism(state) {
  * 证据校验、假设透传与单次补充重规划机制
  */
 export function verifyEvidenceMechanism(state) {
-  const { intent, toolCalls, findings, regionComparison, replanCount, securityWarnings } = state
+  const { intent, toolCalls, findings, regionComparison, replanCount, securityWarnings, auditVerdict, auditSummary } = state
   const assumptions = new Set(state.assumptions || [])
 
   // 1. 检查是否存在工具执行失败或显式数据不足探测
@@ -150,6 +151,20 @@ export function verifyEvidenceMechanism(state) {
     }
   }
 
+  // 1.1 检查成员 B 数据层返回的 unavailable（关键指标缺失/有效天数不足，如 S004）
+  if (auditVerdict === 'unavailable') {
+    if (auditSummary) {
+      assumptions.add(auditSummary)
+    }
+    assumptions.add('关键指标缺失或有效样本天数不足，当前无法判断经营异常。')
+    return {
+      degraded: true,
+      degradedReason: 'DATA_UNAVAILABLE',
+      needsReplan: false,
+      assumptions: Array.from(assumptions),
+    }
+  }
+
   // 2. 有界单次重规划机制（Bounded Re-plan）：
   const hasHighFinding = findings.some((f) => f.severity === 'high')
   const alreadyCompared = toolCalls.some((c) => c.toolName === 'compare_regions')
@@ -159,6 +174,7 @@ export function verifyEvidenceMechanism(state) {
     replanCount < AGENT_PATTERN_META.maxReplanIterations &&
     intent?.type === INTENT_TYPES.COMPREHENSIVE
   ) {
+    const isCsvStore = Boolean(intent?.filters?.deviceId && /^S0\d{2}$/i.test(intent.filters.deviceId))
     return {
       needsReplan: true,
       replanCount: replanCount + 1,
@@ -166,13 +182,16 @@ export function verifyEvidenceMechanism(state) {
         {
           id: `call_replan_${replanCount + 1}`,
           toolName: 'compare_regions',
-          args: { regionIds: ['chaoyang', 'nanguan'] },
+          args: { regionIds: isCsvStore ? ['chaoyang', 'haidian'] : ['chaoyang', 'nanguan'] },
         },
       ],
     }
   }
 
   // 3. 正常场景下的假设透传机制
+  if (auditVerdict && auditSummary) {
+    assumptions.add(auditSummary)
+  }
   if (intent?.type === INTENT_TYPES.REGION_COMPARISON) {
     assumptions.add(`当前结果使用 ${AGENT_IDENTITY.dataVersion} 模拟数据。`)
   } else if (findings.length === 0) {

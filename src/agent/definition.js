@@ -94,9 +94,77 @@ export const INTENT_TYPES = Object.freeze({
   STORE_AUDIT: 'store_audit',             // 门店表现诊断与异常审计
   REGION_COMPARISON: 'region_comparison', // 区域投放对比与 ROI 测算
   DASHBOARD_OVERVIEW: 'dashboard_overview', // 全局经营驾驶舱概览
-  COMPREHENSIVE: 'comprehensive',         // 综合经营分析（同时含审计+区域对标）
+  COMPREHENSIVE: 'comprehensive',         // 综合经营分析（同时含审计+区域对标/大盘）
   TASK_VERIFICATION: 'task_verification', // 任务复核与闭环验证
   INSUFFICIENT_PROBE: 'insufficient_probe', // 明确的数据不足/缺失探测场景
+})
+
+/**
+ * Agent 工具规划与防开放式裸答合同（约束复杂/开放问题下的规则解析与 LLM 原生 Tool Calling）
+ * 核心铁律：
+ * 1. 严禁 LLM 脱离工具进行开放式自由回答（disallowOpenEndedDirectAnswer = true）；
+ * 2. 复杂开放问题只能被拆解为 7 个白名单工具的组合调用计划，所有结论必须来自工具返回的证据；
+ * 3. 写操作工具（create_task / verify_task / write_report）必须有用户显式指令授权，严禁 LLM 擅自触发。
+ */
+export const AGENT_PLANNING_CONTRACT = Object.freeze({
+  maxToolsPerTurn: 5,
+  disallowOpenEndedDirectAnswer: true,
+  topologicalOrder: Object.freeze([
+    'get_dashboard',
+    'run_audit',
+    'compare_regions',
+    'estimate_region_roi',
+    'verify_task',
+    'create_task',
+    'write_report',
+  ]),
+  writeToolsRequiringExplicitIntent: Object.freeze([
+    'create_task',
+    'verify_task',
+    'write_report',
+  ]),
+  validRegionIds: Object.freeze([
+    'changchun',
+    'chaoyang',
+    'haidian',
+    'xicheng',
+    'dongcheng',
+    'fengtai',
+    'nanguan',
+    'kuancheng',
+    'erdao',
+    'luyuan',
+  ]),
+  validDeviceIds: Object.freeze([
+    'device-A-001',
+    'device-B-001',
+    'device-C-001',
+    'device-D-001',
+    'device-E-001',
+    'S001',
+    'S002',
+    'S003',
+    'S004',
+    'S005',
+    'S006',
+    'S007',
+    'S008',
+    'S009',
+    'S010',
+    'S011',
+    'S012',
+    'S013',
+    'S014',
+    'S015',
+    'S016',
+    'S017',
+    'S018',
+    'S019',
+    'S020',
+    'S021',
+  ]),
+  validSeverities: Object.freeze(['high', 'medium', 'low']),
+  validVerifyScenarios: Object.freeze(['improved-task', 'unresolved-task']),
 })
 
 /**
@@ -170,10 +238,14 @@ export const AgentStateAnnotation = Annotation.Root({
     reducer: (prev, next) => (Array.isArray(next) ? next : prev),
     default: () => [],
   }),
-  // 审计原始摘要
+  // 审计原始摘要与四值判定结论（none | insufficient | possible | unavailable）
   auditSummary: Annotation({
     reducer: (prev, next) => next ?? prev,
     default: () => '',
+  }),
+  auditVerdict: Annotation({
+    reducer: (prev, next) => next ?? prev,
+    default: () => null,
   }),
   // 区域对标与 ROI 结果集合（严格对应 AgentResponse.regionComparison）
   regionComparison: Annotation({

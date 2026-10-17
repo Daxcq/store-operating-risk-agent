@@ -94,9 +94,17 @@ export function synthesizeNormalResponse(state) {
 }
 
 /**
- * 数据不足或工具失败时的降级总结器（严格对齐 contracts/fixtures/insufficient-data.json）
+ * 数据不足或工具失败时的降级总结器（严格对齐 contracts/fixtures/insufficient-data.json 与成员 B 数据缺失不可判断约束）
  */
 export function synthesizeDegradedResponse(state) {
+  if (state?.degradedReason === 'DATA_UNAVAILABLE') {
+    return {
+      draftSummary: state.auditSummary || '当前关键字段数据缺失，无法对经营异常作出判断。',
+      draftRecommendations: [],
+      findings: [],
+      regionComparison: [],
+    }
+  }
   return {
     draftSummary: '当前数据不足，无法对经营异常或区域收益作出确定判断。',
     draftRecommendations: ['补齐观察窗口数据后重新运行。'],

@@ -1,4 +1,5 @@
 region,grade,monthly_rent_amount,monthly_labor_cost_amount,same_grade_store_count_within_radius,cost_note
+<<<<<<< HEAD
 C1,standard,118000,96000,7,商圈成熟租赁成本高
 C2,standard,105000,92000,6,办公区租金中位
 C3,standard,132000,88000,8,未被消费-C3门店全为 compact 档-见下
@@ -9,3 +10,15 @@ C2,compact,58000,39000,3,
 C3,compact,71000,44000,5,
 C4,compact,66000,42000,4,
 C5,compact,39000,29000,2,
+=======
+朝阳区,standard,118000,96000,7,商圈成熟租赁成本高
+南关区,standard,105000,92000,6,办公区租金中位
+宽城区,standard,132000,88000,8,未被消费-宽城区门店全为 compact 档-见下
+二道区,standard,126000,90000,5,
+绿园区,standard,74000,68000,3,新兴区域成本低
+朝阳区,compact,62000,41000,4,
+南关区,compact,58000,39000,3,
+宽城区,compact,71000,44000,5,
+二道区,compact,66000,42000,4,
+绿园区,compact,39000,29000,2,
+>>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)

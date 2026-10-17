@@ -75,8 +75,13 @@ export function deriveProfiles(rows: RawRow[]): Map<string, StoreProfile> {
       map.set(r.store_id, {
         store_id: r.store_id,
         region: r.region,
+<<<<<<< HEAD
         // Demo 里业态由区域推断：参照集里 C3（原西城区）为 compact 档口
         grade: r.region === "C3" ? "compact" : "standard",
+=======
+        // Demo 里业态由 store_id 段位与区域推断：宽城区为 compact 档口
+        grade: r.region === "宽城区" || r.region === "西城区" ? "compact" : "standard",
+>>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)
       });
     }
   }

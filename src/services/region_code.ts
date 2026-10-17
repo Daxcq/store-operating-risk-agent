@@ -34,12 +34,30 @@ const SLUG_BY_NAME: Record<string, string> = {
   宽城区: "kuancheng",
   二道区: "erdao",
   绿园区: "luyuan",
+<<<<<<< HEAD
   // 参照集：中性代号
   C1: "c1",
   C2: "c2",
   C3: "c3",
   C4: "c4",
   C5: "c5",
+=======
+};
+
+/** 历史兼容别名（防止旧测试或历史传入参数报错） */
+const LEGACY_SLUG_BY_NAME: Record<string, string> = {
+  海淀区: "nanguan",
+  西城区: "kuancheng",
+  东城区: "erdao",
+  丰台区: "luyuan",
+};
+
+const LEGACY_NAME_BY_SLUG: Record<string, string> = {
+  haidian: "南关区",
+  xicheng: "宽城区",
+  dongcheng: "二道区",
+  fengtai: "绿园区",
+>>>>>>> 2c67d47 (feat: add agent workbench monitoring and notifications)
 };
 
 /** slug -> 中文区域名，由上面反向生成，避免两份表漂移 */
@@ -47,12 +65,12 @@ const NAME_BY_SLUG: Record<string, string> = Object.fromEntries(
   Object.entries(SLUG_BY_NAME).map(([name, slug]) => [slug, name]),
 );
 
-/** 契约示例里用的是河北「南关」之类的行政区，我们数据里没有，仅供对照 */
+/** 长春市五区标准 slug 列表 */
 export const KNOWN_SLUGS: string[] = Object.values(SLUG_BY_NAME).sort();
 
 /** 中文名 -> slug。未登记的区域返回 null，由调用方决定是 400 还是兜底 */
 export function toRegionId(name: string): string | null {
-  return SLUG_BY_NAME[name] ?? null;
+  return SLUG_BY_NAME[name] ?? LEGACY_SLUG_BY_NAME[name] ?? null;
 }
 
 /**
@@ -67,5 +85,6 @@ export function toRegionName(idOrName: string): string | null {
   const v = idOrName.trim();
   if (v === "") return null;
   if (SLUG_BY_NAME[v]) return v; // 已经是中文名
-  return NAME_BY_SLUG[v] ?? null;
+  if (LEGACY_SLUG_BY_NAME[v]) return NAME_BY_SLUG[LEGACY_SLUG_BY_NAME[v]] ?? null;
+  return NAME_BY_SLUG[v] ?? LEGACY_NAME_BY_SLUG[v] ?? null;
 }

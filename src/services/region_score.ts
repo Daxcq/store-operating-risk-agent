@@ -11,11 +11,11 @@
  *   3. 分数只用于排序。它不是投资结论，输出必须带 disclaimer。
  */
 
-import type { LocationScore, ScoreComponent, Window, Evidence } from "../../contracts/b/index";
-import type { RawRow } from "./data_loader";
-import { sliceStore, median } from "./data_loader";
-import { computeMetrics } from "./metric_service";
-import type { StoreProfile } from "./benchmark_service";
+import type { LocationScore, ScoreComponent, Window, Evidence } from "../../contracts/b/index.ts";
+import type { RawRow } from "./data_loader.ts";
+import { sliceStore, median } from "./data_loader.ts";
+import { computeMetrics } from "./metric_service.ts";
+import type { StoreProfile } from "./benchmark_service.ts";
 
 /** 成本输入。来自 data/region_cost_input.csv，属外部数据适配器。 */
 export interface CostInput {

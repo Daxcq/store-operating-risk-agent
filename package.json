@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "validate:contracts": "node scripts/validate-contracts.mjs",
-    "test:agent": "node scripts/verify-agent-layers.mjs"
+    "test:agent": "node scripts/verify-agent-layers.mjs",
+    "test:monitor-loop": "node scripts/verify-monitor-loop.mjs"
   },
   "dependencies": {
     "@langchain/core": "^1.2.18",
@@ -16,6 +17,7 @@
     "@vitejs/plugin-react": "latest",
     "leaflet": "latest",
     "lucide-react": "latest",
+    "nodemailer": "^7.0.13",
     "react": "latest",
     "react-dom": "latest",
     "react-leaflet": "latest",

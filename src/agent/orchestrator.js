@@ -24,7 +24,7 @@ import {
   saveSessionMemory,
 } from './components/memoryManager.js'
 import { executePlannedToolsMechanism, verifyEvidenceMechanism } from './mechanisms.js'
-import { recordTraceEvent } from '../server/traceLogger.js'
+import { recordTraceEvent, getTraceById } from '../server/traceLogger.js'
 
 /**
  * Node 1: 输入安全护栏节点
@@ -60,9 +60,15 @@ async function plannerNode(state) {
     nextKvStats.push({ stage: 'planner', ...planResult.cacheMetrics })
   }
 
+  const nextSecurityWarnings = [
+    ...(state.securityWarnings || []),
+    ...(planResult.contractViolations || []),
+  ]
+
   recordTraceEvent(state.traceId, GRAPH_NODES.PLANNER, {
     intentType: planResult.intent.type,
     plannedTools: planResult.plannedTools.map((t) => t.toolName),
+    contractViolations: planResult.contractViolations || [],
     usedLLM: planResult.usedLLM,
     kvCache: planResult.cacheMetrics,
     memoryTurnCount: state.memoryContext?.turnCount || 0,
@@ -73,6 +79,7 @@ async function plannerNode(state) {
     plannedTools: planResult.plannedTools,
     messages: planResult.messages,
     kvCacheStats: nextKvStats,
+    securityWarnings: nextSecurityWarnings,
     phase: PLAN_EXECUTE_PHASES.PLANNED,
   }
 }
@@ -269,6 +276,61 @@ export async function runAgent(request, options = {}) {
     },
   )
   return finalState.response
+}
+
+/**
+ * 供 Agent 检测台 (Inspection Workbench) 调用的全链路诊断执行入口：
+ * - 底层运行同一份官方 LangGraph StateGraph；
+ * - 除返回标准契约 AgentResponse 外，同步返回节点级 Trace、KV Cache Token 指标、标准消息轨迹、会话记忆槽位与合同拦截告警。
+ */
+export async function runAgentWithDiagnostics(request, options = {}) {
+  const startedAt = Date.now()
+  const traceId = `trace_${startedAt}_${Math.random().toString(36).slice(2, 7)}`
+  const sessionId = request?.sessionId || options?.sessionId || null
+  const threadId = sessionId || traceId
+  const graph = getCompiledAgentGraph()
+
+  const priorMemory = sessionId
+    ? await loadSessionMemory(sessionId)
+    : { messages: [], memoryContext: undefined }
+
+  const finalState = await graph.invoke(
+    {
+      traceId,
+      sessionId,
+      request,
+      messages: priorMemory.messages,
+      memoryContext: priorMemory.memoryContext,
+      toolCalls: [],
+      findings: [],
+      regionComparison: [],
+      assumptions: [],
+      kvCacheStats: [],
+      replanCount: 0,
+      needsReplan: false,
+      degraded: false,
+    },
+    {
+      configurable: { thread_id: threadId },
+    },
+  )
+
+  const latencyMs = Date.now() - startedAt
+  return {
+    traceId,
+    sessionId,
+    latencyMs,
+    response: finalState.response,
+    intent: finalState.intent,
+    plannedTools: finalState.plannedTools || [],
+    securityWarnings: finalState.securityWarnings || [],
+    kvCacheStats: finalState.kvCacheStats || [],
+    messages: finalState.messages || [],
+    memoryContext: finalState.memoryContext || null,
+    degraded: Boolean(finalState.degraded),
+    degradedReason: finalState.degradedReason || '',
+    trace: getTraceById(traceId),
+  }
 }
 
 /**

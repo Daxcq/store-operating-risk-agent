@@ -9,9 +9,19 @@
  *    - 数值事实核查（防止总结与建议中出现工具未返回的幻觉数字）。
  */
 
-import { AGENT_IDENTITY, WHITELISTED_TOOL_NAMES } from './definition.js'
+import {
+  AGENT_IDENTITY,
+  WHITELISTED_TOOL_NAMES,
+  AGENT_PLANNING_CONTRACT,
+  INTENT_TYPES,
+} from './definition.js'
+import {
+  normalizeRegionIdAlias,
+  normalizeDeviceIdAlias,
+} from './components/intentParser.js'
 
-const VALID_SEVERITIES = new Set(['high', 'medium', 'low'])
+const VALID_SEVERITIES = new Set(AGENT_PLANNING_CONTRACT.validSeverities)
+const VALID_VERIFY_SCENARIOS = new Set(AGENT_PLANNING_CONTRACT.validVerifyScenarios)
 const VALID_TOOL_NAMES = new Set(WHITELISTED_TOOL_NAMES)
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
@@ -157,7 +167,7 @@ export function parseRegionIdsParam(rawRegionIds) {
 /**
  * 提取结构化结果中所有合法的数值集合（用于防幻觉核查）
  */
-function collectAllowedNumbers(findings, regionComparison, dashboardMetrics) {
+function collectAllowedNumbers(findings, regionComparison, dashboardMetrics, assumptions = []) {
   const allowed = new Set([0, 1, 2, 3, 7, 20, 24, 30, 48]) // 常见窗口/抽样常数
   const extractFromText = (text) => {
     if (typeof text !== 'string') return
@@ -191,21 +201,29 @@ function collectAllowedNumbers(findings, regionComparison, dashboardMetrics) {
       }
     })
   }
+
+  if (Array.isArray(assumptions)) {
+    assumptions.forEach(extractFromText)
+  }
   return allowed
 }
 
 /**
  * 检查文本中是否包含未出现在证据池中的幻觉数字
  */
-export function hasHallucinatedNumbers(text, findings, regionComparison, dashboardMetrics) {
+export function hasHallucinatedNumbers(text, findings, regionComparison, dashboardMetrics, assumptions = []) {
   if (typeof text !== 'string' || !text) return false
-  const allowed = collectAllowedNumbers(findings, regionComparison, dashboardMetrics)
-  // 移除类似 device-A-001 或 demo_v1 等标识符后再提取纯数值
+  const allowed = collectAllowedNumbers(findings, regionComparison, dashboardMetrics, assumptions)
+  // 移除类似 device-A-001、S001、ev_*、trace_* 或 demo_v1 等标识符后再提取纯数值
   const scrubbed = text
     .replace(/device-[A-Za-z0-9-]+/g, '')
+    .replace(/\bS0\d{2}\b/gi, '')
     .replace(/finding-[A-Za-z0-9-]+/g, '')
+    .replace(/ev_[A-Za-z0-9_\u4e00-\u9fa5-]+/g, '')
+    .replace(/trace_[A-Za-z0-9_-]+/g, '')
     .replace(/demo_v\d+/g, '')
     .replace(/\d{4}-\d{2}-\d{2}/g, '')
+    .replace(/\d{2}-\d{2}/g, '')
   const numbersInText = scrubbed.match(/-?\d+(\.\d+)?/g)
   if (!numbersInText) return false
 
@@ -290,7 +308,7 @@ export function enforceOutputGuardrails({
       ? summary.trim()
       : fallbackSummary || '已完成经营数据分析。'
 
-  if (hasHallucinatedNumbers(finalSummary, safeFindings, safeRegions, dashboardMetrics)) {
+  if (hasHallucinatedNumbers(finalSummary, safeFindings, safeRegions, dashboardMetrics, safeAssumptions)) {
     finalSummary = fallbackSummary || '已基于白名单工具完成经营数据核查，请参考下方证据与区域对比明细。'
   }
 
@@ -300,7 +318,7 @@ export function enforceOutputGuardrails({
 
   if (
     finalRecommendations.some((rec) =>
-      hasHallucinatedNumbers(rec, safeFindings, safeRegions, dashboardMetrics),
+      hasHallucinatedNumbers(rec, safeFindings, safeRegions, dashboardMetrics, safeAssumptions),
     )
   ) {
     finalRecommendations = Array.isArray(fallbackRecommendations) ? fallbackRecommendations : []
@@ -313,5 +331,258 @@ export function enforceOutputGuardrails({
     recommendations: finalRecommendations,
     toolCalls: safeToolCalls,
     assumptions: safeAssumptions,
+  }
+}
+
+/**
+ * 清洗并规范化单个工具调用的入参（将 LLM 生成的中文区域/门店名映射为契约 ID，剔除非法枚举值）
+ */
+function sanitizeSingleToolArgs(toolName, rawArgs = {}, deterministicPlan = {}) {
+  const args = rawArgs && typeof rawArgs === 'object' ? { ...rawArgs } : {}
+  const fallbackFilters = deterministicPlan?.intent?.filters || {}
+  const fallbackRegions = Array.isArray(deterministicPlan?.intent?.regionIds)
+    ? deterministicPlan.intent.regionIds
+    : []
+
+  if (toolName === 'get_dashboard') {
+    const cleaned = {}
+    const normRegion = normalizeRegionIdAlias(args.regionId) || fallbackFilters.regionId
+    if (normRegion) cleaned.regionId = normRegion
+    if (DATE_REGEX.test(String(args.from || '')) && DATE_REGEX.test(String(args.to || '')) && args.from <= args.to) {
+      cleaned.from = args.from
+      cleaned.to = args.to
+    }
+    return cleaned
+  }
+
+  if (toolName === 'run_audit') {
+    const cleaned = {}
+    const normDevice = normalizeDeviceIdAlias(args.deviceId) || fallbackFilters.deviceId
+    const normRegion = normalizeRegionIdAlias(args.regionId) || fallbackFilters.regionId
+    if (normDevice) cleaned.deviceId = normDevice
+    if (normRegion && !normDevice) cleaned.regionId = normRegion
+    if (VALID_SEVERITIES.has(args.severity)) {
+      cleaned.severity = args.severity
+    } else if (fallbackFilters.severity) {
+      cleaned.severity = fallbackFilters.severity
+    }
+    if (DATE_REGEX.test(String(args.from || '')) && DATE_REGEX.test(String(args.to || '')) && args.from <= args.to) {
+      cleaned.from = args.from
+      cleaned.to = args.to
+    }
+    if (args._simulateInsufficient) {
+      cleaned._simulateInsufficient = true
+    }
+    return cleaned
+  }
+
+  if (toolName === 'compare_regions') {
+    const rawList = Array.isArray(args.regionIds) ? args.regionIds : []
+    const normalizedList = Array.from(
+      new Set(
+        rawList
+          .map((r) => normalizeRegionIdAlias(r))
+          .filter((r) => r && r !== 'changchun'),
+      ),
+    )
+    const finalRegions =
+      normalizedList.length > 0
+        ? normalizedList
+        : fallbackRegions.length > 0
+          ? fallbackRegions
+          : ['chaoyang', 'nanguan']
+    const cleaned = { regionIds: finalRegions }
+    if (args._simulateInsufficient) {
+      cleaned._simulateInsufficient = true
+    }
+    return cleaned
+  }
+
+  if (toolName === 'estimate_region_roi') {
+    const normRegion =
+      normalizeRegionIdAlias(args.regionId) ||
+      fallbackRegions[0] ||
+      fallbackFilters.regionId ||
+      'chaoyang'
+    return {
+      regionId: normRegion === 'changchun' ? 'chaoyang' : normRegion,
+    }
+  }
+
+  if (toolName === 'create_task') {
+    return {
+      ownerRole:
+        typeof args.ownerRole === 'string' && args.ownerRole.trim()
+          ? args.ownerRole.trim()
+          : '区域经理',
+      dueHours:
+        Number.isFinite(Number(args.dueHours)) && Number(args.dueHours) > 0
+          ? Number(args.dueHours)
+          : 24,
+      action:
+        typeof args.action === 'string' && args.action.trim()
+          ? args.action.trim()
+          : '抽查最近 20 笔退款订单并核对退款原因。',
+    }
+  }
+
+  if (toolName === 'verify_task') {
+    return {
+      scenario: VALID_VERIFY_SCENARIOS.has(args.scenario) ? args.scenario : 'improved-task',
+    }
+  }
+
+  if (toolName === 'write_report') {
+    return {
+      summary:
+        typeof args.summary === 'string' && args.summary.trim()
+          ? args.summary.trim()
+          : '自动生成的经营审计与对标报告',
+    }
+  }
+
+  return args
+}
+
+/**
+ * Agent 工具规划合同校验器（约束复杂/开放问题下的 LLM 原生 tool_calls 与规则计划融合）
+ *
+ * 五大合同铁律：
+ * 1. 工具白名单合同：严禁调用 7 个白名单之外的任何工具；
+ * 2. 写操作显式授权合同：create_task / verify_task / write_report 若无用户明确指令，强制拦截；
+ * 3. 参数枚举与别名归一化合同：自动将中文名（如“朝阳区”、“A店”）转为契约 ID，剔除越界枚举；
+ * 4. 证据前置与伴随工具合同：写操作前必须有只读调查工具，复杂开放问题自动合并多维证据工具；
+ * 5. 禁止开放式无工具裸答合同：若 LLM 试图不调工具直接自由回答（0 个合法工具），强制回退受控工具计划。
+ */
+export function enforceToolPlanContract({
+  candidateTools = [],
+  deterministicPlan = {},
+  messageIndex = 1,
+}) {
+  const contractViolations = []
+  const contractFlags = deterministicPlan?.intent?.contractFlags || {}
+  const fallbackTools = Array.isArray(deterministicPlan?.plannedTools)
+    ? deterministicPlan.plannedTools
+    : [{ toolName: 'run_audit', args: {} }]
+
+  const WRITE_TOOLS = new Set(AGENT_PLANNING_CONTRACT.writeToolsRequiringExplicitIntent)
+  const READ_TOOLS = new Set(['get_dashboard', 'run_audit', 'compare_regions', 'estimate_region_roi'])
+
+  const approvedMap = new Map()
+
+  for (const rawCall of Array.isArray(candidateTools) ? candidateTools : []) {
+    const toolName = rawCall?.toolName
+    if (!toolName || !VALID_TOOL_NAMES.has(toolName)) {
+      contractViolations.push(`拦截非白名单工具调用: ${String(toolName || 'unknown')}`)
+      continue
+    }
+
+    // 条款 2：写操作显式授权校验
+    if (toolName === 'create_task' && !contractFlags.allowCreateTask) {
+      contractViolations.push('拦截未获用户显式授权的写操作: create_task')
+      continue
+    }
+    if (toolName === 'verify_task' && !contractFlags.allowVerifyTask) {
+      contractViolations.push('拦截未获用户显式授权的写操作: verify_task')
+      continue
+    }
+    if (toolName === 'write_report' && !contractFlags.allowWriteReport) {
+      contractViolations.push('拦截未获用户显式授权的写操作: write_report')
+      continue
+    }
+
+    // 条款 3：参数归一化与消毒
+    const cleanArgs = sanitizeSingleToolArgs(toolName, rawCall.args, deterministicPlan)
+    if (!approvedMap.has(toolName)) {
+      approvedMap.set(toolName, {
+        id: rawCall.id || `call_contract_${messageIndex}_${approvedMap.size + 1}`,
+        toolName,
+        args: cleanArgs,
+      })
+    }
+  }
+
+  // 条款 5：禁止开放式无工具裸答（若 LLM 未选出任何合法工具，强制回退至受控规则计划）
+  if (approvedMap.size === 0) {
+    if (Array.isArray(candidateTools) && candidateTools.length === 0) {
+      contractViolations.push('拦截 LLM 开放式无工具裸答企图，已按合同强制挂载白名单证据采集工具')
+    }
+    for (const reqTool of fallbackTools) {
+      if (VALID_TOOL_NAMES.has(reqTool.toolName) && !approvedMap.has(reqTool.toolName)) {
+        approvedMap.set(reqTool.toolName, {
+          id: `call_plan_${messageIndex}_${approvedMap.size + 1}`,
+          toolName: reqTool.toolName,
+          args: sanitizeSingleToolArgs(reqTool.toolName, reqTool.args, deterministicPlan),
+        })
+      }
+    }
+  } else {
+    // 条款 4：伴随工具与复杂开放问题多维证据补齐
+    for (const reqTool of fallbackTools) {
+      if (!approvedMap.has(reqTool.toolName)) {
+        approvedMap.set(reqTool.toolName, {
+          id: `call_comp_${messageIndex}_${approvedMap.size + 1}`,
+          toolName: reqTool.toolName,
+          args: sanitizeSingleToolArgs(reqTool.toolName, reqTool.args, deterministicPlan),
+        })
+      }
+    }
+
+    // 若包含 compare_regions 且未模拟数据不足，确保配对 estimate_region_roi
+    if (
+      approvedMap.has('compare_regions') &&
+      !approvedMap.has('estimate_region_roi') &&
+      !deterministicPlan?.intent?.forceInsufficient &&
+      !deterministicPlan?.intent?.targetStoreId
+    ) {
+      const compareCall = approvedMap.get('compare_regions')
+      const primaryRegion = compareCall?.args?.regionIds?.[0] || 'chaoyang'
+      approvedMap.set('estimate_region_roi', {
+        id: `call_comp_${messageIndex}_${approvedMap.size + 1}`,
+        toolName: 'estimate_region_roi',
+        args: { regionId: primaryRegion },
+      })
+    }
+
+    // 写操作前置只读证据校验：严禁无只读证据空建任务或空写报告
+    const hasWriteTool = Array.from(approvedMap.keys()).some((k) => WRITE_TOOLS.has(k))
+    const hasReadTool = Array.from(approvedMap.keys()).some((k) => READ_TOOLS.has(k))
+    if (hasWriteTool && !hasReadTool) {
+      contractViolations.push('检测到写操作缺少前置只读证据，已按合同自动补齐 run_audit')
+      approvedMap.set('run_audit', {
+        id: `call_guard_${messageIndex}_${approvedMap.size + 1}`,
+        toolName: 'run_audit',
+        args: sanitizeSingleToolArgs('run_audit', {}, deterministicPlan),
+      })
+    }
+  }
+
+  // 按合同规定的拓扑顺序排序，并限制单轮最大工具数
+  const orderIndex = new Map(
+    AGENT_PLANNING_CONTRACT.topologicalOrder.map((name, idx) => [name, idx]),
+  )
+  const orderedTools = Array.from(approvedMap.values())
+    .sort((a, b) => (orderIndex.get(a.toolName) ?? 99) - (orderIndex.get(b.toolName) ?? 99))
+    .slice(0, AGENT_PLANNING_CONTRACT.maxToolsPerTurn)
+
+  // 根据最终合同审批通过的工具组合推断规范意图类型
+  const finalNames = new Set(orderedTools.map((t) => t.toolName))
+  let resolvedIntentType = deterministicPlan?.intent?.type || INTENT_TYPES.STORE_AUDIT
+  if (deterministicPlan?.intent?.forceInsufficient) {
+    resolvedIntentType = INTENT_TYPES.INSUFFICIENT_PROBE
+  } else if (finalNames.has('verify_task')) {
+    resolvedIntentType = INTENT_TYPES.TASK_VERIFICATION
+  } else if (finalNames.has('compare_regions') && finalNames.has('run_audit')) {
+    resolvedIntentType = INTENT_TYPES.COMPREHENSIVE
+  } else if (finalNames.has('compare_regions') && !finalNames.has('run_audit')) {
+    resolvedIntentType = INTENT_TYPES.REGION_COMPARISON
+  } else if (finalNames.has('get_dashboard') && !finalNames.has('compare_regions')) {
+    resolvedIntentType = INTENT_TYPES.DASHBOARD_OVERVIEW
+  }
+
+  return {
+    plannedTools: orderedTools,
+    resolvedIntentType,
+    contractViolations,
   }
 }
