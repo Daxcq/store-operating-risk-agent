@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "node server.mjs",
     "validate:contracts": "node scripts/validate-contracts.mjs",
     "test:agent": "node scripts/verify-agent-layers.mjs",
     "test:monitor-loop": "node scripts/verify-monitor-loop.mjs"

@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ''))
 
   return {
+    server: { host: '0.0.0.0', allowedHosts: true },
+    preview: { host: '0.0.0.0', allowedHosts: true },
     plugins: [
       react(),
       {

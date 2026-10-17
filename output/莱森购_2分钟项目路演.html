@@ -153,8 +153,8 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 14px;
+      justify-content: space-between;
+      gap: 16px;
       min-height: 0;
     }
 
@@ -164,8 +164,9 @@
       align-items: center;
       justify-content: space-between;
       padding-top: 10px;
+      margin-top: 12px;
       border-top: 1px solid var(--border);
-      font-size: 11.5px;
+      font-size: 12.5px;
       color: var(--text-muted);
       flex-shrink: 0;
     }
@@ -174,31 +175,31 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-secondary);
     }
 
     .footer-tag {
-      padding: 2px 7px;
+      padding: 3px 8px;
       background: var(--bg-subtle);
       border-radius: 4px;
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11px;
     }
 
     /* Grids & Cards */
     .grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+      gap: 18px;
       flex: 1;
       min-height: 0;
     }
 
     .grid-2 {
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 18px;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 20px;
       flex: 1;
       min-height: 0;
     }
@@ -206,12 +207,22 @@
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 18px 20px;
+      border-radius: 10px;
+      padding: 20px 22px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+      justify-content: flex-start;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      min-height: 0;
+    }
+
+    .card-footer-box {
+      margin-top: auto;
+      border-radius: 7px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.55;
     }
 
     .card-terracotta {
@@ -230,9 +241,9 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 3px 9px;
-      border-radius: 4px;
-      font-size: 11.5px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 12.5px;
       font-weight: 700;
       width: fit-content;
     }
@@ -266,34 +277,36 @@
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
       gap: 28px;
-      align-items: center;
+      align-items: stretch;
       flex: 1;
+      min-height: 0;
     }
 
     .cover-hero {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      justify-content: space-between;
+      padding: 8px 0;
     }
 
     .cover-kicker {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 6px 14px;
+      padding: 7px 15px;
       background: var(--navy-light);
       border: 1px solid var(--navy-border);
       color: var(--navy);
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       width: fit-content;
     }
 
     .cover-title {
-      font-size: clamp(32px, 3.4vw, 48px);
+      font-size: clamp(34px, 3.5vw, 50px);
       font-weight: 900;
-      line-height: 1.12;
+      line-height: 1.14;
       letter-spacing: -0.025em;
       color: var(--bg-dark);
     }
@@ -301,65 +314,62 @@
     .cover-title span {
       color: var(--navy);
       display: block;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     .cover-thesis {
-      font-size: clamp(14px, 1.25vw, 18px);
-      line-height: 1.6;
+      font-size: clamp(15px, 1.25vw, 18.5px);
+      line-height: 1.65;
       color: var(--text-secondary);
-      padding-left: 14px;
-      border-left: 3.5px solid var(--terracotta);
-      background: rgba(255, 255, 255, 0.65);
-      padding-top: 8px;
-      padding-bottom: 8px;
-      border-radius: 0 6px 6px 0;
+      padding: 12px 16px;
+      border-left: 4px solid var(--terracotta);
+      background: rgba(255, 255, 255, 0.78);
+      border-radius: 0 8px 8px 0;
     }
 
     .cover-pills {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-top: 4px;
+      gap: 12px;
     }
 
     .cover-pill-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 11px 14px;
+      border-radius: 8px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
     }
 
     .cover-pill-card .num {
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 700;
       color: var(--terracotta);
     }
 
     .cover-pill-card .lbl {
-      font-size: 13.5px;
-      font-weight: 700;
+      font-size: 15px;
+      font-weight: 800;
       color: var(--text-primary);
     }
 
     .cover-pill-card .desc {
-      font-size: 11.5px;
+      font-size: 12.5px;
       color: var(--text-muted);
+      line-height: 1.45;
     }
 
     .cover-visual {
       background: var(--bg-dark);
       color: #F8FAFC;
       border-radius: 10px;
-      padding: 22px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 92%;
       border: 1px solid #334155;
       position: relative;
       overflow: hidden;
@@ -369,21 +379,21 @@
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      padding: 10px 12px;
+      padding: 12px 14px;
       background: rgba(30, 41, 59, 0.85);
       border: 1px solid #334155;
-      border-radius: 7px;
-      font-size: 12.5px;
+      border-radius: 8px;
+      font-size: 13px;
     }
 
     .loop-step-idx {
-      width: 22px;
-      height: 22px;
-      border-radius: 5px;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
       background: var(--navy);
       color: #fff;
       font-family: var(--font-mono);
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -395,39 +405,40 @@
     .loop-step strong {
       display: block;
       color: #F1F5F9;
-      font-size: 13px;
-      margin-bottom: 2px;
+      font-size: 14px;
+      margin-bottom: 3px;
     }
 
     .loop-step span {
       color: #94A3B8;
-      font-size: 11.5px;
+      font-size: 12.5px;
     }
 
     /* Banner Box */
     .scenario-banner {
       background: var(--bg-dark);
       color: #F8FAFC;
-      padding: 14px 20px;
-      border-radius: 8px;
+      padding: 16px 22px;
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 20px;
+      flex-shrink: 0;
     }
 
     .scenario-tags {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
     .scenario-tag {
-      padding: 4px 10px;
+      padding: 6px 12px;
       background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 5px;
-      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      font-size: 13px;
       color: #E2E8F0;
       font-weight: 600;
     }
@@ -435,27 +446,28 @@
     /* Comparison Table */
     .comp-table {
       width: 100%;
+      flex: 1;
       border-collapse: collapse;
       background: var(--bg-card);
-      border-radius: 8px;
+      border-radius: 9px;
       overflow: hidden;
       border: 1px solid var(--border);
-      font-size: 12.8px;
+      font-size: 14px;
     }
 
     .comp-table th,
     .comp-table td {
-      padding: 11px 14px;
+      padding: 14px 18px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       vertical-align: middle;
-      line-height: 1.45;
+      line-height: 1.55;
     }
 
     .comp-table th {
       background: var(--bg-subtle);
       font-weight: 800;
-      font-size: 12.5px;
+      font-size: 14px;
       color: var(--text-primary);
     }
 
@@ -480,19 +492,20 @@
     .metaphor-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: 14px;
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 11px 14px;
+      border-radius: 9px;
+      padding: 14px 18px;
+      flex-shrink: 0;
     }
 
     .metaphor-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       border-right: 1px dashed var(--border);
-      padding-right: 10px;
+      padding-right: 12px;
     }
 
     .metaphor-item:last-child {
@@ -501,19 +514,20 @@
     }
 
     .metaphor-role {
-      padding: 4px 8px;
-      border-radius: 5px;
-      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
       font-weight: 800;
       background: var(--navy-light);
       color: var(--navy);
       white-space: nowrap;
     }
 
-    /* UI Mockup Frame */
+    /* UI Mockup Frame - Stack vertically in right column so 16:9 images aren't cropped horizontally */
     .mockup-pair {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
       gap: 12px;
       flex: 1;
       min-height: 0;
@@ -522,85 +536,93 @@
     .mockup-frame {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 9px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
       overflow: hidden;
+      min-height: 0;
     }
 
     .mockup-frame img {
       width: 100%;
-      height: 100%;
+      flex: 1;
+      min-height: 0;
       object-fit: cover;
       object-position: top center;
-      border-radius: 5px;
+      border-radius: 6px;
       border: 1px solid var(--border);
     }
 
     .metric-strip {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
     .metric-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 10px 12px;
+      border-radius: 8px;
+      padding: 12px 14px;
     }
 
     .metric-box .m-label {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-muted);
-      margin-bottom: 2px;
+      margin-bottom: 3px;
+      font-weight: 600;
     }
 
     .metric-box .m-val {
       font-family: var(--font-mono);
-      font-size: 18px;
+      font-size: 21px;
       font-weight: 800;
       color: var(--text-primary);
     }
 
     .metric-box .m-sub {
-      font-size: 11px;
-      margin-top: 2px;
+      font-size: 11.5px;
+      margin-top: 3px;
+      font-weight: 600;
     }
 
     /* Architecture Layer Stack */
     .layer-stack {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      justify-content: space-between;
+      gap: 8px;
+      flex: 1;
     }
 
     .layer-row {
       display: grid;
-      grid-template-columns: 115px 1fr auto;
+      grid-template-columns: 135px 1fr auto;
       align-items: center;
-      gap: 10px;
-      padding: 7px 12px;
+      gap: 12px;
+      padding: 10px 14px;
       background: var(--bg-paper);
       border: 1px solid var(--border);
       border-left: 4px solid var(--navy);
-      border-radius: 5px;
-      font-size: 12px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      flex: 1;
     }
 
     .layer-row strong {
       color: var(--navy);
-      font-size: 12px;
+      font-size: 13.5px;
     }
 
     .layer-row .l-code {
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11.5px;
       color: var(--text-muted);
       background: var(--bg-card);
-      padding: 2px 6px;
+      padding: 3px 8px;
       border-radius: 4px;
       border: 1px solid var(--border);
     }
@@ -609,8 +631,8 @@
       font-family: var(--font-mono);
       font-size: 0.92em;
       background: var(--bg-subtle);
-      padding: 1px 5px;
-      border-radius: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
       color: var(--navy);
     }
 
@@ -853,8 +875,8 @@
         <!-- 四大核心应用场景横幅 -->
         <div class="scenario-banner">
           <div>
-            <div style="font-size:11px; color:#93C5FD; font-weight:700; text-transform:uppercase; margin-bottom:3px;">核心落地应用场景（谁在什么时候用？）</div>
-            <div style="font-size:15px; font-weight:800;">区域经理 / 运营督导 / 选址团队的高频决策工作台（以长春 5 大城区无人零售网络为样本）</div>
+            <div style="font-size:12px; color:#93C5FD; font-weight:700; text-transform:uppercase; margin-bottom:4px;">核心落地应用场景（谁在什么时候用？）</div>
+            <div style="font-size:16.5px; font-weight:800;">区域经理 / 运营督导 / 选址团队的高频决策工作台（以长春 5 大城区无人零售网络为样本）</div>
           </div>
           <div class="scenario-tags">
             <span class="scenario-tag">① 周会经营问数与同城对标</span>
@@ -867,50 +889,59 @@
         <!-- 三大痛点卡片 -->
         <div class="grid-3">
           <div class="card card-terracotta">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="badge badge-pain">现实痛点 01 · 传统看表困境</span>
-                <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">BI 报表疲劳</span>
-              </div>
-              <h3 style="font-size:18px; font-weight:800; margin-bottom:8px; color:var(--text-primary);">“只给图表，不给归因与证据”</h3>
-              <p style="font-size:13px; color:var(--text-secondary); line-height:1.55;">
-                运营人员面对几十张分散的销售、订单、盘点与设备表，看到门店销售额下跌时，需手动跨表排查是<strong>客流订单萎缩</strong>、<strong>客单价下滑</strong>还是<strong>区域性集体波动</strong>，耗时极长且易误判。
-              </p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge badge-pain">现实痛点 01 · 传统看表困境</span>
+              <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); font-weight:600;">BI 报表疲劳</span>
             </div>
-            <div style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); border-radius:6px; padding:10px 12px; font-size:12px; color:#9A3412;">
+            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">“只给图表，不给归因与证据”</h3>
+            <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">
+              运营人员面对几十张分散的销售、订单、盘点与设备表，看到门店销售额下跌时，需手动跨表排查根因，耗时极长且易误判：
+            </p>
+            <ul style="font-size:13.5px; color:var(--text-secondary); line-height:1.65; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+              <li><strong>双因子盲区：</strong>分不清是<strong>客流订单萎缩</strong>还是<strong>客单价下滑</strong>主导。</li>
+              <li><strong>缺乏同城标尺：</strong>分不清是单店经营失误，还是<strong>全区域同步降温</strong>。</li>
+              <li><strong>排查链路割裂：</strong>销售表、退款表與设备心跳表彼此孤立，无法一键串联。</li>
+            </ul>
+            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
               <strong>真实案例：</strong>朝阳 A 店本周销售额突降 <code>-28.0%</code>，传统报表仅标红数字，店长无法一眼识别是订单量暴跌（<code>-31.0%</code>）叠加退款率激增（<code>7.0%</code>）所致。
             </div>
           </div>
 
           <div class="card card-terracotta">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="badge badge-pain">现实痛点 02 · 通用 AI 问数之坑</span>
-                <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">口径失真与幻觉</span>
-              </div>
-              <h3 style="font-size:18px; font-weight:800; margin-bottom:8px; color:var(--text-primary);">“AI 自由写 SQL 算错账、武断下结论”</h3>
-              <p style="font-size:13px; color:var(--text-secondary); line-height:1.55;">
-                直接让 LLM 写 SQL 极易发生<strong>口径事故</strong>：用订单原价代替扣退销售额、漏筛员工测试单、把每日客单价直接取平均（大店小店被同等对待）；且在证据不足时<strong>强行编造根因</strong>。
-              </p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge badge-pain">现实痛点 02 · 通用 AI 问数之坑</span>
+              <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); font-weight:600;">口径失真与幻觉</span>
             </div>
-            <div style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); border-radius:6px; padding:10px 12px; font-size:12px; color:#9A3412;">
-              <strong>致命风险：</strong>财务与运营口径不一致（如新开店直接纳入同比导致数据虚高），一句话提示词约束不住 AI 跳步调用，企业根本不敢用于真实经营。
+            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">“AI 自由写 SQL 算错账、武断下结论”</h3>
+            <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">
+              直接让通用 LLM 自由生成 SQL 或心算指标，在严肃零售经营场景下会引发三大致命口径事故：
+            </p>
+            <ul style="font-size:13.5px; color:var(--text-secondary); line-height:1.65; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+              <li><strong>比率均值陷阱：</strong>把每日客单价直接取平均，导致大店与小店权重错乱。</li>
+              <li><strong>脏数据混入：</strong>漏扣已退款订单、漏筛员工测试单，把未满30天新店纳入同比。</li>
+              <li><strong>强行幻觉甩锅：</strong>可比门店不足 3 家或缺失成本时，依然<strong>强行编造根因</strong>。</li>
+            </ul>
+            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
+              <strong>致命风险：</strong>财务与运营口径不一致，仅靠软 Prompt 约束不住 AI 跳步调用，企业根本不敢用于真实周会决策。
             </div>
           </div>
 
           <div class="card card-terracotta">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="badge badge-pain">现实痛点 03 · 落地执行断层</span>
-                <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">有报告无闭环</span>
-              </div>
-              <h3 style="font-size:18px; font-weight:800; margin-bottom:8px; color:var(--text-primary);">“分析停留在报告，无人跟进与复核”</h3>
-              <p style="font-size:13px; color:var(--text-secondary); line-height:1.55;">
-                无论是周会 PPT 还是 AI 聊天框，往往止步于“建议加强管理”的空洞套话。<strong>谁去核查？几小时内完成？下周看哪个指标确认修好了？</strong> 缺乏状态机追踪与被动监控唤醒。
-              </p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge badge-pain">现实痛点 03 · 落地执行断层</span>
+              <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); font-weight:600;">有报告无闭环</span>
             </div>
-            <div style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); border-radius:6px; padding:10px 12px; font-size:12px; color:#9A3412;">
-              <strong>管理黑洞：</strong>冰柜离线或异常退款发生时，若无人主动提问就被长期搁置；派发的整改任务没有下一周期的自动指标复核，问题反复重演。
+            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">“分析停留在报告，无人跟进与复核”</h3>
+            <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">
+              无论是周会 PPT 还是传统 AI 聊天框，往往止步于“建议加强管理”的空洞套话，缺乏工程化执行闭环：
+            </p>
+            <ul style="font-size:13.5px; color:var(--text-secondary); line-height:1.65; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+              <li><strong>无人主动值守：</strong>设备离线或退款激增时，若无人主动提问便被长期搁置。</li>
+              <li><strong>缺乏责任契约：</strong>没有明确<strong>谁去核查、几小时内完成（SLA）、看哪条证据</strong>。</li>
+              <li><strong>没有结果验收：</strong>派单后缺乏下一周期的指标自动复核，同类问题反复重演。</li>
+            </ul>
+            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
+              <strong>管理黑洞：</strong>从“发现问题”到“确认修好”之间缺失状态机追踪，导致数据分析无法真正转化为单店利润恢复。
             </div>
           </div>
         </div>
@@ -938,19 +969,19 @@
         <div class="metaphor-bar">
           <div class="metaphor-item">
             <span class="metaphor-role">菜单 = 指标契约库</span>
-            <div style="font-size:11.8px; color:var(--text-secondary);">预定义公式、同店口径、扣退规则，拒绝临时拼凑</div>
+            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">预定义公式、同店口径、扣退规则，拒绝临时拼凑</div>
           </div>
           <div class="metaphor-item">
             <span class="metaphor-role">服务员 = 受控 Agent</span>
-            <div style="font-size:11.8px; color:var(--text-secondary);">只做意图解析与白名单点单，<strong>0 SQL、0 心算</strong></div>
+            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">只做意图解析与白名单点单，<strong>0 SQL、0 心算</strong></div>
           </div>
           <div class="metaphor-item">
             <span class="metaphor-role">厨师长 = 规则引擎</span>
-            <div style="font-size:11.8px; color:var(--text-secondary);">代码级确定性判定（如至少满足2项异常才建案）</div>
+            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">代码级确定性判定（如至少满足2项异常才建案）</div>
           </div>
           <div class="metaphor-item">
             <span class="metaphor-role">小票 = Trace 证据链</span>
-            <div style="font-size:11.8px; color:var(--text-secondary);">每个数字绑定 <code>evidence_id</code> 与 <code>trace_id</code> 可回放</div>
+            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">每个数字绑定 <code>evidence_id</code> 与 <code>trace_id</code> 可回放</div>
           </div>
         </div>
 
@@ -959,28 +990,28 @@
           <thead>
             <tr>
               <th style="width:15%;">核心维度</th>
-              <th style="width:24%;">传统 BI 报表 / 数据看板</th>
+              <th style="width:23%;">传统 BI 报表 / 数据看板</th>
               <th style="width:26%;">传统 AI Agent / Text-to-SQL</th>
-              <th class="highlight-col" style="width:35%;">✦ 莱森购 Retail Intelligence Agent（本项目）</th>
+              <th class="highlight-col" style="width:36%;">✦ 莱森购 Retail Intelligence Agent（本项目）</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>1. 指标计算与口径</strong></td>
               <td>固定图表展示，跨维拆解需人工导出 Excel 计算</td>
-              <td><span style="color:var(--terracotta); font-weight:600;">LLM 现场写 SQL 或心算</span>，易把每日比率简单平均、混淆含税/扣退口径</td>
+              <td><span style="color:var(--terracotta); font-weight:700;">LLM 现场写 SQL 或心算</span>，易把每日比率简单平均、混淆含税/扣退口径</td>
               <td class="highlight-col"><span style="color:var(--navy);">先聚合再算比率</span>（<code>SUM(sales)/NULLIF(SUM(orders),0)</code>），自动拆解订单量与客单价双因子，100% 财务口径对齐</td>
             </tr>
             <tr>
               <td><strong>2. 异常判定与归因</strong></td>
               <td>仅提供红绿阈值高亮，靠运营人员凭经验猜原因</td>
-              <td><span style="color:var(--terracotta); font-weight:600;">单指标下滑即武断定性</span>，甚至编造输入数据中不存在的根因与责任人</td>
+              <td><span style="color:var(--terracotta); font-weight:700;">单指标下滑即武断定性</span>，甚至编造输入数据中不存在的根因与责任人</td>
               <td class="highlight-col"><span style="color:var(--navy);">多条件确定性规则判定</span>（<code>store_anomaly_v1</code> 至少命中2项）+ 全区域同步波动识别 + 挂载结构化 SOP 知识库</td>
             </tr>
             <tr>
               <td><strong>3. 数据缺失与边界护栏</strong></td>
               <td>直接显示空值 <code>NaN</code> 或报错图表</td>
-              <td><span style="color:var(--terracotta); font-weight:600;">靠提示词软约束，极易强行幻觉作答</span>，无视样本量不足</td>
+              <td><span style="color:var(--terracotta); font-weight:700;">靠提示词软约束，极易强行幻觉作答</span>，无视样本量不足</td>
               <td class="highlight-col"><span style="color:var(--sage);">硬核降级机制：</span>可比门店 <code>&lt; 3家</code> 或缺 CAPEX 成本时（如南关区），强制返回 <code>insufficient</code> 拒算回本期，诚实守界</td>
             </tr>
             <tr>
@@ -1019,7 +1050,7 @@
       <div class="slide-body">
         <div class="grid-2">
           <!-- 左侧：三大核心业务硬核数据实证 -->
-          <div style="display:flex; flex-direction:column; gap:10px; justify-content:space-between;">
+          <div style="display:flex; flex-direction:column; gap:14px; min-height:0;">
             <div class="metric-strip">
               <div class="metric-box">
                 <div class="m-label">长春全市 7日总销额</div>
@@ -1043,56 +1074,60 @@
               </div>
             </div>
 
-            <div class="card card-navy" style="padding:13px 16px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span class="badge badge-navy">核心能力 A · 确定性差距拆解与同店对标</span>
-                <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">metric_service + rule_engine</span>
+            <div class="card card-navy" style="padding:16px 20px; flex:1.15;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="badge badge-navy">核心能力 A · 确定性差距拆解与区域 ROI 模型</span>
+                <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">metric_service + rule_engine</span>
               </div>
-              <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
-                • <strong>双因子归因：</strong>A 店销售额较基线跌 <code>-28.0%</code>（¥23.89万→¥17.20万），系统精确拆解为<strong>订单量暴跌 -31.0%</strong> 主导，而非客单价问题。<br/>
-                • <strong>区域 ROI 公式化评分：</strong><code>Score = w1·需求 + w2·竞品 + w3·毛利 - w4·成本</code>，权重由配置文件锁定，LLM 不可篡改。
-              </p>
+              <div style="font-size:13.8px; color:var(--text-secondary); line-height:1.65; display:flex; flex-direction:column; gap:6px;">
+                <div>• <strong>双因子精准归因：</strong>朝阳 A 店销售额较基线跌 <code>-28.0%</code>（¥23.89万 → ¥17.20万），系统自动拆解为<strong>订单量暴跌 -31.0%（3101→2140单）</strong>主导，排除客单价干扰。</div>
+                <div>• <strong>多维复合规则定级：</strong>同时命中“销额跌 &gt;15%”、“订单跌 &gt;15%”、“退款率高于同城中位数 2.1% 达 4.9pct”，确定性判定为 <code>high_risk</code>。</div>
+                <div>• <strong>区域投放公式锁定：</strong><code>Score = w1·需求 + w2·竞品 + w3·毛利 - w4·成本</code>，权重写入配置表，杜绝大模型自由心算。</div>
+              </div>
             </div>
 
-            <div class="card card-sage" style="padding:13px 16px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div class="card card-sage" style="padding:16px 20px; flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="badge badge-sage">核心能力 B · Agent 主动监控 Loop（无需人提问自动唤醒）</span>
-                <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">src/agent/monitorLoop.js</span>
+                <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">src/agent/monitorLoop.js</span>
               </div>
-              <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:4px; font-size:11.5px;">
-                <div style="background:var(--bg-paper); padding:6px 8px; border-radius:5px; border:1px solid var(--border);">
-                  <strong style="color:var(--text-primary); display:block;">1. 心跳检测</strong>
+              <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+                后台定时扫描门店冷柜/终端心跳，驱动 4 态升级状态机，并通过 <code>agentWakeupBridge</code> 自动唤醒 Agent 预生成审计证据链：
+              </p>
+              <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:auto; font-size:12.5px;">
+                <div style="background:var(--bg-paper); padding:9px 10px; border-radius:6px; border:1px solid var(--border);">
+                  <strong style="color:var(--text-primary); display:block; margin-bottom:2px;">1. 心跳检测</strong>
                   <span>2min 无心跳判离线 <code>detected</code></span>
                 </div>
-                <div style="background:var(--terracotta-light); padding:6px 8px; border-radius:5px; border:1px solid var(--terracotta-border);">
-                  <strong style="color:var(--terracotta); display:block;">2. 5min 告警唤醒</strong>
+                <div style="background:var(--terracotta-light); padding:9px 10px; border-radius:6px; border:1px solid var(--terracotta-border);">
+                  <strong style="color:var(--terracotta); display:block; margin-bottom:2px;">2. 5min 告警唤醒</strong>
                   <span>转 <code>alerted</code> + 异步唤醒 Agent 审计</span>
                 </div>
-                <div style="background:var(--amber-light); padding:6px 8px; border-radius:5px; border:1px solid #FDE68A;">
-                  <strong style="color:var(--amber); display:block;">3. 15min 升级</strong>
+                <div style="background:var(--amber-light); padding:9px 10px; border-radius:6px; border:1px solid #FDE68A;">
+                  <strong style="color:var(--amber); display:block; margin-bottom:2px;">3. 15min 升级</strong>
                   <span>未确认转 <code>escalated</code> 邮件/Webhook</span>
                 </div>
-                <div style="background:var(--sage-light); padding:6px 8px; border-radius:5px; border:1px solid var(--sage-border);">
-                  <strong style="color:var(--sage); display:block;">4. 恢复结案</strong>
+                <div style="background:var(--sage-light); padding:9px 10px; border-radius:6px; border:1px solid var(--sage-border);">
+                  <strong style="color:var(--sage); display:block; margin-bottom:2px;">4. 恢复结案</strong>
                   <span>心跳恢复记时长转 <code>resolved</code></span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 右侧：真实产品高保真概念界面展示 -->
+          <!-- 右侧：真实产品高保真概念界面展示（上下双图 16:9 完整无裁切展示） -->
           <div class="mockup-pair">
             <div class="mockup-frame">
-              <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; font-weight:700; color:var(--text-secondary);">
-                <span>📊 经营驾驶舱与四态审计分布</span>
-                <span class="footer-tag">01-paper-navy</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:700; color:var(--text-secondary);">
+                <span>📊 经营驾驶舱与四态审计分布（全局态势 + 风险排行榜）</span>
+                <span class="footer-tag">Page 1 · Overview</span>
               </div>
               <img src="./imagegen/01-paper-navy.png" alt="经营概览界面" />
             </div>
             <div class="mockup-frame">
-              <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; font-weight:700; color:var(--text-secondary);">
-                <span>🔍 门店审计工作台与可比门店对标</span>
-                <span class="footer-tag">03-ivory-terracotta</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:700; color:var(--text-secondary);">
+                <span>🔍 门店审计工作台与可比门店对标（差距拆解 + 证据链抽屉）</span>
+                <span class="footer-tag">Page 2 · Store Audit</span>
               </div>
               <img src="./imagegen/03-ivory-terracotta-v2.png" alt="门店审计工作台界面" />
             </div>
@@ -1120,10 +1155,10 @@
       <div class="slide-body">
         <div class="grid-2">
           <!-- 左栏：7层受控 Agent 架构 -->
-          <div class="card" style="padding:14px 16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div class="card card-navy" style="padding:16px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
               <span class="badge badge-navy">LangGraph 7层工程化受控架构</span>
-              <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">7 Whitelisted Tools Only</span>
+              <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted); font-weight:600;">7 Whitelisted Tools Only</span>
             </div>
             <div class="layer-stack">
               <div class="layer-row">
@@ -1146,9 +1181,9 @@
                 <span>固定拓扑序执行、重试退避、云端超时本地内存兜底</span>
                 <span class="l-code">mechanisms.js</span>
               </div>
-              <div class="layer-row" style="border-left-color:var(--terracotta);">
+              <div class="layer-row" style="border-left-color:var(--terracotta); background:var(--terracotta-light);">
                 <strong style="color:var(--terracotta);">5. 安全层 Safety</strong>
-                <span>防 Prompt 注入、防越权写操作、禁止编造未返回数值</span>
+                <span style="color:#9A3412; font-weight:600;">防 Prompt 注入、防越权写操作、禁止编造未返回数值</span>
                 <span class="l-code">safety.js</span>
               </div>
               <div class="layer-row">
@@ -1165,14 +1200,14 @@
           </div>
 
           <!-- 右栏：行动卡结构与复核状态机 -->
-          <div style="display:flex; flex-direction:column; gap:12px; justify-content:space-between;">
-            <div class="card card-navy" style="padding:14px 18px; flex:1;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="display:flex; flex-direction:column; gap:14px; min-height:0;">
+            <div class="card card-navy" style="padding:16px 20px; flex:1.3;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="badge badge-sage">可执行行动卡契约（Action Card Schema）</span>
-                <span style="font-family:var(--font-mono); font-size:11px; color:var(--sage);">需人工点击确认后触发 create_task</span>
+                <span style="font-family:var(--font-mono); font-size:12px; color:var(--sage); font-weight:700;">需人工点击确认后触发 create_task</span>
               </div>
 
-              <div style="background:var(--bg-dark); color:#E2E8F0; border-radius:7px; padding:12px 14px; font-family:var(--font-mono); font-size:11.5px; line-height:1.55;">
+              <div style="background:var(--bg-dark); color:#E2E8F0; border-radius:8px; padding:16px 18px; font-family:var(--font-mono); font-size:13px; line-height:1.72; flex:1; display:flex; flex-direction:column; justify-content:center;">
                 <div><span style="color:#93C5FD;">"task_id"</span>: <span style="color:#86EFAC;">"task_chaoyang_A_001"</span>,</div>
                 <div><span style="color:#93C5FD;">"problem"</span>: <span style="color:#FDE047;">"朝阳A店退款率(7.0%)显著高于同城中位数(2.1%)，订单跌31%"</span>,</div>
                 <div><span style="color:#93C5FD;">"evidence_ids"</span>: [<span style="color:#86EFAC;">"ev_audit_A_refund"</span>, <span style="color:#86EFAC;">"ev_peer_changchun"</span>],</div>
@@ -1181,31 +1216,46 @@
                 <div><span style="color:#93C5FD;">"verify_metric"</span>: <span style="color:#86EFAC;">"refund_rate"</span>,</div>
                 <div><span style="color:#93C5FD;">"verify_target"</span>: <span style="color:#86EFAC;">"下一周期回落至同城中位数 + 2.0%（即 ≤ 4.1%）以内"</span></div>
               </div>
+
+              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; font-size:12px;">
+                <div style="background:var(--bg-paper); padding:7px 10px; border-radius:6px; border:1px solid var(--border);">
+                  <strong>🔒 写操作护栏：</strong>未确认前仅生成草案
+                </div>
+                <div style="background:var(--bg-paper); padding:7px 10px; border-radius:6px; border:1px solid var(--border);">
+                  <strong>🔑 幂等防重：</strong><code>idempotency_key</code> 防重复建单
+                </div>
+                <div style="background:var(--bg-paper); padding:7px 10px; border-radius:6px; border:1px solid var(--border);">
+                  <strong>🧾 全程留痕：</strong>绑定 <code>trace_id</code> 审计回放
+                </div>
+              </div>
             </div>
 
-            <div class="card card-sage" style="padding:14px 18px;">
-              <div style="font-size:13px; font-weight:800; color:var(--text-primary); margin-bottom:8px;">
-                任务生命周期与下一周期自动复核（<code>verify_task</code>）
+            <div class="card card-sage" style="padding:16px 20px; flex:0.7;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:14.5px; font-weight:800; color:var(--text-primary);">
+                  任务生命周期与下一周期自动复核（<code>verify_task</code>）
+                </div>
+                <span style="font-size:12px; color:var(--text-muted);">闭环验收准则</span>
               </div>
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:11.5px; text-align:center;">
-                <div style="flex:1; background:var(--bg-paper); padding:8px 6px; border-radius:6px; border:1px solid var(--border);">
-                  <strong style="display:block; color:var(--navy);">open</strong>
-                  <span style="font-size:10.5px; color:var(--text-muted);">审计生成草案</span>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; text-align:center; margin-top:auto; margin-bottom:auto;">
+                <div style="flex:1; background:var(--bg-paper); padding:12px 8px; border-radius:7px; border:1px solid var(--border);">
+                  <strong style="display:block; color:var(--navy); font-size:14px; margin-bottom:3px;">open</strong>
+                  <span style="font-size:11.5px; color:var(--text-muted);">审计生成草案</span>
                 </div>
-                <span style="font-weight:900; color:var(--text-muted);">→</span>
-                <div style="flex:1; background:var(--navy-light); padding:8px 6px; border-radius:6px; border:1px solid var(--navy-border);">
-                  <strong style="display:block; color:var(--navy);">assigned</strong>
-                  <span style="font-size:10.5px; color:var(--text-secondary);">人工确认派单</span>
+                <span style="font-weight:900; color:var(--text-muted); font-size:16px;">→</span>
+                <div style="flex:1; background:var(--navy-light); padding:12px 8px; border-radius:7px; border:1px solid var(--navy-border);">
+                  <strong style="display:block; color:var(--navy); font-size:14px; margin-bottom:3px;">assigned</strong>
+                  <span style="font-size:11.5px; color:var(--text-secondary);">人工确认派单</span>
                 </div>
-                <span style="font-weight:900; color:var(--text-muted);">→</span>
-                <div style="flex:1; background:var(--amber-light); padding:8px 6px; border-radius:6px; border:1px solid #FDE68A;">
-                  <strong style="display:block; color:var(--amber);">verifying</strong>
-                  <span style="font-size:10.5px; color:#92400E;">读取下周期指标</span>
+                <span style="font-weight:900; color:var(--text-muted); font-size:16px;">→</span>
+                <div style="flex:1; background:var(--amber-light); padding:12px 8px; border-radius:7px; border:1px solid #FDE68A;">
+                  <strong style="display:block; color:var(--amber); font-size:14px; margin-bottom:3px;">verifying</strong>
+                  <span style="font-size:11.5px; color:#92400E;">读取下周期指标</span>
                 </div>
-                <span style="font-weight:900; color:var(--text-muted);">→</span>
-                <div style="flex:1.25; background:var(--sage-light); padding:8px 6px; border-radius:6px; border:1px solid var(--sage-border);">
-                  <strong style="display:block; color:var(--sage);">closed / escalated</strong>
-                  <span style="font-size:10.5px; color:var(--sage);">达标结案 / 未改善升级</span>
+                <span style="font-weight:900; color:var(--text-muted); font-size:16px;">→</span>
+                <div style="flex:1.25; background:var(--sage-light); padding:12px 8px; border-radius:7px; border:1px solid var(--sage-border);">
+                  <strong style="display:block; color:var(--sage); font-size:14px; margin-bottom:3px;">closed / escalated</strong>
+                  <span style="font-size:11.5px; color:var(--sage);">达标结案 / 未改善升级</span>
                 </div>
               </div>
             </div>
@@ -1233,66 +1283,60 @@
       <div class="slide-body">
         <div class="grid-3">
           <div class="card card-navy">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="badge badge-navy">阶段一 · 连接真实世界 (近期)</span>
-                <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--navy); font-weight:700;">Production Ready</span>
-              </div>
-              <h3 style="font-size:18px; font-weight:800; margin-bottom:10px;">实时数仓与边缘 IoT 网关全面接轨</h3>
-              <ul style="font-size:12.8px; color:var(--text-secondary); line-height:1.65; padding-left:16px; display:flex; flex-direction:column; gap:6px;">
-                <li><strong>生产级数据接入：</strong>从 CSV/Supabase 种子切片平滑切换至实时 POS 流水、ERP 库存与外部地理/客流 API 适配器。</li>
-                <li><strong>真实 IoT 边缘网关：</strong>将主动监控 Loop 接入智能冰柜温控、门磁与电压传感器，实现秒级硬件故障预判。</li>
-                <li><strong>企业级协同触达：</strong>打通企业微信、飞书与钉钉卡片审批，店长在手机端一键确认行动卡并上传整改照片。</li>
-              </ul>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge badge-navy">阶段一 · 连接真实世界 (近期)</span>
+              <span style="font-family:var(--font-mono); font-size:12px; color:var(--navy); font-weight:700;">Production Ready</span>
             </div>
-            <div style="background:var(--navy-light); border:1px solid var(--navy-border); border-radius:6px; padding:9px 12px; font-size:11.5px; color:var(--navy);">
+            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">实时数仓与边缘 IoT 网关全面接轨</h3>
+            <ul style="font-size:14px; color:var(--text-secondary); line-height:1.7; padding-left:18px; display:flex; flex-direction:column; gap:10px;">
+              <li><strong>生产级数据接入：</strong>从 CSV/Supabase 种子切片平滑切换至实时 POS 流水、ERP 库存与外部地理/客流 API 适配器。</li>
+              <li><strong>真实 IoT 边缘网关：</strong>将主动监控 Loop 接入智能冰柜温控、门磁与电压传感器，实现秒级硬件故障预判。</li>
+              <li><strong>企业级协同触达：</strong>打通企业微信、飞书与钉钉卡片审批，店长在手机端一键确认行动卡并上传整改照片。</li>
+            </ul>
+            <div class="card-footer-box" style="background:var(--navy-light); border:1px solid var(--navy-border); color:var(--navy);">
               <strong>架构优势：</strong>当前前后端 API 契约与模块化单体已完全解耦，替换底层数据源零需重写前端与 Agent 编排层。
             </div>
           </div>
 
           <div class="card card-terracotta">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="badge badge-pain">阶段二 · 多模态与全域扩维 (中期)</span>
-                <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--terracotta); font-weight:700;">Multimodal & Supply</span>
-              </div>
-              <h3 style="font-size:18px; font-weight:800; margin-bottom:10px;">多模态视觉巡检 + 业财供应链全链路</h3>
-              <ul style="font-size:12.8px; color:var(--text-secondary); line-height:1.65; padding-left:16px; display:flex; flex-direction:column; gap:6px;">
-                <li><strong>多模态视觉审计：</strong>融合智能柜摄像头图像识别，自动检测<strong>货架缺货率、陈列合规度、异常拿取防损</strong>，生成视觉证据 ID。</li>
-                <li><strong>经营维度扩展：</strong>在销售额/退款率基础上，纳入<strong>商品保质期损耗、会员复购率、营销活动归因与补货人效</strong>指标库。</li>
-                <li><strong>跨城多租户治理：</strong>引入 RBAC 区域权限隔离、多级审批流与 SLA 考核看板，支撑千店级规模化运营。</li>
-              </ul>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge badge-pain">阶段二 · 多模态与全域扩维 (中期)</span>
+              <span style="font-family:var(--font-mono); font-size:12px; color:var(--terracotta); font-weight:700;">Multimodal & Supply</span>
             </div>
-            <div style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); border-radius:6px; padding:9px 12px; font-size:11.5px; color:#9A3412;">
+            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">多模态视觉巡检 + 业财供应链全链路</h3>
+            <ul style="font-size:14px; color:var(--text-secondary); line-height:1.7; padding-left:18px; display:flex; flex-direction:column; gap:10px;">
+              <li><strong>多模态视觉审计：</strong>融合智能柜摄像头图像识别，自动检测<strong>货架缺货率、陈列合规度、异常拿取防损</strong>，生成视觉证据 ID。</li>
+              <li><strong>经营维度扩展：</strong>在销售额/退款率基础上，纳入<strong>商品保质期损耗、会员复购率、营销活动归因与补货人效</strong>指标库。</li>
+              <li><strong>跨城多租户治理：</strong>引入 RBAC 区域权限隔离、多级审批流与 SLA 考核看板，支撑千店级规模化运营。</li>
+            </ul>
+            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
               <strong>演进原则：</strong>视觉与预测模型同样遵循“只输出带置信度的结构化证据，由确定性规则定级”的安全边界。
             </div>
           </div>
 
           <div class="card card-sage">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="badge badge-sage">阶段三 · 自演进决策飞轮 (远期)</span>
-                <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--sage); font-weight:700;">Self-Evolving Brain</span>
-              </div>
-              <h3 style="font-size:18px; font-weight:800; margin-bottom:10px;">基于复核结果反哺的自治零售大脑</h3>
-              <ul style="font-size:12.8px; color:var(--text-secondary); line-height:1.65; padding-left:16px; display:flex; flex-direction:column; gap:6px;">
-                <li><strong>历史案件向量检索（<code>pgvector</code>）：</strong>将每一次结案的异常特征、处置动作与复核改善幅度存入向量库，新发异常自动匹配历史最优 SOP。</li>
-                <li><strong>策略权重动态校准：</strong>根据历史任务复核通过率（Closed vs Escalated），自动评估哪些行动建议真正有效，反哺风险排序模型。</li>
-                <li><strong>受控多 Agent 协同：</strong>在契约稳定后，由审计 Agent、选址 Agent 与供应链补货 Agent 协同推演全局利润最大化方案。</li>
-              </ul>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge badge-sage">阶段三 · 自演进决策飞轮 (远期)</span>
+              <span style="font-family:var(--font-mono); font-size:12px; color:var(--sage); font-weight:700;">Self-Evolving Brain</span>
             </div>
-            <div style="background:var(--sage-light); border:1px solid var(--sage-border); border-radius:6px; padding:9px 12px; font-size:11.5px; color:var(--sage);">
+            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">基于复核结果反哺的自治零售大脑</h3>
+            <ul style="font-size:14px; color:var(--text-secondary); line-height:1.7; padding-left:18px; display:flex; flex-direction:column; gap:10px;">
+              <li><strong>历史案件向量检索（<code>pgvector</code>）：</strong>将每一次结案的异常特征、处置动作与复核改善幅度存入向量库，新发异常自动匹配历史最优 SOP。</li>
+              <li><strong>策略权重动态校准：</strong>根据历史任务复核通过率（Closed vs Escalated），自动评估哪些行动建议真正有效，反哺风险排序模型。</li>
+              <li><strong>受控多 Agent 协同：</strong>在契约稳定后，由审计 Agent、选址 Agent 与供应链补货 Agent 协同推演全局利润最大化方案。</li>
+            </ul>
+            <div class="card-footer-box" style="background:var(--sage-light); border:1px solid var(--sage-border); color:var(--sage);">
               <strong>终极愿景：</strong>让每一家无人零售小店都拥有一位“算得准、守规矩、盯得住结果”的 AI 首席运营官。
             </div>
           </div>
         </div>
 
         <!-- 底部总结金句 -->
-        <div class="scenario-banner" style="padding:12px 20px;">
-          <div style="font-size:14.5px; font-weight:700; color:#F8FAFC;">
+        <div class="scenario-banner" style="padding:14px 22px;">
+          <div style="font-size:15.5px; font-weight:700; color:#F8FAFC;">
             🎯 总结：莱森购不是又一个“会聊天的报表插件”，而是用<strong>确定性工程契约</strong>驯服大模型、打通<strong>感知→归因→行动→复核</strong>的新一代智能经营范式。
           </div>
-          <div style="font-family:var(--font-mono); font-size:12px; color:#93C5FD; white-space:nowrap;">
+          <div style="font-family:var(--font-mono); font-size:13px; color:#93C5FD; white-space:nowrap;">
             THANK YOU · Q&amp;A
           </div>
         </div>
