@@ -113,6 +113,18 @@ export interface ComputeContext {
   grade?: string;
   window: Window;
   /**
+   * 【2026-10-17 修正：补回 dataVersion / traceId】
+   * 本文件下面每一处 Evidence 都写了 data_version: ctx.dataVersion、
+   * trace_id: ctx.traceId，MetricResult 也照抄这两项，但这个接口原先
+   * 根本没声明它们 —— 属性访问在 TS 里会直接报错；即便靠 as any 绕过，
+   * 运行时拿到的也是 undefined，于是「每个数字都能沿 evidence_id ->
+   * trace_id 追回它所属的那次计算」这条硬规则在所有指标证据上同时失效，
+   * 而且是静默失效：字段存在、类型看着对、值永远是 undefined。
+   * 设为可选是为了不打断既有调用方，但 pipeline 的每一处调用都已显式传入。
+   */
+  dataVersion?: string;
+  traceId?: string;
+  /**
    * 基准窗口。**必须由调用方传入**，与它实际切片 baseRows 用的窗口是同一个。
    *
    * 【2026-10-17 修正】原先这里没有这个字段，代码里三处写死 shiftWindow(ctx.window, -7)。

@@ -1,0 +1,31 @@
+# 数据层（任务B）与建库脚本（supabase/deploy.py）的 Python 依赖。
+#
+# 安装：
+#     pip install -r requirements.txt --break-system-packages
+#
+# 版本说明：全部用 >= 下限而不是锁死小版本。这份依赖清单只被两个入口用到
+# （data_layer/ 与 supabase/deploy.py），它们都只用最基础的 API，
+# 锁死反而会在别人的机器上造成装不上。
+
+# ---------------------------------------------------------------------------
+# 建库用（只有 supabase/deploy.py 需要）
+# ---------------------------------------------------------------------------
+# psycopg v3。deploy.py 优先用它，因为它支持现代 Python 类型与 autocommit 语义清晰。
+# [binary] 是为了免去本机编译 libpq 的麻烦。
+psycopg[binary]>=3.1
+
+# psycopg2 作为退回方案：有些环境（老 Python / 已有预编译轮子的镜像）
+# 装 v3 更麻烦。deploy.py 里两个都要能 import，装一个即可。
+psycopg2-binary>=2.9
+
+# ---------------------------------------------------------------------------
+# 运行时用（data_layer/repository.py 走 PostgREST）
+# ---------------------------------------------------------------------------
+# supabase-py。注意它只用于读写数据，不能执行 DDL——
+# 建表必须走上面的 psycopg + SUPABASE_DB_URL。
+supabase>=2.0
+
+# 读仓库根目录的 .env。config.py 与 deploy.py 都做了 ImportError 兜底
+# （deploy.py 有极简 .env 解析器），所以缺了也能跑，但强烈建议装上：
+# 没有它就要手动 export 一串环境变量。
+python-dotenv>=1.0
