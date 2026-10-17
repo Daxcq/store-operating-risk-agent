@@ -187,7 +187,7 @@ export function computeRegionROI(input: RegionROIInput): RegionROI {
   const assumptions: string[] = [
     `商品毛利率按 ${(ROI.grossMarginRatio * 100).toFixed(0)}% 估算（假设，非数据实测）`,
     `单台设备一次性投入按 ${ROI.capexPerDevice} 元估算（含设备、安装与首批铺货）`,
-    `人力成本按租金的 ${ROI.laborCostRatioToRent * 100).toFixed(0)}% 估算（无独立人力数据源）`,
+    `人力成本按租金的 ${(ROI.laborCostRatioToRent * 100).toFixed(0)}% 估算（无独立人力数据源）`,
     `日销售额按 ${ROI.daysPerMonth} 天/月折算为月度口径（窗口天数不参与折算）`,
     // 口径声明放在这里，是因为「中位数」发生在 aggregateRegionROI，而不是本函数。
     // 本函数算的是一家店；说成「本函数基于中位数」会让复盘的人以为它已经在做区域汇总。

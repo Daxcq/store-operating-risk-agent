@@ -20,6 +20,7 @@ import {
   validateAgentRequest,
 } from '../agent/safety.js'
 import { runAgent } from '../agent/orchestrator.js'
+import { registerDataLayerServices } from './registerDataLayer.js'
 
 /**
  * 契约规定的 5 个后端标准函数导出（对齐 docs/API_CONTRACT.md §4）
@@ -138,6 +139,14 @@ export async function handleApiRequest({ method = 'GET', url = '/', body = null 
  * 供 Vite DevServer / PreviewServer 或 Node http.Server 挂载的中间件
  */
 export function createApiMiddleware() {
+  try {
+    Promise.resolve(registerDataLayerServices())
+      .then(({ source, detail }) => console.info(`[data-layer] ${source}: ${detail}`))
+      .catch((error) => console.warn('[data-layer] 初始化失败：', error.message))
+  } catch (error) {
+    console.warn('[data-layer] 初始化失败：', error.message)
+  }
+
   return async (req, res, next) => {
     if (!req.url || !req.url.startsWith('/api/v1')) {
       return next()

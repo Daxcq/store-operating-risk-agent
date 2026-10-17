@@ -19,8 +19,13 @@
 
 ```bash
 npm install
+python data/_generate.py
 npm run dev
 ```
+
+参照数据集使用 C1–C5 区域代号，与长春主线数据分开。`data/store_operations_daily.csv`
+由生成器创建，不纳入 Git；修改生成器后请重新生成，再运行 `python data/_verify.py`。
+长春数据层的离线检查使用 `python tools/verify_local.py`。
 
 打开终端输出的本地地址即可查看 Demo。
 

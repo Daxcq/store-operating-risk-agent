@@ -36,6 +36,10 @@ import {
 // 严重度排序，用于从审计结果里挑出最该动手的那条
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 }
 
+// Keep the original services: looking them up after registration would call
+// this bridge again when Python is unavailable.
+const fallbackServices = { ...getDomainServices() }
+
 /**
  * 最近一次创建的任务。verifyTask 的入参只有 scenario（见 toolAdapter.js），
  * 没带 taskId，所以这里记住上一次建的单子，让「创建 → 复核」这条链闭合。
@@ -59,7 +63,7 @@ function toContractError(error, fallbackCode = 'INTERNAL_ERROR') {
 async function callWithFallback(primary, fallbackName, ...args) {
   const result = await primary()
   if (result !== null && result !== undefined) return result
-  return getDomainServices()[fallbackName](...args)
+  return fallbackServices[fallbackName](...args)
 }
 
 /** 找出当前最需要处置的发现：高风险优先，同级取第一条。 */
@@ -75,7 +79,8 @@ function pickTopFinding(findings) {
  * 返回实际的接线状态，便于启动日志如实告知当前数据源。
  */
 export function registerDataLayerServices() {
-  const defaults = getDomainServices()
+  if (!isDataLayerEnabled()) return describeDataLayerStatus()
+  const defaults = fallbackServices
 
   registerDomainServices({
     // --- 1. get_dashboard ------------------------------------------------
