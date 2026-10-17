@@ -39,7 +39,7 @@ class SupabaseRepository:
                 from supabase import create_client
             except ImportError as exc:  # pragma: no cover
                 raise RepositoryError(
-                    "未安装 supabase 依赖。执行：pip install -r requirements.txt"
+                    "未安装 supabase 依赖。执行：pip install -r requirements-python-tools.txt"
                 ) from exc
             try:
                 self._client = create_client(self._url, self._key)

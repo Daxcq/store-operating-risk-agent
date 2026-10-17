@@ -49,7 +49,7 @@
 ### 2.1 装依赖
 
 ```bash
-pip install -r requirements.txt --break-system-packages
+pip install -r requirements-python-tools.txt --break-system-packages
 ```
 
 关键的两个是 `psycopg[binary]`（建表用）和 `supabase`（运行时用）。

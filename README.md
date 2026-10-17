@@ -53,12 +53,22 @@ npm run dev
 
 打开 Vite 输出的本地地址。Vite 开发服务器同时挂载 `/api/v1/*` API；没有 Python 服务或 Supabase 时，应用会通过内置的内存样例数据继续运行。
 
+### 生产运行（单端口）
+
+```bash
+npm install
+npm run build
+PORT=4173 npm start
+```
+
+`server.mjs` 用生产构建产物启动单端口 HTTP 服务，并把 `vite.config.js` 里的 `laisen-retail-agent-api` 插件一起挂到 preview server 上，因此 `/api/v1/*` 与页面同源同进程，不需要额外的后端、Python 服务或数据库。绑定 `0.0.0.0`、读取 `PORT`、`allowedHosts: true`，可直接放在反向代理后面。
+
 ### 可选：运行 Python 离线数据层
 
 在第二个终端执行：
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-python-tools.txt
 python -m data_layer.server --offline
 ```
 
