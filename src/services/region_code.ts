@@ -13,13 +13,33 @@
  * 与其让它变成 404，不如认下来。输出的 regionId 永远是 slug。
  */
 
-/** 中文区域名 -> slug。新增区域时只改这一处。 */
+/**
+ * 中文区域名 -> slug。新增区域时只改这一处。
+ *
+ * 【两套数据集的区名分区，不要合并】
+ *   主线（长春五区，src/main.jsx + supabase/init.sql + data_layer/fixtures.py）：
+ *     朝阳区 -> chaoyang，南关区 -> nanguan，宽城区 -> kuancheng，
+ *     二道区 -> erdao，绿园区 -> luyuan
+ *   参照集（data/_generate.py 生成的 21 店数据集，原北京五区）：
+ *     C1 -> c1，C2 -> c2，C3 -> c3，C4 -> c4，C5 -> c5
+ *
+ * 参照集原先直接叫朝阳区/海淀区/西城区/东城区/丰台区，与长春套的朝阳区同名。
+ * 同一个「朝阳区」在两套数据里是不同城市的商圈，slug 会互相覆盖，
+ * 表现为「按 regionId 查出来的门店集合时多时少」。已改成中性代号，两套互不相干。
+ */
 const SLUG_BY_NAME: Record<string, string> = {
+  // 主线：长春
   朝阳区: "chaoyang",
-  海淀区: "haidian",
-  西城区: "xicheng",
-  东城区: "dongcheng",
-  丰台区: "fengtai",
+  南关区: "nanguan",
+  宽城区: "kuancheng",
+  二道区: "erdao",
+  绿园区: "luyuan",
+  // 参照集：中性代号
+  C1: "c1",
+  C2: "c2",
+  C3: "c3",
+  C4: "c4",
+  C5: "c5",
 };
 
 /** slug -> 中文区域名，由上面反向生成，避免两份表漂移 */

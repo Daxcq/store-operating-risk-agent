@@ -45,7 +45,7 @@ const RANGES = {
    *
    * yaml 里写的是 0~120000，那是「租金」的口径；这里归一化的对象是
    * 「租金 + 人力」，两者相加后 Demo 实际落在 6.8 万 ~ 21.4 万。
-   * 照搬 0~120000 的话，除丰台区外每家都会顶到 100 分，
+   * 照搬 0~120000 的话，除 C5（原丰台区）外每家都会顶到 100 分，
    * cost_score 变成常数，等于这一项白占 15% 权重却什么也没区分。
    * 区间上下界按 Demo 实际取值范围设定，改动必须同步 yaml 的注释。
    */
@@ -644,6 +644,24 @@ export function scoreLocations(input: ScoreInput): {
     // 改成直接对分项做加权平均：四个分项都按 0~100 定义（cost_score 是负担，
     // 作减项），结果天然落在 0~100，阈值就是它字面上的意思。
     // 分母用 Σw = 1.0，所以四个分项齐全时分数 = Σ(w_i * value_i)。
+    //
+    // 【2026-10-17 修正：补回 available / availableWeight 的定义】
+    // 下面的加权求和引用了 available 与 availableWeight，但这两个变量
+    // 在本文件里从未声明 —— 走到这里会直接抛 ReferenceError，
+    // scoreLocations 一行都跑不完，区域评分/区域对比/区域 ROI 全部不可用。
+    //
+    // 语义按上面那段注释的原意补：**只有算得出值的分项参与**，
+    // 分母是这些分项的实际权重之和，而不是写死的 Σw = 1.0。
+    // 这样某个分项缺失时（例如成本表里查不到该区域该档次）分数是
+    // 「按剩余权重重归一化」的结果，而不是被缺失项悄悄拉低 ——
+    // 用 0 顶替缺失分项会让一个数据缺失的区域看起来像最差的区域。
+    // 同时把 confidence 的档位（全分项 / ≥2 项 / 更少）挂在这同一个 available 上，
+    // 保证「可信度」和「实际参与计算的分项数」说的是同一件事。
+    const available = components.filter(
+      (c): c is ScoreComponent & { value: number } => c.value !== null,
+    );
+    const availableWeight = available.reduce((acc, c) => acc + c.weight, 0);
+
     let score: number | null = null;
     let confidence: LocationScore["confidence"];
 
@@ -769,7 +787,7 @@ export function scoreLocations(input: ScoreInput): {
   // 若此处改成按业态估，同一个区域就会出现两个回本周期，正是本节要避免的。
   // 代价是：当某区域同时存在 standard 与 compact 门店时，
   // 该区域两个业态的评分行会带上同一个区域级 ROI。
-  // Demo 数据里尚未出现这种区域（只有西城区是 compact，其余四区均为 standard），
+  // Demo 数据里尚未出现这种区域（只有 C3 即原西城区是 compact，其余四区均为 standard），
   // 真要跨业态比较成本时，应改用 estimateRegionROI 并显式带业态参数。
   //
   const roiByRegion = new Map<string, RegionAggregate>();

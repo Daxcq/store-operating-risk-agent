@@ -9,7 +9,7 @@
  * 不需要自己重新推一遍口径 —— 口径只有一份，就在 configs/ 里。
  *
  * 【可比门店数为什么逐指标写】
- * 门店数 21 家（S001~S021），朝阳区标准档 5 家：S001(主体) + S002/S003/S004/S021。
+ * 门店数 21 家（S001~S021），C1（原朝阳区，参照集）标准档 5 家：S001(主体) + S002/S003/S004/S021。
  * S004 的 refund_amount 自 2026-10-06 起断报，所以：
  *   销售变化率口径可比 4 家、退款率口径可比 3 家、客单价口径可比 4 家。
  * 如果哪天有人把可比性改回「整店一刀切」，S004 会被整体剔除，
@@ -64,7 +64,7 @@ export const FIXTURES: Fixture[] = [
     name: "正常门店",
     demo_line: "S006 各项指标与同区域中位数持平，四值判定为 none。",
     window: CURRENT,
-    subject: { store_id: "S006", region: "海淀区", grade: "standard" },
+    subject: { store_id: "S006", region: "C2", grade: "standard" },
     data_version: "demo_v1",
     expected: {
       verdict: "none",
@@ -91,7 +91,7 @@ export const FIXTURES: Fixture[] = [
     name: "只命中 1 条 -> 证据不足",
     demo_line: "S005 只有退款率异常，命中 1 条规则，系统明确回答证据不足，而不是说它正常。",
     window: CURRENT,
-    subject: { store_id: "S005", region: "海淀区", grade: "standard" },
+    subject: { store_id: "S005", region: "C2", grade: "standard" },
     data_version: "demo_v1",
     expected: {
       verdict: "insufficient",
@@ -118,7 +118,7 @@ export const FIXTURES: Fixture[] = [
     name: "命中 3 条 -> 疑似异常（主线演示）",
     demo_line: "S001 销售下滑、退款率升高、客单价下滑三条同时命中，判定为疑似异常，生成行动卡。",
     window: CURRENT,
-    subject: { store_id: "S001", region: "朝阳区", grade: "standard" },
+    subject: { store_id: "S001", region: "C1", grade: "standard" },
     data_version: "demo_v1",
     expected: {
       verdict: "possible",
@@ -140,7 +140,7 @@ export const FIXTURES: Fixture[] = [
         { what: "客单价变化率", value: "低于 -10% 阈值" },
         { what: "销售口径可比门店数", value: "S002/S003/S004/S021 共 4 家，满足 min_peers=3" },
         { what: "退款口径可比门店数", value: "S002/S003/S021 共 3 家，满足 min_peers=3" },
-        { what: "被剔除门店", value: "仅西城区 4 家 compact 因业态档口不同被剔除" },
+        { what: "被剔除门店", value: "仅 C3（原西城区）4 家 compact 因业态档口不同被剔除" },
       ],
     },
     proves: "核心链路完整走通，且每个数字都能回到 evidence_id。",
@@ -151,7 +151,7 @@ export const FIXTURES: Fixture[] = [
     name: "数据缺失 -> 无法判断",
     demo_line: "S004 的退款字段自 10-06 起未上报，系统拒绝计算退款率，直接返回无法判断。",
     window: CURRENT,
-    subject: { store_id: "S004", region: "朝阳区", grade: "standard" },
+    subject: { store_id: "S004", region: "C1", grade: "standard" },
     data_version: "demo_v1",
     expected: {
       verdict: "unavailable",

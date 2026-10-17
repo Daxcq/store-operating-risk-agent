@@ -16,8 +16,8 @@
  *
  * 这个口径是错的，而且错得很贵。反例就在本 Demo 里：
  *   S004 的 refund_amount / refund_order_count 自 2026-10-06 起整片断报，
- *   空值率 7/21 = 33% > 20%  ->  整店被判 unavailable  ->  从朝阳区可比池剔除。
- *   朝阳区标准档本来只有 S001~S004 + S021，剔掉自己和 S004 就只剩 3 家；
+ *   空值率 7/21 = 33% > 20%  ->  整店被判 unavailable  ->  从 C1 可比池剔除。
+ *   C1 标准档本来只有 S001~S004 + S021，剔掉自己和 S004 就只剩 3 家；
  *   再有任何一家窗口内缺数，可比数就掉到 3 以下，S001 会从 possible 降级成
  *   insufficient —— 主线演示当场翻车。
  *
@@ -75,8 +75,8 @@ export function deriveProfiles(rows: RawRow[]): Map<string, StoreProfile> {
       map.set(r.store_id, {
         store_id: r.store_id,
         region: r.region,
-        // Demo 里业态由 store_id 段位与区域推断：西城区为 compact 档口
-        grade: r.region === "西城区" ? "compact" : "standard",
+        // Demo 里业态由区域推断：参照集里 C3（原西城区）为 compact 档口
+        grade: r.region === "C3" ? "compact" : "standard",
       });
     }
   }

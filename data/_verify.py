@@ -22,7 +22,9 @@ BASELINE = ("2026-09-29", "2026-10-05")
 THRESHOLDS = {"sales_drop": -20.0, "refund_high": 5.0, "aov_drop": -10.0}
 MIN_PEERS = 3
 
-GRADE = lambda region: "compact" if region == "西城区" else "standard"
+# 业态档口：本套里只有 C3（原西城区）的 4 家店是 compact，其余四区都是 standard。
+# 两套数据用不同的区名，长春套（朝阳/南关/宽城/二道/绿园）不会走到这里。
+GRADE = lambda region: "compact" if region == "C3" else "standard"
 KEY_FIELDS = ("sales_amount", "order_count", "refund_amount")
 
 
