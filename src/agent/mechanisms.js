@@ -139,6 +139,16 @@ export function verifyEvidenceMechanism(state) {
   const { intent, toolCalls, findings, regionComparison, replanCount, securityWarnings, auditVerdict, auditSummary } = state
   const assumptions = new Set(state.assumptions || [])
 
+  // 0. 日常问候/闲聊意图无需校验业务数据证据或注入模拟数据假设
+  if (intent?.type === INTENT_TYPES.CONVERSATIONAL) {
+    return {
+      degraded: false,
+      needsReplan: false,
+      regionComparison: [],
+      assumptions: Array.from(assumptions),
+    }
+  }
+
   // 1. 检查是否存在工具执行失败或显式数据不足探测
   const hasErrorCall = toolCalls.some((c) => c.status === 'error')
   if (hasErrorCall || intent?.forceInsufficient) {

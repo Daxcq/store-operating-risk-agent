@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c2333" />
+      <stop offset="100%" stop-color="#0f1522" />
+    </linearGradient>
+    <linearGradient id="cyberLime" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b4f056" />
+      <stop offset="100%" stop-color="#76bd22" />
+    </linearGradient>
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f2c97d" />
+      <stop offset="100%" stop-color="#d4a453" />
+    </linearGradient>
+  </defs>
+
+  <!-- App Icon Squircle Base with Cyber-Lime Border Accent -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg4)" stroke="url(#cyberLime)" stroke-width="6" />
+
+  <!-- Subtle Horizon & Tech Sparkles -->
+  <path d="M 56 392 Q 256 336 456 392" fill="none" stroke="url(#goldAccent)" stroke-width="8" stroke-linecap="round" opacity="0.85" />
+  <!-- 4-Point Cyber Star (Right) -->
+  <path d="M 412 132 L 420 156 L 444 164 L 420 172 L 412 196 L 404 172 L 380 164 L 404 156 Z" fill="url(#cyberLime)" />
+
+  <!-- Stylized Minimalist Mascot Silhouette / Cyber Visor Emblem ("Laicai" Inspired) -->
+  <!-- Ahoge + Hair Silhouette -->
+  <path d="M 244 88 C 285 68, 324 94, 302 132
+           C 356 146, 388 198, 376 264
+           C 368 310, 326 352, 256 352
+           C 186 352, 144 310, 136 264
+           C 124 198, 156 146, 210 132
+           C 226 108, 220 98, 244 88 Z"
+        fill="#262d3d" stroke="#3b465e" stroke-width="4" />
+
+  <!-- Cyber Lime Hair Highlights (3 bars on right + left streak) -->
+  <path d="M 164 184 Q 196 148 242 138" fill="none" stroke="url(#cyberLime)" stroke-width="12" stroke-linecap="round" />
+  <rect x="308" y="186" width="38" height="9" rx="4" transform="rotate(-12 308 186)" fill="url(#cyberLime)" />
+  <rect x="312" y="204" width="32" height="9" rx="4" transform="rotate(-12 312 204)" fill="url(#cyberLime)" />
+  <rect x="316" y="222" width="38" height="9" rx="4" transform="rotate(-12 316 222)" fill="url(#cyberLime)" />
+
+  <!-- Glowing Emerald AI Visor / Eyes -->
+  <rect x="168" y="238" width="176" height="62" rx="31" fill="#101a2d" stroke="url(#cyberLime)" stroke-width="5" />
+  <circle cx="214" cy="269" r="18" fill="url(#cyberLime)" />
+  <circle cx="298" cy="269" r="18" fill="url(#cyberLime)" />
+  <circle cx="208" cy="263" r="6" fill="#ffffff" />
+  <circle cx="292" cy="263" r="6" fill="#ffffff" />
+
+  <!-- Tech Collar Below -->
+  <path d="M 178 352 L 204 422 L 308 422 L 334 352 Z" fill="#1a2232" stroke="url(#cyberLime)" stroke-width="4" />
+  <rect x="246" y="366" width="20" height="42" rx="6" fill="url(#cyberLime)" />
+</svg>

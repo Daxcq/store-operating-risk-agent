@@ -1,6 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
 
-:root { font-family: 'DM Sans', Arial, sans-serif; color: #19263a; background: #edf1f5; font-synthesis: none; --navy: #101a2d; --ink: #19263a; --muted: #718096; --line: #dfe5eb; --paper: #ffffff; --cream: #f6f8fa; --teal: #258b68; --red: #c74743; --amber: #ad7617; }
+:root {
+  font-family: 'DM Sans', Arial, sans-serif;
+  color: #19263a;
+  background: #edf1f5;
+  font-synthesis: none;
+  --navy: #101a2d;
+  --ink: #19263a;
+  --muted: #718096;
+  --line: #dfe5eb;
+  --paper: #ffffff;
+  --cream: #f6f8fa;
+  --teal: #258b68;
+  --red: #c74743;
+  --amber: #ad7617;
+  --surface-app: #edf1f5;
+  --surface-panel: #f7f9fb;
+  --surface-card: #ffffff;
+  --surface-subtle: #f8fafc;
+  --border-hairline: rgba(16, 26, 45, 0.08);
+  --border-subtle: #dfe5eb;
+  --focus-border: #2b4c7e;
+  --focus-inner: #2b4c7e;
+  --focus-outer: rgba(43, 76, 126, 0.16);
+}
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 1120px; background: #edf1f5; }
 button, input { font: inherit; }
@@ -1093,14 +1116,14 @@ button { border: 0; cursor: pointer; }
   height: 112px;
   padding: 0;
   overflow: hidden;
-  border: 3px solid #91d63e;
+  border: 1.5px solid rgba(145, 214, 62, 0.85);
   border-radius: 10px;
   background: #ffffff;
-  box-shadow: 0 12px 28px rgba(16, 26, 45, 0.24);
+  box-shadow: 0 2px 6px rgba(16, 26, 45, 0.08), 0 12px 28px rgba(16, 26, 45, 0.22);
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.laicai-character-button:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(16, 26, 45, 0.3); }
+.laicai-character-button:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(16, 26, 45, 0.1), 0 18px 36px rgba(16, 26, 45, 0.28); }
 .laicai-character-button img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .laicai-unread-dot {
   position: absolute;
@@ -1122,20 +1145,21 @@ button { border: 0; cursor: pointer; }
   width: 382px;
   height: 450px;
   overflow: visible;
-  border: 2px solid #25345f;
+  border: 1px solid rgba(37, 52, 95, 0.16);
   border-radius: 8px;
   background: #ffffff;
-  box-shadow: 0 16px 38px rgba(16, 26, 45, 0.24);
+  box-shadow: 0 1px 2px rgba(16, 26, 45, 0.06), 0 18px 40px -8px rgba(16, 26, 45, 0.22);
+  transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1), height 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .laicai-speech-bubble::after {
   content: '';
   position: absolute;
   right: 42px;
-  bottom: -11px;
-  width: 19px;
-  height: 19px;
-  border-right: 2px solid #25345f;
-  border-bottom: 2px solid #25345f;
+  bottom: -10px;
+  width: 18px;
+  height: 18px;
+  border-right: 1px solid rgba(37, 52, 95, 0.16);
+  border-bottom: 1px solid rgba(37, 52, 95, 0.16);
   background: #ffffff;
   transform: rotate(45deg);
 }
@@ -1144,9 +1168,9 @@ button { border: 0; cursor: pointer; }
 .laicai-speech-bubble .copilot-quick-prompts,
 .laicai-speech-bubble .copilot-messages,
 .laicai-speech-bubble .copilot-footer { position: relative; z-index: 1; }
-.laicai-speech-bubble .copilot-header { border-radius: 5px 5px 0 0; }
+.laicai-speech-bubble .copilot-header { border-radius: 7px 7px 0 0; }
 .laicai-speech-bubble .copilot-messages { min-height: 0; }
-.laicai-speech-bubble .copilot-footer { border-radius: 0 0 5px 5px; }
+.laicai-speech-bubble .copilot-footer { border-radius: 0 0 7px 7px; }
 .laicai-speech-bubble .copilot-msg-identity .laicai-avatar-message { border-radius: 4px; }
 .copilot-pill-badge {
   padding: 2px 6px;
@@ -2015,3 +2039,402 @@ button { border: 0; cursor: pointer; }
 .ag-decision-resolved button {
   margin-left: auto;
 }
+
+/* ============================================================================
+   UI Engineering 10-Rule Craftsmanship Enhancements (ui_agent_prompt 规范落地)
+   ============================================================================ */
+
+/* 01. 微弱明度差与多层极浅阴影代替生硬粗边框 (Subtle Luminance & Layered Shadows) */
+.exec-kpi-card,
+.cockpit-card,
+.quick-panel,
+.detail-card,
+.region-card,
+.wb-control-card,
+.wb-card,
+.wb-status-item,
+.task-list-card,
+.task-detail-panel,
+.loop-header,
+.loop-metric-card,
+.loop-section,
+.funnel-left-col,
+.funnel-right-col,
+.ag-section-block {
+  border-color: rgba(16, 26, 45, 0.085);
+  box-shadow: 0 1px 2px rgba(16, 26, 45, 0.03), 0 4px 12px -2px rgba(16, 26, 45, 0.025);
+}
+
+.ag-decision-card {
+  border-width: 1px;
+  border-color: rgba(43, 76, 126, 0.32);
+  box-shadow: 0 1px 3px rgba(16, 26, 45, 0.04), 0 8px 20px -4px rgba(43, 76, 126, 0.08);
+}
+
+/* 02. 双层聚焦环与复合搜索框 :focus-within (Dual-Ring Focus) */
+.search-box,
+.wb-query-input,
+.ai-quick-input,
+.copilot-footer input,
+.loop-control-card select {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.search-box:focus-within,
+.wb-query-input:focus,
+.wb-query-input:focus-visible,
+.ai-quick-input:focus,
+.ai-quick-input:focus-visible,
+.copilot-footer input:focus,
+.copilot-footer input:focus-visible,
+.loop-control-card select:focus,
+.loop-control-card select:focus-visible {
+  border-color: var(--focus-border);
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--focus-inner),
+    0 0 0 3px var(--focus-outer);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--focus-inner),
+    0 0 0 3px var(--focus-outer);
+}
+
+/* 03. 深色容器字重视觉补偿 (Dark Surface Optical Font-Weight Compensation) */
+.topbar,
+.copilot-header,
+.copilot-msg.user,
+.wb-code-mini,
+.wb-json-viewer,
+.ops-toast,
+.floating-copilot-pill,
+.wb-tab.active,
+.step-node.current {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.topbar,
+.copilot-header,
+.copilot-msg.user,
+.ops-toast,
+.floating-copilot-pill {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+/* 04. 流式输出与新增文本块自然浮现 (Natural Text Reveal & Streaming Cursor) */
+@keyframes text-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-reveal {
+  animation: text-reveal 120ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
+}
+
+@keyframes streamCursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.ag-stream-cursor {
+  display: inline-block;
+  margin-left: 3px;
+  color: var(--teal);
+  font-weight: 700;
+  animation: streamCursorBlink 0.9s ease-in-out infinite;
+}
+
+.ag-streaming-card {
+  border-left-color: var(--teal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-reveal,
+  .content-view,
+  .case-drawer,
+  .ops-toast,
+  .ag-stream-cursor {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* 05. 行内图标光学基线对齐与按钮图标几何居中 (Optical Icon Alignment) */
+.icon-inline {
+  display: inline-block;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+}
+
+.outline-button svg,
+.primary-button svg,
+.secondary-button svg,
+.close-view svg,
+.wb-tab svg,
+.ag-focus-badge svg,
+.ag-section-header svg,
+.ag-col-label svg,
+.copilot-task-btn svg {
+  flex-shrink: 0;
+}
+
+/* 06. 数字等宽对齐与动态计时器防抖 (Tabular Numbers & Stable Counter Widths) */
+.num,
+.delta,
+.number,
+.wb-mono,
+.wb-tab-count,
+.nav-count,
+.button-badge,
+.store-row-gap,
+.integrity-ring,
+.ag-metric-val,
+.ag-step-ms,
+.ag-duration-tag,
+.ag-live-step-counter,
+.ag-mono-bold,
+.exec-kpi-card strong,
+.loop-metric-card strong,
+.region-score-badge strong,
+.region-factors strong,
+.region-roi-box strong,
+.funnel-stage-val,
+.map-stats strong,
+.risk-summary strong,
+.benchmark-mini strong,
+.progress-row strong,
+.metric-block strong,
+.decomp-row strong,
+.projection-result strong,
+.target-gap strong,
+.task-verify-metrics,
+.res-score,
+.res-payback,
+.compare-table td,
+.ag-region-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.ag-duration-tag {
+  display: inline-block;
+  min-width: 7.2ch;
+  text-align: right;
+}
+
+.ag-live-step-counter {
+  display: inline-block;
+  min-width: 11ch;
+  text-align: right;
+  font: 500 9.5px 'DM Mono', monospace;
+  color: #475569;
+}
+
+/* 07. 思考链与折叠区 CSS Grid 丝滑过渡 (Smooth Grid Height Collapse) */
+.ag-collapse-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ag-collapse-grid[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.ag-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ag-chevron-icon {
+  color: #64748b;
+  flex-shrink: 0;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease;
+}
+
+.ag-thinking-header[aria-expanded="true"] .ag-chevron-icon {
+  transform: rotate(90deg);
+  color: var(--navy);
+}
+
+/* 08. 排版断行优化：正文 pretty 消除孤字，标题 balance 均衡视觉 (Text Wrap) */
+.ag-direct-answer,
+.ag-step-detail,
+.ag-col-text,
+.ag-basis-list li,
+.ag-diag-row p,
+.wb-summary-box p,
+.copilot-msg,
+.ai-result-summary,
+.case-section p,
+.loop-alert-summary,
+.unavailable-header p,
+.region-rationale,
+.track-box p {
+  text-wrap: pretty;
+}
+
+.side-intro h1,
+.main-toolbar h2,
+.view-header h3,
+.drawer-header h3,
+.wb-control-header h4,
+.cockpit-card-head h4,
+.ag-decision-title-wrap h5 {
+  text-wrap: balance;
+}
+
+code,
+.evidence-id,
+.copilot-ev-tag,
+.ai-ev-pill {
+  overflow-wrap: anywhere;
+}
+
+/* 09. 物理曲线区分：面板过阻尼 vs 微交互轻快回弹 (Motion Physics) */
+.case-drawer {
+  animation: drawerIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.content-view {
+  animation: viewIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.floating-copilot-window {
+  transition:
+    width 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ag-approve-btn,
+.ag-decision-resolved {
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.ag-approve-btn:active {
+  transform: scale(0.97);
+}
+
+/* 10. 临时状态反馈自动消退按钮 (Self-Extinguishing Copy Feedback Button) */
+.ag-conclusion-top-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.case-section-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ag-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #d8e1eb;
+  background: #f8fafc;
+  color: #526278;
+  font: 600 9.5px 'DM Sans', sans-serif;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.26s ease,
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ag-copy-btn:hover {
+  background: #eef3f8;
+  color: var(--navy);
+  border-color: #b8c6d6;
+}
+
+.ag-copy-btn:active {
+  transform: scale(0.95);
+}
+
+.ag-copy-btn.is-copied {
+  background: #eaf7f0;
+  border-color: #b7e1cd;
+  color: #16654a;
+  transform: scale(1.02);
+}
+
+.ag-copy-btn.is-fading {
+  opacity: 0.55;
+  transform: scale(0.99);
+}
+
+.ag-copy-icon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+@keyframes agChunkFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.ag-stream-chunk {
+  display: inline;
+  animation: agChunkFadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ag-stream-placeholder {
+  color: #64748b;
+  font-size: 12.5px;
+}
+
+.ag-conv-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed rgba(203, 213, 225, 0.7);
+}
+
+.ag-conv-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 11px 'DM Sans', sans-serif;
+  color: #1e6b52;
+}
+
+.ag-pulse-dot.is-Static {
+  animation: none;
+  opacity: 0.85;
+}
+

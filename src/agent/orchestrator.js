@@ -36,7 +36,7 @@ async function inputGuardNode(state) {
     securityWarnings,
   })
   return {
-    request: { query: normalizedQuery },
+    request: { query: normalizedQuery, context: state.request?.context || null },
     securityWarnings,
     phase: PLAN_EXECUTE_PHASES.GUARDED,
   }
@@ -185,6 +185,7 @@ async function outputGuardNode(state) {
     fallbackThinkingSteps: fallback.draftThinkingSteps,
     fallbackStructuredBlocks: fallback.draftStructuredBlocks,
     fallbackDecisionProposal: fallback.draftDecisionProposal,
+    isConversational: state.intent?.type === 'conversational',
   })
 
   if (state.sessionId) {

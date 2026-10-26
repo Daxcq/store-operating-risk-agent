@@ -25,6 +25,7 @@ import {
   parseRegionIdsParam,
   validateAgentRequest,
   enforceToolPlanContract,
+  enforceOutputGuardrails,
 } from '../agent/safety.js'
 import {
   STATIC_PREFIX_FINGERPRINT,
@@ -36,6 +37,7 @@ import {
   getLLMConfig,
   configureLLMClient,
   isLLMConfigured,
+  streamThirdPartyLLM,
 } from '../agent/components/llmClient.js'
 import {
   retrieveRelevantLongTermMemory,
@@ -470,7 +472,15 @@ export async function handleApiRequest({ method = 'GET', url = '/', body = null 
 }
 
 /**
+ * 辅助延迟函数（用于 SSE 流式分步推送节奏控制）
+ */
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
  * 供 Vite DevServer / PreviewServer 或 Node http.Server 挂载的中间件
+ * 同时支持标准 JSON 响应与 SSE (Server-Sent Events) 流式输出
  */
 export function createApiMiddleware() {
   return async (req, res, next) => {
@@ -488,6 +498,173 @@ export function createApiMiddleware() {
         req.on('end', () => resolve(acc))
         req.on('error', reject)
       })
+    }
+
+    const parsedUrl = new URL(req.url, 'http://localhost')
+    const pathname = parsedUrl.pathname.replace(/\/+$/, '') || '/'
+    const upperMethod = (req.method || 'GET').toUpperCase()
+    const acceptHeader = String(req.headers?.accept || '')
+    const isSseAgentRequest =
+      upperMethod === 'POST' &&
+      (pathname === '/api/v1/agent/stream' ||
+        (pathname === '/api/v1/agent/run' && acceptHeader.includes('text/event-stream')))
+
+    if (isSseAgentRequest) {
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-cache, no-transform')
+      res.setHeader('Connection', 'keep-alive')
+      res.setHeader('X-Accel-Buffering', 'no')
+
+      const sendSse = (eventName, payload) => {
+        if (res.writableEnded) return
+        res.write(`event: ${eventName}\ndata: ${JSON.stringify(payload)}\n\n`)
+      }
+
+      try {
+        const parsedBody = parseJsonBody(rawBody)
+        validateAgentRequest(parsedBody)
+
+        const data = await runAgent(
+          {
+            query: parsedBody.query,
+            sessionId: typeof parsedBody.sessionId === 'string' ? parsedBody.sessionId : null,
+            context: parsedBody.context || null,
+          },
+          {
+            engineMode: 'quick',
+          },
+        )
+
+        // 1. 若为业务诊断模式，逐条流式推送思考与执行步骤 (event: step)
+        if (!data.isConversational && Array.isArray(data.thinkingSteps) && data.thinkingSteps.length > 0) {
+          for (let i = 0; i < data.thinkingSteps.length; i += 1) {
+            sendSse('step', {
+              index: i,
+              total: data.thinkingSteps.length,
+              step: data.thinkingSteps[i],
+            })
+            await sleepMs(180)
+          }
+        }
+
+        // 2. 流式推送核心结论文本增量 (event: delta)
+        const requestedEngineMode =
+          typeof parsedBody.engineMode === 'string' ? parsedBody.engineMode : 'auto'
+        const canUseRealLLM =
+          requestedEngineMode !== 'quick' &&
+          requestedEngineMode !== 'deterministic' &&
+          isLLMConfigured() &&
+          data.auditVerdict !== 'unavailable' &&
+          !String(data.summary || '').includes('当前数据不足')
+
+        let streamedViaRealLLM = false
+        if (canUseRealLLM) {
+          const llmStreamRes = await streamThirdPartyLLM({
+            query: parsedBody.query,
+            isConversational: Boolean(data.isConversational),
+            localBaseline: data,
+            onDelta: async (delta, text, chunks) => {
+              sendSse('delta', {
+                delta,
+                chunks,
+                text,
+                isConversational: Boolean(data.isConversational),
+                usedLLM: true,
+              })
+            },
+          })
+
+          if (llmStreamRes.ok && llmStreamRes.text) {
+            const guarded = enforceOutputGuardrails({
+              summary: llmStreamRes.text,
+              findings: data.findings,
+              regionComparison: data.regionComparison,
+              recommendations: data.recommendations,
+              toolCalls: data.toolCalls,
+              assumptions: data.assumptions,
+              fallbackSummary: data.structuredBlocks?.directAnswer || data.summary,
+              fallbackRecommendations: data.recommendations,
+              fallbackStructuredBlocks: data.structuredBlocks,
+              isConversational: Boolean(data.isConversational),
+            })
+            data.summary = guarded.summary
+            if (data.structuredBlocks) {
+              data.structuredBlocks = {
+                ...data.structuredBlocks,
+                directAnswer: guarded.summary,
+              }
+            }
+            data.usedLLM = true
+            data.llmModel = llmStreamRes.model || getLLMConfig().model
+            streamedViaRealLLM = true
+          }
+        }
+
+        const targetText = streamedViaRealLLM
+          ? ''
+          : data.structuredBlocks?.directAnswer || data.summary || ''
+        if (targetText) {
+          const rawClauses = String(targetText)
+            .split(/(?<=[。！？；，、：\n.!?;,:])/)
+            .filter(Boolean)
+          const streamClauses = []
+          for (const part of rawClauses) {
+            if (part.length <= 16) {
+              streamClauses.push(part)
+            } else {
+              for (let k = 0; k < part.length; k += 12) {
+                streamClauses.push(part.slice(k, k + 12))
+              }
+            }
+          }
+          const emittedChunks = []
+          let accumulated = ''
+          for (let pos = 0; pos < streamClauses.length; pos += 1) {
+            const delta = streamClauses[pos]
+            emittedChunks.push(delta)
+            accumulated += delta
+            sendSse('delta', {
+              delta,
+              chunks: [...emittedChunks],
+              text: accumulated,
+              isConversational: Boolean(data.isConversational),
+            })
+            await sleepMs(55)
+          }
+        }
+
+        // 3. 推送结构化业务结论块与待审核决策方案 (event: structured)
+        if (!data.isConversational && (data.structuredBlocks || data.decisionProposal)) {
+          sendSse('structured', {
+            structuredBlocks: data.structuredBlocks || null,
+            decisionProposal: data.decisionProposal || null,
+            findings: data.findings || [],
+            regionComparison: data.regionComparison || [],
+            evidence: data.evidence || [],
+            recommendations: data.recommendations || [],
+          })
+          await sleepMs(90)
+        }
+
+        // 4. 推送完整最终契约响应并结束流 (event: done)
+        sendSse('done', data)
+        res.end()
+      } catch (err) {
+        const status = err instanceof ApiContractError ? err.status : err?.status || 500
+        const errorBody =
+          err instanceof ApiContractError
+            ? err.toJSON()
+            : {
+                error: {
+                  code: err?.code || 'INTERNAL_ERROR',
+                  message: err?.message || '流式请求处理失败',
+                },
+              }
+        sendSse('error', { status, ...errorBody })
+        res.end()
+      }
+      return
     }
 
     const result = await handleApiRequest({

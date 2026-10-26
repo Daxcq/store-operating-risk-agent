@@ -91,6 +91,7 @@ export const TOOL_REGISTRY_META = Object.freeze({
  * 意图分类枚举
  */
 export const INTENT_TYPES = Object.freeze({
+  CONVERSATIONAL: 'conversational',       // 日常问候、礼貌寒暄、身份/能力咨询等非问数对话
   STORE_AUDIT: 'store_audit',             // 门店表现诊断与异常审计
   REGION_COMPARISON: 'region_comparison', // 区域投放对比与 ROI 测算
   DASHBOARD_OVERVIEW: 'dashboard_overview', // 全局经营驾驶舱概览

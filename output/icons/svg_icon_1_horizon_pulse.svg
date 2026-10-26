@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16243d" />
+      <stop offset="55%" stop-color="#101a2d" />
+      <stop offset="100%" stop-color="#09101d" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#b6812d" />
+      <stop offset="50%" stop-color="#f2c97d" />
+      <stop offset="100%" stop-color="#d4a453" />
+    </linearGradient>
+    <linearGradient id="tealGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#258b68" />
+      <stop offset="100%" stop-color="#72d3a7" />
+    </linearGradient>
+    <radialGradient id="horizonGlow" cx="50%" cy="68%" r="48%">
+      <stop offset="0%" stop-color="#d4a453" stop-opacity="0.38" />
+      <stop offset="60%" stop-color="#258b68" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#101a2d" stop-opacity="0" />
+    </radialGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Squircle Base -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bgGrad)" stroke="#263859" stroke-width="4" />
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#horizonGlow)" />
+
+  <!-- Subtle Radar Grid Circles -->
+  <circle cx="256" cy="340" r="190" fill="none" stroke="#233554" stroke-width="1.5" stroke-dasharray="6 8" opacity="0.7" />
+  <circle cx="256" cy="340" r="135" fill="none" stroke="#2c4268" stroke-width="1.5" opacity="0.6" />
+
+  <!-- Isometric Smart Retail Store / Data Pillars Rising from Horizon -->
+  <g opacity="0.92">
+    <rect x="146" y="210" width="36" height="115" rx="8" fill="#1e314f" stroke="#36517d" stroke-width="2" />
+    <rect x="198" y="164" width="40" height="161" rx="8" fill="#213c5c" stroke="#456b9c" stroke-width="2" />
+    <rect x="254" y="128" width="44" height="197" rx="10" fill="url(#tealGrad)" opacity="0.88" />
+    <rect x="314" y="182" width="38" height="143" rx="8" fill="#1e314f" stroke="#36517d" stroke-width="2" />
+  </g>
+
+  <!-- Real-time Retail Pulse Wave -->
+  <path d="M 76 286 L 154 286 L 184 238 L 216 312 L 258 158 L 296 294 L 326 244 L 358 286 L 436 286"
+        fill="none" stroke="url(#tealGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)" />
+
+  <!-- Golden Horizon Arc -->
+  <path d="M 64 356 Q 256 292 448 356" fill="none" stroke="url(#goldGrad)" stroke-width="14" stroke-linecap="round" filter="url(#softGlow)" />
+  <path d="M 98 386 Q 256 336 414 386" fill="none" stroke="#d4a453" stroke-width="4" stroke-linecap="round" opacity="0.55" />
+
+  <!-- Key Data Node Dot -->
+  <circle cx="258" cy="158" r="11" fill="#f2c97d" stroke="#101a2d" stroke-width="4" />
+  <circle cx="258" cy="158" r="20" fill="none" stroke="#f2c97d" stroke-width="2" opacity="0.5" />
+</svg>

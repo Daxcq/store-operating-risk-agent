@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#172640" />
+      <stop offset="100%" stop-color="#0b1220" />
+    </linearGradient>
+    <linearGradient id="cubeTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5d48e" />
+      <stop offset="100%" stop-color="#d4a453" />
+    </linearGradient>
+    <linearGradient id="cubeLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ea87e" />
+      <stop offset="100%" stop-color="#1d6b50" />
+    </linearGradient>
+    <linearGradient id="cubeRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#223859" />
+      <stop offset="100%" stop-color="#142238" />
+    </linearGradient>
+    <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#72d3a7" />
+      <stop offset="50%" stop-color="#f2c97d" />
+      <stop offset="100%" stop-color="#258b68" />
+    </linearGradient>
+  </defs>
+
+  <!-- App Icon Squircle Base -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg3)" stroke="#283d60" stroke-width="4" />
+
+  <!-- Outer Closed-Loop Agent Ring (Back Half) -->
+  <ellipse cx="256" cy="256" rx="182" ry="74" transform="rotate(-28 256 256)"
+           fill="none" stroke="url(#orbitGrad)" stroke-width="12" stroke-dasharray="280 300" opacity="0.45" />
+  <ellipse cx="256" cy="256" rx="182" ry="74" transform="rotate(32 256 256)"
+           fill="none" stroke="#365580" stroke-width="4" stroke-dasharray="10 10" opacity="0.6" />
+
+  <!-- Isometric Retail Intelligence Cube -->
+  <!-- Top Face -->
+  <polygon points="256,124 370,190 256,256 142,190" fill="url(#cubeTop)" stroke="#fff1cc" stroke-width="2" />
+  <!-- Left Face -->
+  <polygon points="142,190 256,256 256,388 142,322" fill="url(#cubeLeft)" stroke="#72d3a7" stroke-width="2" />
+  <!-- Right Face -->
+  <polygon points="256,256 370,190 370,322 256,388" fill="url(#cubeRight)" stroke="#436596" stroke-width="2" />
+
+  <!-- Inner Grid Lines on Cube to Represent Smart Lockers / Unmanned Store Matrix -->
+  <line x1="199" y1="157" x2="313" y2="223" stroke="#101a2d" stroke-width="3" opacity="0.35" />
+  <line x1="313" y1="157" x2="199" y2="223" stroke="#101a2d" stroke-width="3" opacity="0.35" />
+  <line x1="199" y1="223" x2="199" y2="355" stroke="#72d3a7" stroke-width="2.5" opacity="0.45" />
+  <line x1="313" y1="223" x2="313" y2="355" stroke="#72d3a7" stroke-width="2.5" opacity="0.35" />
+  <line x1="142" y1="256" x2="256" y2="322" stroke="#72d3a7" stroke-width="2.5" opacity="0.45" />
+  <line x1="256" y1="322" x2="370" y2="256" stroke="#72d3a7" stroke-width="2.5" opacity="0.35" />
+
+  <!-- Outer Closed-Loop Agent Ring (Front Arc) -->
+  <path d="M 95 340 A 182 74 -28 0 0 417 172" fill="none" stroke="url(#orbitGrad)" stroke-width="14" stroke-linecap="round" />
+
+  <!-- Orbiting Agent Action Nodes -->
+  <circle cx="118" cy="322" r="14" fill="#72d3a7" stroke="#101a2d" stroke-width="4" />
+  <circle cx="394" cy="190" r="14" fill="#f2c97d" stroke="#101a2d" stroke-width="4" />
+  <circle cx="256" cy="256" r="10" fill="#ffffff" />
+</svg>

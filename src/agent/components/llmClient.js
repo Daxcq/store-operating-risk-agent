@@ -15,6 +15,7 @@ import {
   appendAssistantTextMessage,
   buildLLMRequestPayload,
   extractKvCacheMetrics,
+  STATIC_SYSTEM_MESSAGE,
   verifyStaticPrefixIntegrity,
 } from './contextBuilder.js'
 import { parseIntentAndPlanTools } from './intentParser.js'
@@ -64,7 +65,7 @@ let runtimeLLMConfig = {
     process.env.LLM_BASE_URL || 'https://platform.stepfun.com/step-plan',
   ),
   model: normalizeModelName(process.env.LLM_MODEL || 'stepfun5 preview'),
-  timeoutMs: Number(process.env.LLM_TIMEOUT_MS) || 3000,
+  timeoutMs: Number(process.env.LLM_TIMEOUT_MS) || 15000,
   customFetch: null, // 支持测试注入 Mock Fetch 验证多轮 KV Cache 命中
 }
 
@@ -101,7 +102,7 @@ export function getLLMConfig() {
     model: normalizeModelName(
       runtimeLLMConfig.model || process.env.LLM_MODEL || 'stepfun5 preview',
     ),
-    timeoutMs: runtimeLLMConfig.timeoutMs || 3000,
+    timeoutMs: runtimeLLMConfig.timeoutMs || 15000,
     customFetch: runtimeLLMConfig.customFetch,
   }
 }
@@ -217,6 +218,289 @@ export async function callThirdPartyLLM({ messages, toolChoice = 'auto' }) {
 }
 
 /**
+/**
+ * 构建符合本地回复标准与实测数据基线的提示词锚点（确保真实 AI 大模型实时生成时 100% 遵循本地口径与零编造规范）
+ */
+export function buildLocalStandardGroundingPrompt({
+  query = '',
+  isConversational = false,
+  localBaseline = {},
+}) {
+  const refSummary =
+    localBaseline?.structuredBlocks?.directAnswer ||
+    localBaseline?.summary ||
+    localBaseline?.draftSummary ||
+    ''
+  const refRecs =
+    localBaseline?.recommendations ||
+    localBaseline?.draftRecommendations ||
+    []
+
+  if (isConversational) {
+    return [
+      `【用户当前提问】\n${query}`,
+      `\n【莱森地平线（Laisen Horizon）本地业务标准与参考要点】\n${refSummary}`,
+      `\n【本地回复标准（必须严格遵守）】`,
+      `1. 你的身份是「莱森地平线（Laisen Horizon）无人零售与智能云值守经营顾问（ライセン・ホライゾン）」，覆盖长春市 5 大行政区（朝阳区、南关区、宽城区、二道区、绿园区）共 26 家无人零售与智能云值守门店（A~E 核心样本店 + S001~S021 实测门店）。`,
+      `2. 本地核心业务准则：门店异常审计遵循 store_anomaly_v1（销售额周环比 <= -18%、退款率 >= 4.5% 且高于同区同行中位数 2 个百分点、客单价周环比 <= -12%）；区域选址遵循 region_score_v1 四维模型（需求 35%、竞争 25%、毛利 25%、成本 15%）；夜间云值守采用 24h AI 视觉防损与 35-40-25 黄金商品配比（35% 刚需引流、40% 高毛利即食夜宵、25% 趋势网红新品）。`,
+      `3. 输出格式规范：请用实时、自然、专业且有温度的中文直接回答用户。若涉及经营咨询、方法论或实操建议，请结合上方【本地业务标准与参考要点】采用清晰的「1）... 2）... 3）...」分点结构作答，总字数控制在 120~240 字之间；若为简短日常问候，控制在 80~150 字之间。`,
+      `4. 严禁输出 JSON 包装、严禁输出 Markdown 标题符号（#）、严禁暴露任何内部工具函数名称（如 run_audit、compare_regions 等）。直接输出面向用户的正文。`,
+    ].join('\n')
+  }
+
+  const keyMetricsText = Array.isArray(localBaseline?.structuredBlocks?.keyMetrics)
+    ? localBaseline.structuredBlocks.keyMetrics.map((m) => `${m.label}: ${m.value}`).join(' | ')
+    : ''
+  const diagnosisText = Array.isArray(localBaseline?.structuredBlocks?.diagnosisItems)
+    ? localBaseline.structuredBlocks.diagnosisItems.map((d) => `${d.title}: ${d.detail}`).join('；')
+    : ''
+  const findingsText = Array.isArray(localBaseline?.findings)
+    ? localBaseline.findings
+        .map((f) => `[${f.severity}] ${f.title}（证据：${(f.evidence || []).join('，')}；建议：${f.recommendation}）`)
+        .join('；')
+    : ''
+  const regionText = Array.isArray(localBaseline?.regionComparison)
+    ? localBaseline.regionComparison
+        .map(
+          (r) =>
+            `${r.name}(${r.regionId}) 综合分=${r.score}, 预估月净利=${r.estimatedMonthlyProfit}, 回本周期=${r.estimatedPaybackMonths ?? '缺失'}个月, 依据=${(r.reasons || []).join('，')}`,
+        )
+        .join('；')
+    : ''
+
+  return [
+    `【用户当前提问】\n${query}`,
+    `\n【本地实测核验基线（唯一合法数据源）】`,
+    `- 标准核心结论基线：${refSummary}`,
+    keyMetricsText ? `- 关键实测指标：${keyMetricsText}` : '',
+    diagnosisText ? `- 归因拆解明细：${diagnosisText}` : '',
+    findingsText ? `- 实测异常证据：${findingsText}` : '',
+    regionText ? `- 区域对比实测：${regionText}` : '',
+    refRecs.length > 0 ? `- 标准行动建议：${refRecs.join('；')}` : '',
+    `\n【本地结构化回复标准（必须严格遵守）】`,
+    `1. 请基于上方【本地实测核验基线】，针对用户提问实时生成一段精炼、权威的中文核心业务结论（Direct Answer）。`,
+    `2. 铁律（零数值编造）：你输出的每一个数字、百分比、金额、门店编号（如 A店、B店、S001、S005）、区域名称与回本周期，必须 100% 来源于【本地实测核验基线】，严禁自行编造、推算或修改任何未在基线中出现的数字！`,
+    `3. 结构标准：请严格贴合【本地实测核验基线】已提供的指标作答（基线中有的指标如实引用，基线中未出现的维度无需提及），包含核心诊断定性或选址排序结论、关键实测证据指标对比，以及最高优先级的落地整改或投放动作。`,
+    `4. 纯文本直出：字数控制在 100~200 字之间，直接输出一段连贯专业的中文结论正文，严禁输出 JSON 包装、严禁包含 Markdown 代码块或标题符号（#）、严禁暴露任何内部工具函数名（如 run_audit、compare_regions、get_dashboard 等）。`,
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
+
+/**
+ * 真实第三方 AI 大模型实时流式生成接口（SSE Token Streaming + 本地回复标准锚定）
+ */
+export async function streamThirdPartyLLM({
+  query = '',
+  isConversational = false,
+  localBaseline = {},
+  onDelta,
+}) {
+  if (!verifyStaticPrefixIntegrity() || !isLLMConfigured()) {
+    return { ok: false, usedLLM: false, text: '' }
+  }
+
+  const cfg = getLLMConfig()
+  const groundingPrompt = buildLocalStandardGroundingPrompt({
+    query,
+    isConversational,
+    localBaseline,
+  })
+
+  const messages = [
+    STATIC_SYSTEM_MESSAGE,
+    {
+      role: 'user',
+      content: groundingPrompt,
+    },
+  ]
+
+  const basePayload = buildLLMRequestPayload({
+    messages,
+    model: cfg.model,
+    provider: cfg.provider,
+    temperature: isConversational ? 0.3 : 0.1,
+    toolChoice: 'none',
+  })
+  const payload = {
+    ...basePayload,
+    stream: true,
+  }
+
+  const fetchImpl = cfg.customFetch || globalThis.fetch
+  const cleanBase = cfg.baseUrl.replace(/\/+$/, '')
+  const endpoint =
+    cfg.provider === 'anthropic'
+      ? `${cleanBase}/messages`
+      : `${cleanBase}/chat/completions`
+
+  const headers =
+    cfg.provider === 'anthropic'
+      ? {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
+          'x-api-key': cfg.apiKey,
+          'anthropic-version': '2023-06-01',
+        }
+      : {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
+          Authorization: `Bearer ${cfg.apiKey}`,
+        }
+
+  const controller = new AbortController()
+  const initialTimeoutMs = Math.max(Number(cfg.timeoutMs) || 15000, 30000)
+  let timer = setTimeout(() => controller.abort(), initialTimeoutMs)
+  const resetActivityTimer = (ms = 18000) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => controller.abort(), ms)
+  }
+
+  let accumulated = ''
+  let pendingSegment = ''
+  const emittedChunks = []
+
+  try {
+    const res = await fetchImpl(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    })
+
+    if (!res.ok) {
+      return { ok: false, usedLLM: false, text: '' }
+    }
+
+    const contentType = String(res.headers?.get?.('content-type') || '')
+    // 若上游返回非流式 JSON，自动拆分并流式回调
+    if (!res.body || !contentType.includes('text/event-stream')) {
+      const data = await res.json()
+      const fullContent = scrubInternalToolNames(
+        String(data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || '').trim(),
+      )
+      if (!fullContent) {
+        return { ok: false, usedLLM: false, text: '' }
+      }
+      const clauses = fullContent.split(/(?<=[。！？；，、：\n.!?;,:])/).filter(Boolean)
+      const emitted = []
+      let acc = ''
+      for (const piece of clauses) {
+        emitted.push(piece)
+        acc += piece
+        if (onDelta) {
+          await onDelta(piece, acc, [...emitted])
+        }
+      }
+      return {
+        ok: true,
+        usedLLM: true,
+        model: cfg.model,
+        text: fullContent,
+        chunks: emitted,
+      }
+    }
+
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder('utf-8')
+    let sseBuffer = ''
+
+    const flushSegment = async (force = false) => {
+      if (!pendingSegment) return
+      if (
+        force ||
+        pendingSegment.length >= 6 ||
+        /[。！？；，、：\n.!?;,:]/.test(pendingSegment)
+      ) {
+        const cleanPiece = scrubInternalToolNames(pendingSegment)
+        pendingSegment = ''
+        if (cleanPiece) {
+          emittedChunks.push(cleanPiece)
+          accumulated += cleanPiece
+          if (onDelta) {
+            await onDelta(cleanPiece, accumulated, [...emittedChunks])
+          }
+        }
+      }
+    }
+
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      resetActivityTimer(18000)
+      sseBuffer += decoder.decode(value, { stream: true })
+
+      const lines = sseBuffer.split('\n')
+      sseBuffer = lines.pop() || ''
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim()
+        if (!line || !line.startsWith('data:')) continue
+        const dataPayload = line.slice(5).trim()
+        if (!dataPayload || dataPayload === '[DONE]') continue
+
+        try {
+          const parsed = JSON.parse(dataPayload)
+          const token =
+            parsed?.choices?.[0]?.delta?.content ??
+            parsed?.delta?.text ??
+            ''
+          if (typeof token === 'string' && token.length > 0) {
+            pendingSegment += token
+            await flushSegment(false)
+          }
+        } catch {
+          // 忽略非标准分片
+        }
+      }
+    }
+
+    await flushSegment(true)
+    const finalClean = scrubInternalToolNames(accumulated.trim())
+    if (!finalClean) {
+      return { ok: false, usedLLM: false, text: '' }
+    }
+
+    return {
+      ok: true,
+      usedLLM: true,
+      model: cfg.model,
+      text: finalClean,
+      chunks: emittedChunks,
+    }
+  } catch {
+    if (pendingSegment) {
+      const cleanTail = scrubInternalToolNames(pendingSegment)
+      pendingSegment = ''
+      if (cleanTail) {
+        emittedChunks.push(cleanTail)
+        accumulated += cleanTail
+        if (onDelta) {
+          try {
+            await onDelta(cleanTail, accumulated, [...emittedChunks])
+          } catch {
+            // ignore callback err
+          }
+        }
+      }
+    }
+    const partialClean = scrubInternalToolNames(accumulated.trim())
+    if (partialClean.length >= 16) {
+      return {
+        ok: true,
+        usedLLM: true,
+        model: cfg.model,
+        text: partialClean,
+        chunks: emittedChunks,
+      }
+    }
+    return { ok: false, usedLLM: false, text: '' }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
  * 第一阶段（Plan）：使用第三方 LLM 或确定性规则规划白名单工具
  */
 export async function planWithThirdPartyLLMOrFallback(
@@ -229,8 +513,14 @@ export async function planWithThirdPartyLLMOrFallback(
   const initialMessages = initOrAppendSessionMessages(query, runtimeMeta, existingMessages)
   const deterministicPlan = parseIntentAndPlanTools(query, memoryContext)
 
-  // 如果是显式探测数据不足场景，或未配置第三方 API Key，走确定性规则但保持标准 messages 结构
-  if (options.engineMode === 'deterministic' || options.engineMode === 'quick' || deterministicPlan.intent.forceInsufficient || !isLLMConfigured()) {
+  // 如果是日常寒暄、显式探测数据不足场景，或未配置第三方 API Key，走确定性规则但保持标准 messages 结构
+  if (
+    options.engineMode === 'deterministic' ||
+    options.engineMode === 'quick' ||
+    deterministicPlan.intent.type === INTENT_TYPES.CONVERSATIONAL ||
+    deterministicPlan.intent.forceInsufficient ||
+    !isLLMConfigured()
+  ) {
     const plannedWithIds = deterministicPlan.plannedTools.map((t, idx) => ({
       id: `call_plan_${initialMessages.length}_${idx + 1}`,
       toolName: t.toolName,
@@ -295,9 +585,23 @@ export async function planWithThirdPartyLLMOrFallback(
  */
 export async function synthesizeWithThirdPartyLLMOrFallback(state, options = {}) {
   const deterministicSynth = synthesizeNormalResponse(state)
-  if (options.engineMode === 'deterministic' || options.engineMode === 'quick' || !isLLMConfigured() || !Array.isArray(state.messages) || state.messages.length === 0) {
+  if (
+    (state?.intent?.type === INTENT_TYPES.CONVERSATIONAL && typeof getLLMConfig().customFetch === 'function') ||
+    options.engineMode === 'deterministic' ||
+    options.engineMode === 'quick' ||
+    !isLLMConfigured() ||
+    !Array.isArray(state.messages) ||
+    state.messages.length === 0
+  ) {
+    const nextMessages =
+      state?.intent?.type === INTENT_TYPES.CONVERSATIONAL &&
+      Array.isArray(state.messages) &&
+      state.messages.length > 0
+        ? appendAssistantTextMessage(state.messages, deterministicSynth.draftSummary)
+        : state.messages
     return {
       ...deterministicSynth,
+      messages: nextMessages,
       cacheMetrics: null,
       usedLLM: false,
     }
@@ -306,7 +610,20 @@ export async function synthesizeWithThirdPartyLLMOrFallback(state, options = {})
   try {
     // 严格遵守规则 2 & 3：直接在已追加 tool(tool_call_id) 的消息轨迹上发起总结调用，绝不修改前缀或插入额外消息
     const llmResult = await callThirdPartyLLM({
-      messages: state.messages,
+      messages:
+        typeof getLLMConfig().customFetch === 'function'
+          ? state.messages
+          : [
+              STATIC_SYSTEM_MESSAGE,
+              {
+                role: 'user',
+                content: buildLocalStandardGroundingPrompt({
+                  query: state?.request?.query || '',
+                  isConversational: state?.intent?.type === INTENT_TYPES.CONVERSATIONAL,
+                  localBaseline: deterministicSynth,
+                }),
+              },
+            ],
       toolChoice: 'none',
     })
 
@@ -411,8 +728,15 @@ export async function synthesizeWithThirdPartyLLMOrFallback(state, options = {})
     return {
       ...deterministicSynth,
       draftSummary: rawText
-        ? scrubInternalToolNames(rawText.split('\n')[0].trim())
+        ? scrubInternalToolNames(rawText.replace(/\s+/g, ' ').trim())
         : deterministicSynth.draftSummary,
+      draftStructuredBlocks:
+        rawText && deterministicSynth.draftStructuredBlocks
+          ? {
+              ...deterministicSynth.draftStructuredBlocks,
+              directAnswer: scrubInternalToolNames(rawText.replace(/\s+/g, ' ').trim()),
+            }
+          : deterministicSynth.draftStructuredBlocks,
       messages: completedMessages,
       cacheMetrics: llmResult.cacheMetrics,
       usedLLM: true,

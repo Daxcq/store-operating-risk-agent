@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { AgentLoopPanel } from './AgentLoopPanel.jsx'
-import { AgentStructuredOutput, AgentLiveThinkingState } from './AgentStructuredOutput.jsx'
+import {
+  AgentStructuredOutput,
+  AgentLiveThinkingState,
+  CopyFeedbackButton,
+} from './AgentStructuredOutput.jsx'
 
 const PRESET_SCENARIOS = [
   {
@@ -61,7 +65,11 @@ const PRESET_SCENARIOS = [
   },
 ]
 
-export function AgentWorkbench() {
+export function AgentWorkbench({
+  onApproveDecision,
+  onNavigateTasks,
+  actionBusy = false,
+} = {}) {
   const [inspectMeta, setInspectMeta] = useState(null)
   const [query, setQuery] = useState(PRESET_SCENARIOS[2].query)
   const [sessionId, setSessionId] = useState(() => `session_wb_${Date.now().toString(36)}`)
@@ -434,7 +442,13 @@ export function AgentWorkbench() {
               </div>
             ) : (
               <div className="wb-response-body">
-                <AgentStructuredOutput response={response} compact={false} />
+                <AgentStructuredOutput
+                  response={response}
+                  compact={false}
+                  actionBusy={actionBusy}
+                  onApproveDecision={onApproveDecision}
+                  onNavigateTasks={onNavigateTasks}
+                />
               </div>
             )}
           </div>
@@ -443,7 +457,17 @@ export function AgentWorkbench() {
           <div className="wb-card">
             <div className="wb-card-head">
               <h5>结构化协议负载 (含 thinkingSteps / structuredBlocks / decisionProposal)</h5>
-              <span className="wb-badge ok">契约字段 100% 兼容</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className="wb-badge ok">契约字段 100% 兼容</span>
+                {response && (
+                  <CopyFeedbackButton
+                    getText={() => JSON.stringify(response, null, 2)}
+                    label="复制 JSON"
+                    copiedLabel="已复制"
+                    title="复制完整结构化协议负载 JSON"
+                  />
+                )}
+              </div>
             </div>
             <pre className="wb-json-viewer">
               {response

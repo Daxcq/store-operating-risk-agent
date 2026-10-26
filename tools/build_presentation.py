@@ -1,75 +1,111 @@
+# -*- coding: utf-8 -*-
 """
-生成莱森购 2 分钟核心路演 PPT 的多格式交付物：
-1. 渲染 6 页 1920x1080 超清幻灯片 PNG 预览图（供视觉核验）
-2. 生成 16:9 矢量高清 PDF：output/莱森购_2分钟项目路演.pdf
-3. 生成原生可编辑 PowerPoint (.pptx)：output/莱森购_2分钟项目路演.pptx（含原生可编辑文本框、卡片形状、对比矩阵表及每页 Speaker Notes 演讲者备注）
+生成《莱森购 Retail Intelligence Agent — 2分钟项目路演（7页全核心亮点版）》的多格式交付物：
+1. 渲染 7 页 1920x1080 超清幻灯片 PNG 预览图（tmp/ppt-slides/slide-01.png ~ slide-07.png）
+2. 生成 16:9 矢量级高清 PDF：output/莱森购_2分钟项目路演.pdf
+3. 生成原生可编辑 PowerPoint (.pptx)：output/莱森购_2分钟项目路演.pptx（含原生可编辑文本框、卡片形状、对比矩阵表、嵌入 UI 概念图及每页 Speaker Notes 演讲者备注）
+4. 生成高保真视觉版 PowerPoint (.pptx)：output/莱森购_2分钟项目路演_高保真视觉版.pptx（100% 还原 HTML 精细排版 + 演讲者备注）
 """
 
 from __future__ import annotations
-import os
 import zipfile
 from pathlib import Path
 from xml.sax.saxutils import escape
 import img2pdf
 from playwright.sync_api import sync_playwright
 
-ROOT = Path(r"d:\莱森地平线")
+ROOT = Path(__file__).resolve().parent.parent
 HTML_PATH = ROOT / "output" / "莱森购_2分钟项目路演.html"
 SLIDES_DIR = ROOT / "tmp" / "ppt-slides"
 PDF_PATH = ROOT / "output" / "莱森购_2分钟项目路演.pdf"
 PPTX_EDITABLE_PATH = ROOT / "output" / "莱森购_2分钟项目路演.pptx"
 PPTX_VISUAL_PATH = ROOT / "output" / "莱森购_2分钟项目路演_高保真视觉版.pptx"
 
+TOTAL_SLIDES = 7
 
-SLIDE_NOTES = [
-    "【第1页｜0:00 - 0:12 (12秒)｜封面与核心主旨】\n各位评委老师好！今天为大家展示【莱森购 Retail Intelligence Agent】——一套受契约约束的无人零售经营智能决策平台。我们的核心主旨只有一句话：终结无人零售中“看表猜原因、AI乱算账、分析无闭环”的痛点，让每一次经营诊断都有据可查，让每一次异常告警都形成可复核的行动闭环。",
-    "【第2页｜0:12 - 0:35 (23秒)｜应用场景与现实痛点】\n先看我们的应用场景与现实痛点。在无人零售智能柜和连锁门店运营中，区域经理每天面对高频交易与设备状态数据。但现实中存在三大痛点：第一，传统BI报表“只给图不给结论”，比如朝阳A店销售额跌了28%，店长要在几张表里翻找是订单量跌了还是客单价跌了；第二，通用大模型“乱写SQL、幻觉归因”，经常把每日比率直接平均、漏扣员工测试单，甚至看单指标下滑就武断甩锅；第三，“诊断停留在聊天框”，发现异常后没有派单、没有SLA时限，更没有下一周期的效果复核。",
-    "【第3页｜0:35 - 1:00 (25秒)｜与传统方案的核心差异】\n那我们和传统的BI看板、以及传统的Text-to-SQL聊天机器人到底有什么不一样？我们采用了独创的“餐厅点菜”契约架构：把确定性规则引擎当“后厨”，把Agent当“服务员”。Agent绝不自己进后厨写SQL、绝不心算比率，只负责听懂问题、调用7个白名单工具；当可比门店少于3家或缺失成本数据时，系统强制输出“证据不足降级”，绝不不懂装懂；更重要的是，我们从“人找数”升级为“IoT主动监控+人机确认复核”的完整闭环。",
-    "【第4页｜1:00 - 1:25 (25秒)｜最核心部分展示（一）：确定性引擎与主动监控】\n接下来只展示我们最核心的两大板块。第一板块是“确定性业务引擎与双模感知”：以长春5大城区真实场景为例，当朝阳A店出现异常，系统自动拆解出订单量下滑31%、退款率高达7.0%（远超同城中位数2.1%），并联动区域投放模型测算ROI；同时，后台主动监控Loop实时监听设备心跳，一旦B店冰柜离线满5分钟自动触发告警并唤醒Agent生成核查证据，15分钟未确认自动升级。",
-    "【第5页｜1:25 - 1:45 (20秒)｜最核心部分展示（二）：7层受控Agent与行动闭环】\n第二大核心板块是“LangGraph 7层受控Agent架构与行动复核闭环”。我们杜绝开放式裸答，将Agent严格限制在7个白名单工具和固定拓扑顺序内运行。当诊断出A店退款异常后，系统生成结构化行动卡——指定区域经理在24小时内抽查最近20笔退款订单，经人工确认后派发；到了下一周期，系统自动调用verify_task核验退款率是否回落到同城中位数+2%以内，实现真正的管理闭环！",
-    "【第6页｜1:45 - 2:00 (15秒)｜未来扩展愿景】\n最后是我们的未来扩展愿景。第一阶段，我们将从模拟切片无缝对接到企业级实时数仓、真实IoT边缘网关与企微/钉钉审批流；第二阶段，横向扩展库存、会员、供应链维度，并引入多模态视觉巡检，自动识别冰柜缺货与开柜防损；第三阶段，基于Supabase已开启的pgvector向量能力，用历史案件的真实复核效果反向调优风险排序权重，构建自演进的无人零售全域自治大脑。谢谢大家！",
+# 7页 2分钟（120秒）演讲者逐字备注
+SPEAKER_NOTES = [
+    (
+        "【P1｜封面与中心主旨｜00:00 - 00:12（12秒）】\n"
+        "各位评委老师好！今天用两分钟为您汇报《莱森购 Retail Intelligence Agent——无人零售经营智能决策平台》。\n"
+        "我们的中心主旨只有一句话：把门店大盘、规则审计、同城对标、区域选址、Agent 顾问、主动监控与任务复核融进同一条契约闭环，"
+        "回答“关注谁、差在哪且证据是什么、现在做什么何时复核”三大问题，让无人零售经营从“看报表猜原因”进化到“给证据、派动作、验结果”！"
+    ),
+    (
+        "【P2｜应用场景与三大现实痛点｜00:12 - 00:30（18秒）】\n"
+        "在无人零售高密度运营中，区域经理每天都在面对五大高频场景：全域风险巡检、异常门店同城对标、新商区选址测算、设备离线抢修与整改复核。\n"
+        "但现实中存在三大致命痛点：\n"
+        "第一，传统 BI 只给图表不给归因，平均值掩盖斜坡下滑，甚至把 S004 退款字段断报误判为 0 异常（致命假阴性）；\n"
+        "第二，通用大模型自由写 SQL 极易算错比率（平均每日比率）、在样本不足时强行编造幻觉数字；\n"
+        "第三，分析与执行割裂，聊完即止，没人盯设备心跳、更没有下一周期的复核闭环。"
+    ),
+    (
+        "【P3｜与传统方案的本质不同｜00:30 - 00:50（20秒）】\n"
+        "莱森购与传统方案的本质不同，可以用“餐厅后厨”架构隐喻来概括：\n"
+        "我们绝不让大模型进后厨自己炒菜算账，而是由冻结的 API Contract v0.1 与确定性领域服务担任“后厨”，大模型只做“服务员”，"
+        "在 7 个白名单工具内做意图编排与证据解读。\n"
+        "叠加四值防呆熔断、双向数值核验、KV Cache 六大铁律以及主动监控引擎，实现了五大维度的代际跨越！"
+    ),
+    (
+        "【P4｜核心重点（一）：五位一体工作台 + 确定性数据与 Wiki 底座｜00:50 - 01:10（20秒）】\n"
+        "下面看最核心的三大技术模块。首先是前端五合一工作台与确定性数据底座：\n"
+        "前端将驾驶舱、审计对标、区域选址、行动中心与“莱财”AI顾问及检测台融为一体；\n"
+        "后端数据层不仅锁定了先聚合后算比率、订单×客单价双因子拆解、按门店中位数测算区域 ROI，还独创了“两层逐指标可比准入”与“四值规则状态机”"
+        "（unavailable -> insufficient -> possible -> none）——例如 S004 退款断报时自动触发 unavailable 熔断，同时保留其完整销售数据参与同区对标；\n"
+        "配合 Supabase 4张核心表与结构化 knowledge_wiki，支持内存夹具、Python 离线与云端数据库三路径无缝切换！"
+    ),
+    (
+        "【P5｜核心重点（二）：LangGraph 七层编排 + KV Cache & 三层记忆 + 双向护栏｜01:10 - 01:30（20秒）】\n"
+        "第二大核心重点是 C 端的 LangGraph 七层智能体架构与高性能上下文工程：\n"
+        "我们将智能体解耦为定义、模式、组件、机制、安全、编排、工程七层，组装了包含单次有界重规划（Bounded Re-plan）的 7 节点状态机；\n"
+        "同时严格落地《上下文与 KV Cache 约束》六大铁律（静态前缀 deepFreeze、Append-Only、SHA-256 哈希持久化摘要压缩）与三层记忆体系，"
+        "支持像“那帮它创建整改任务”这样的跨轮次指代消解；\n"
+        "再配合输入越权拦截与输出 collectAllowedNumbers 数值白名单核验，实现了 100% 零数值幻觉与全业务脱敏表达！"
+    ),
+    (
+        "【P6｜核心重点（三）：人机协同任务复核 + IoT 主动监控双闭环｜01:30 - 01:48（18秒）】\n"
+        "第三大核心重点是我们的“双闭环落地引擎”：\n"
+        "左边是人机协同经营行动闭环，Agent 生成带同行证据与预期收益的 decisionProposal 审批卡，人工确认后幂等建单，"
+        "经历 open -> assigned -> investigating -> verifying -> closed/escalated 状态流转，并在下一周期根据复核指标自动关闭或升级；\n"
+        "右边是独立运行的 IoT 主动监控 Loop，2 分钟心跳超时自动检测去重、5 分钟通知负责人（站内+Webhook+QQ邮箱SSL）并自动唤醒 Agent 异步审计、"
+        "15 分钟未确认自动升级，真正做到无人值守也有据可查！"
+    ),
+    (
+        "【P7｜未来扩展愿景：三阶段演进蓝图｜01:48 - 02:00（12秒）】\n"
+        "最后来看未来扩展愿景。我们将分三步演进：\n"
+        "第一阶段落地生产级 OIDC 多租户 RLS 权限隔离，打通真实 IoT 边缘网关与 ERP 实时数仓；\n"
+        "第二阶段横向扩展库存、会员、排班人效与边缘多模态视觉识别，实现缺货与陈列自动巡检；\n"
+        "第三阶段全面激活 Supabase 预留的 pgvector 1536 维向量列，用每次任务复核的真实改善率反哺风险权重，演进为自进化的多 Agent 无人零售经营大脑。谢谢各位老师！"
+    ),
 ]
 
 
 def render_slides_and_pdf() -> list[Path]:
     SLIDES_DIR.mkdir(parents=True, exist_ok=True)
     png_paths: list[Path] = []
+    url = HTML_PATH.as_uri()
 
     with sync_playwright() as p:
         try:
             browser = p.chromium.launch(channel="msedge")
         except Exception:
             browser = p.chromium.launch(channel="chrome")
+
         page = browser.new_page(viewport={"width": 1920, "height": 1080}, device_scale_factor=2)
-        page.goto(HTML_PATH.as_uri(), wait_until="networkidle")
+        page.goto(f"{url}?export=1", wait_until="networkidle")
+        page.wait_for_timeout(300)
 
-        # 让 deck 占满 1920x1080 画布并隐藏底部控制栏和提词器以便导出纯净幻灯片
-        page.add_style_tag(
-            content="""
-            body { background: #F7F6F2 !important; }
-            .deck-viewport {
-              width: 1920px !important;
-              height: 1080px !important;
-              max-width: none !important;
-              max-height: none !important;
-              border-radius: 0 !important;
-              box-shadow: none !important;
-            }
-            .presenter-bar, .teleprompter { display: none !important; }
-            """
-        )
-
-        for i in range(6):
-            page.evaluate(f"updateSlide({i})")
-            page.wait_for_timeout(150)
-            out_png = SLIDES_DIR / f"slide-0{i+1}.png"
+        for idx in range(1, TOTAL_SLIDES + 1):
+            page.evaluate(f"window.goToSlide({idx})")
+            page.wait_for_timeout(160)
+            out_png = SLIDES_DIR / f"slide-0{idx}.png"
             page.screenshot(path=str(out_png), full_page=False)
             png_paths.append(out_png)
             print(f"[OK] Rendered {out_png.name}")
 
         browser.close()
 
-    # 将 6 张高清图合成为精确 16:9 尺寸的 PDF
+    # 将 7 张高清图合成为精确 16:9 尺寸的 PDF
     layout_fun = img2pdf.get_layout_fun((img2pdf.mm_to_pt(338.67), img2pdf.mm_to_pt(190.5)))
     with open(PDF_PATH, "wb") as f:
         f.write(img2pdf.convert([str(p) for p in png_paths], layout_fun=layout_fun))
@@ -105,7 +141,7 @@ class ShapeBuilder:
         w: float,
         h: float,
         fill_hex: str | None = "FFFFFF",
-        line_hex: str | None = "E5E0D8",
+        line_hex: str | None = "DCD6C8",
         line_pt: float = 1.0,
         radius: int = 0,
     ) -> int:
@@ -154,16 +190,6 @@ class ShapeBuilder:
         pad_px: tuple[float, float, float, float] = (8, 6, 8, 6),
         anchor: str = "t",
     ) -> int:
-        """
-        paragraphs: list of dict:
-          - text: str (or runs: list of dict {text, size, bold, color, font})
-          - size: float (pt, e.g. 14)
-          - bold: bool
-          - color: str (hex, default 111827)
-          - align: str ('l', 'ctr', 'r')
-          - space_after: float (pt)
-          - font: str (default Microsoft YaHei)
-        """
         sid = self.next_id
         self.next_id += 1
         fill_xml = f'<a:solidFill><a:srgbClr val="{fill_hex}"/></a:solidFill>' if fill_hex else "<a:noFill/>"
@@ -178,7 +204,7 @@ class ShapeBuilder:
         for p in paragraphs:
             align = p.get("align", "l")
             spc_aft = p.get("space_after", 4)
-            ln_spc = p.get("line_spacing", 130000)  # 130%
+            ln_spc = p.get("line_spacing", 128000)
             p_pr = (
                 f'<a:pPr algn="{align}">'
                 f'<a:lnSpc><a:spcPct val="{ln_spc}"/></a:lnSpc>'
@@ -190,17 +216,17 @@ class ShapeBuilder:
                 runs = [
                     {
                         "text": p.get("text", ""),
-                        "size": p.get("size", 14),
+                        "size": p.get("size", 13),
                         "bold": p.get("bold", False),
-                        "color": p.get("color", "111827"),
+                        "color": p.get("color", "142030"),
                         "font": p.get("font", "Microsoft YaHei"),
                     }
                 ]
             r_xml_list = []
             for r in runs:
-                sz = int(r.get("size", p.get("size", 14)) * 100)
+                sz = int(r.get("size", p.get("size", 13)) * 100)
                 b = "1" if r.get("bold", p.get("bold", False)) else "0"
-                clr = r.get("color", p.get("color", "111827"))
+                clr = r.get("color", p.get("color", "142030"))
                 fnt = r.get("font", p.get("font", "Microsoft YaHei"))
                 txt = escape(str(r.get("text", "")))
                 r_xml_list.append(
@@ -307,335 +333,373 @@ def add_common_frame(
     footer_left: str,
     footer_right: str,
 ) -> None:
-    # 背景纸白
-    sb.add_rect(0, 0, 1920, 1080, fill_hex="F7F6F2", line_hex=None)
-    # 顶部 Header 区
+    sb.add_rect(0, 0, 1920, 1080, fill_hex="F6F3EC", line_hex=None)
     sb.add_textbox(
-        80,
-        36,
-        1350,
-        110,
+        76,
+        32,
+        1360,
+        112,
         [
-            {"text": eyebrow, "size": 10.5, "bold": True, "color": "1E3A8A", "space_after": 3},
-            {"text": title, "size": 24, "bold": True, "color": "111827", "space_after": 3},
-            {"text": subtitle, "size": 12, "bold": False, "color": "4B5563", "space_after": 0},
+            {"text": eyebrow, "size": 10.5, "bold": True, "color": "1E3A5F", "space_after": 3},
+            {"text": title, "size": 22.5, "bold": True, "color": "142030", "space_after": 3},
+            {"text": subtitle, "size": 11.5, "bold": False, "color": "3E4E63", "space_after": 0},
         ],
         pad_px=(0, 0, 0, 0),
     )
-    # 右上时间胶囊
     sb.add_textbox(
-        1520,
-        44,
-        320,
+        1480,
+        40,
+        364,
         42,
-        [{"text": f"⏱ 路演计时：{time_text}", "size": 11, "bold": True, "color": "C2410C", "align": "ctr"}],
+        [{"text": f"⏱ {time_text}", "size": 10.5, "bold": True, "color": "C84B31", "align": "ctr"}],
         fill_hex="FFFFFF",
-        line_hex="E5E0D8",
+        line_hex="DCD6C8",
         anchor="ctr",
     )
-    # Header 分隔线
-    sb.add_rect(80, 148, 1760, 2, fill_hex="E5E0D8", line_hex=None)
-    # Footer 分隔线与页脚
-    sb.add_rect(80, 1012, 1760, 1.5, fill_hex="E5E0D8", line_hex=None)
+    sb.add_rect(76, 146, 1768, 2, fill_hex="142030", line_hex=None)
+    sb.add_rect(76, 1014, 1768, 1.5, fill_hex="DCD6C8", line_hex=None)
     sb.add_textbox(
-        80,
-        1020,
-        750,
-        36,
-        [{"text": footer_left, "size": 10.5, "bold": True, "color": "4B5563"}],
+        76,
+        1022,
+        760,
+        34,
+        [{"text": footer_left, "size": 10, "bold": True, "color": "1E3A5F"}],
         pad_px=(0, 0, 0, 0),
     )
     sb.add_textbox(
         850,
-        1020,
-        990,
-        36,
-        [{"text": footer_right, "size": 10.5, "bold": False, "color": "6B7280", "align": "r"}],
+        1022,
+        994,
+        34,
+        [{"text": footer_right, "size": 10, "bold": False, "color": "6C7A8C", "align": "r"}],
         pad_px=(0, 0, 0, 0),
     )
+
+
+def add_bullet_card_xml(
+    sb: ShapeBuilder,
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    eyebrow: str,
+    title: str,
+    bullets: list[str],
+    top_hex: str = "1E3A5F",
+    footer_text: str | None = None,
+    footer_bg: str = "EFECE4",
+    footer_clr: str = "1E3A5F",
+) -> None:
+    sb.add_rect(x, y, w, h, fill_hex="FFFFFF", line_hex="DCD6C8")
+    sb.add_rect(x, y, w, 7, fill_hex=top_hex, line_hex=None)
+    paras: list[dict] = [
+        {"text": eyebrow, "size": 9.8, "bold": True, "color": top_hex, "space_after": 4},
+        {"text": title, "size": 15.5, "bold": True, "color": "142030", "space_after": 8},
+    ]
+    for b in bullets:
+        paras.append(
+            {
+                "runs": [
+                    {"text": "▪ ", "size": 11.5, "bold": True, "color": top_hex},
+                    {"text": b, "size": 11.5, "bold": False, "color": "3E4E63"},
+                ],
+                "space_after": 5,
+            }
+        )
+    body_h = h - (100 if footer_text else 28)
+    sb.add_textbox(x + 20, y + 18, w - 40, body_h, paras)
+    if footer_text:
+        fy = y + h - 76
+        sb.add_rect(x + 18, fy, w - 36, 58, fill_hex=footer_bg, line_hex=None)
+        sb.add_textbox(
+            x + 28,
+            fy + 6,
+            w - 56,
+            46,
+            [{"text": footer_text, "size": 10.5, "bold": True, "color": footer_clr}],
+            anchor="ctr",
+        )
 
 
 def build_editable_slides() -> list[tuple[str, list[tuple[str, Path]]]]:
     slides_data: list[tuple[str, list[tuple[str, Path]]]] = []
 
-    # ---------------- SLIDE 1: 封面与核心主旨 ----------------
+    # ==================== P1: 封面与中心主旨 ====================
     sb1 = ShapeBuilder()
     add_common_frame(
         sb1,
-        "LAISEN RETAIL INTELLIGENCE AGENT · 2分钟项目路演",
-        "莱森购无人零售经营智能决策平台",
-        "从“看图猜原因”到“可审计、可复核的行动闭环” · Contract-First Domain Agent",
-        "0:00 - 0:12 (12秒 · P1/6)",
-        "莱森购 Retail Intelligence Agent  |  P1 · 项目定位与总览",
-        "核心理念：确定性规则引擎 × LangGraph 7层受控Agent × IoT主动监控Loop",
+        "EXECUTIVE PITCH // 01 · 2分钟项目路演（全核心亮点版）",
+        "莱森购 Retail Intelligence Agent｜无人零售经营智能决策平台",
+        "从“看报表猜原因”到“给证据、派动作、验结果” · A（前端五视图）× B（确定性数据与Wiki）× C（LangGraph智能体与监控Loop）",
+        "00:00 - 00:12 (12秒 · P1/7)",
+        "莱森购 Retail Intelligence Agent  |  P1 · 项目总览与中心主旨",
+        "核心主旨：用冻结契约、四值规则引擎、LangGraph 受控编排、KV Cache 六大铁律与双闭环重塑无人零售决策",
     )
-    # 左侧大标题与中心主旨卡
     sb1.add_textbox(
-        80,
-        175,
+        76,
+        162,
         1020,
-        165,
+        130,
         [
-            {"text": "无人零售经营智能决策平台", "size": 13, "bold": True, "color": "1E3A8A", "space_after": 6},
-            {"text": "让每一次经营诊断都有据可查", "size": 34, "bold": True, "color": "0F172A", "space_after": 4},
-            {"text": "让每一次异常告警都形成行动闭环", "size": 30, "bold": True, "color": "1E3A8A", "space_after": 0},
+            {"text": "CONTRACT-FIRST · LANGGRAPH 7-LAYER AGENT · PROACTIVE IOT LOOP", "size": 10.5, "bold": True, "color": "1E3A5F", "space_after": 4},
+            {"text": "回答三大核心经营问题 · 构建六步全链路闭环", "size": 28, "bold": True, "color": "142030", "space_after": 4},
+            {"text": "1. 哪些门店或区域需要关注？   2. 差距来自哪里、证据是什么？   3. 现在做什么、何时复核有效？", "size": 13, "bold": True, "color": "C84B31"},
         ],
         pad_px=(0, 0, 0, 0),
     )
-    sb1.add_rect(80, 355, 1020, 125, fill_hex="FFFFFF", line_hex="E5E0D8")
-    sb1.add_rect(80, 355, 8, 125, fill_hex="C2410C", line_hex=None)
+    sb1.add_rect(76, 300, 1020, 145, fill_hex="FFFFFF", line_hex="DCD6C8")
+    sb1.add_rect(76, 300, 8, 145, fill_hex="C84B31", line_hex=None)
     sb1.add_textbox(
-        104,
-        365,
+        98,
+        310,
         980,
-        105,
+        125,
         [
-            {"text": "中心主旨（解决什么现实问题？）", "size": 13, "bold": True, "color": "C2410C", "space_after": 4},
+            {"text": "中心主旨（Central Thesis）", "size": 12.5, "bold": True, "color": "C84B31", "space_after": 4},
             {
-                "text": "面向高密度无人零售点位运营，将【确定性指标与规则引擎】、【LangGraph 7层受控 Agent】与【IoT 主动监控 Loop】深度耦合，彻底解决传统报表“只展示不归因”与通用大模型“口径幻觉、不可落地”的现实鸿沟。",
-                "size": 13,
+                "text": "系统目标不是堆砌更多图表，而是把【门店经营数据、四值审计规则、同城对标、区域选址ROI、LangGraph 7工具智能体、IoT主动心跳监控与人工确认复核】放在同一条契约闭环里：确定性指标与异常由代码计算，Agent 仅在白名单工具与数值护栏内做编排与解读。",
+                "size": 12,
                 "bold": False,
-                "color": "374151",
+                "color": "3E4E63",
             },
         ],
     )
-    # 左下四宫格亮点
-    cards_s1 = [
-        ("01 / APPLICATION SCENARIO", "多城多店无人零售高频运营", "覆盖周会问数、单店异常审计、设备离线告警、新点位 ROI 测算"),
-        ("02 / PARADIGM SHIFT", "契约优先 · 零 SQL 幻觉", "代码做确定性计算与规则判定，Agent 仅做白名单工具编排与证据表达"),
-        ("03 / DUAL-LOOP ENGINE", "被动问数 + IoT 主动监控唤醒", "5分钟超时告警、15分钟升级、自动唤醒 Agent 预审计与多渠道通知"),
-        ("04 / VERIFIABLE ACTION", "人机协同 · 下一周期自动复核", "生成带负责人与复核指标的行动卡，达标自动结案、未达标自动升级"),
+    # 6步闭环卡片
+    loop_6 = [
+        ("STEP 01 · 双源感知", "提问 & 监控唤醒", "自然语言问数 或 IoT离线5min自动唤醒"),
+        ("STEP 02 · 受控规划", "白名单工具编排", "LangGraph 7节点状态机 + 单次有界重规划"),
+        ("STEP 03 · 确定计算", "指标 / 对标 / 选址", "订单×客单价拆解、两层准入、中位数ROI"),
+        ("STEP 04 · 证据防呆", "四值状态 & 护栏", "unavailable优先熔断 + 输出数值白名单核验"),
+        ("STEP 05 · 人机协同", "审批建单与派发", "生成 decisionProposal 经人工确认幂等建单"),
+        ("STEP 06 · 周期验证", "复核关闭或升级", "下一周期 verify_task 达标关闭、未达标升级"),
     ]
-    for idx, (k, t, d) in enumerate(cards_s1):
-        cx = 80 + (idx % 2) * 520
-        cy = 505 + (idx // 2) * 235
-        sb1.add_rect(cx, cy, 500, 215, fill_hex="FFFFFF", line_hex="E5E0D8")
-        sb1.add_rect(cx, cy, 500, 6, fill_hex="1E3A8A" if idx % 2 == 0 else "C2410C", line_hex=None)
+    for i, (sk, st, sd) in enumerate(loop_6):
+        cx = 76 + (i % 3) * 346
+        cy = 465 + (i // 3) * 165
+        sb1.add_rect(cx, cy, 328, 150, fill_hex="FFFFFF", line_hex="DCD6C8")
+        sb1.add_rect(cx, cy, 328, 6, fill_hex="1E3A5F" if i % 2 == 0 else "C84B31", line_hex=None)
         sb1.add_textbox(
-            cx + 18,
-            cy + 20,
-            464,
-            180,
+            cx + 14,
+            cy + 14,
+            300,
+            125,
             [
-                {"text": k, "size": 10.5, "bold": True, "color": "C2410C", "space_after": 6},
-                {"text": t, "size": 16, "bold": True, "color": "111827", "space_after": 8},
-                {"text": d, "size": 12.5, "bold": False, "color": "4B5563"},
+                {"text": sk, "size": 9.5, "bold": True, "color": "C84B31", "space_after": 4},
+                {"text": st, "size": 14, "bold": True, "color": "142030", "space_after": 4},
+                {"text": sd, "size": 11, "bold": False, "color": "3E4E63"},
             ],
         )
 
-    # 右侧深色闭环流程框
-    sb1.add_rect(1130, 175, 710, 800, fill_hex="0F172A", line_hex="334155")
+    sb1.add_rect(76, 805, 1020, 190, fill_hex="142030", line_hex="1E3A5F")
     sb1.add_textbox(
-        1160,
-        195,
-        650,
-        75,
+        96,
+        818,
+        980,
+        165,
         [
-            {"text": "CORE CLOSED-LOOP ARCHITECTURE", "size": 10.5, "bold": True, "color": "93C5FD", "space_after": 4},
-            {"text": "一条全链路可追溯的经营决策闭环", "size": 18, "bold": True, "color": "FFFFFF"},
+            {"text": "全栈核心模块一览（A + B + C 三端深度协同）", "size": 12, "bold": True, "color": "FCD34D", "space_after": 6},
+            {"text": "• A 端（前端五合一工作台）：经营驾驶舱(GIS地图+42天斜坡) / 智能审计与对标 / 区域投放决策 / 行动中心 / 莱财AI顾问+Agent检测台", "size": 11, "color": "FFFFFF", "space_after": 4},
+            {"text": "• B 端（确定性数据层与Wiki）：四值状态机(S004断报熔断) + 两层逐指标可比准入 + 门店中位数ROI + Supabase 4张表与1536维向量Wiki", "size": 11, "color": "FFFFFF", "space_after": 4},
+            {"text": "• C 端（LangGraph 七层智能体）：7节点状态图 + KV Cache六铁律 + 三层记忆指代消解 + 双向护栏0幻觉 + IoT主动监控Loop(站内/Webhook/QQ邮箱)", "size": 11, "color": "FFFFFF"},
         ],
     )
-    steps_s1 = [
-        ("1. 双源触发：自然语言问数 / IoT 心跳异常", "区域经理提问“为什么A店表现差” 或 设备离线 5min 自动唤醒", "1E293B", "334155"),
-        ("2. 受控编排：LangGraph 调度 7 大白名单工具", "意图解析 → 权限与参数护栏 → 严禁自由写 SQL 或心算比率", "1E293B", "334155"),
-        ("3. 确定性引擎：差距拆解 + 规则命中 + 同店对标", "销售额拆解为订单量×客单价；不足 3 家可比门店强制输出降级结论", "1E293B", "334155"),
-        ("4. 证据成案：生成结构化行动卡（人工确认护栏）", "绑定 evidence_id 与 trace_id，明确区域经理、24h期限与复核目标", "1E293B", "334155"),
-        ("5. 周期复核：verify_task 自动验证指标闭环", "下一周期退款率回落则 closed 结案，未达标则自动 escalated 升级", "14532D", "22C55E"),
-    ]
-    for i, (st, sd, bg, bd) in enumerate(steps_s1):
-        sy = 285 + i * 125
-        sb1.add_rect(1160, sy, 650, 108, fill_hex=bg, line_hex=bd)
-        sb1.add_textbox(
-            1178,
-            sy + 14,
-            614,
-            82,
-            [
-                {"text": st, "size": 13.5, "bold": True, "color": "F8FAFC", "space_after": 4},
-                {"text": sd, "size": 11.5, "bold": False, "color": "CBD5E1"},
-            ],
-        )
-    sb1.add_textbox(
-        1160,
-        920,
-        650,
-        40,
-        [{"text": "数据底座：Supabase (PostgreSQL + pgvector)   |   批次：changchun_demo_v1", "size": 10.5, "bold": False, "color": "94A3B8"}],
-    )
-    slides_data.append((sb1.to_slide_xml(), []))
 
-    # ---------------- SLIDE 2: 应用场景与现实痛点 ----------------
+    # 右侧嵌入 2 张高清概念图
+    img1 = ROOT / "output" / "imagegen" / "01-paper-navy.png"
+    img2 = ROOT / "output" / "imagegen" / "03-ivory-terracotta-v2.png"
+    rels_s1: list[tuple[str, Path]] = []
+    if img1.exists() and img2.exists():
+        sb1.add_rect(1120, 162, 724, 405, fill_hex="FFFFFF", line_hex="DCD6C8")
+        sb1.add_textbox(1134, 168, 696, 28, [{"text": "📊 界面实景 I：全局经营驾驶舱与四值风险态势", "size": 11, "bold": True, "color": "1E3A5F"}])
+        sb1.add_picture("rIdP1Img1", 1134, 198, 696, 356)
+
+        sb1.add_rect(1120, 588, 724, 405, fill_hex="FFFFFF", line_hex="DCD6C8")
+        sb1.add_textbox(1134, 594, 696, 28, [{"text": "🤖 界面实景 II：智能审计、同城对标与行动卡派发", "size": 11, "bold": True, "color": "C84B31"}])
+        sb1.add_picture("rIdP1Img2", 1134, 624, 696, 356)
+        rels_s1 = [("rIdP1Img1", img1), ("rIdP1Img2", img2)]
+
+    slides_data.append((sb1.to_slide_xml(), rels_s1))
+
+    # ==================== P2: 应用场景与现实痛点 ====================
     sb2 = ShapeBuilder()
     add_common_frame(
         sb2,
-        "01 · APPLICATION SCENARIOS & REAL-WORLD PAIN POINTS",
-        "应用场景与中心主旨：直击无人零售经营的“三大现实痛点”",
-        "中心主旨：解决“看得见海量经营数据，却做不出可信、可追责、可复核决策”的业务断层",
-        "0:12 - 0:35 (23秒 · P2/6)",
+        "SCENARIOS & PAIN POINTS // 02 · 五大高频场景与三大现实痛点",
+        "扎根无人零售高频运营场景 · 终结“看图猜原因、AI 乱算账、分析无闭环”",
+        "以长春 5 大城区（朝阳/南关/宽城/二道/绿园）、42 台智能零售柜与 21 家参照门店×42天日经营数据为真实蓝本",
+        "00:12 - 00:30 (18秒 · P2/7)",
         "莱森购 Retail Intelligence Agent  |  P2 · 应用场景与现实痛点",
-        "核心命题：企业不缺展示图表的看板，缺的是受契约约束、带证据链、能转化为闭环行动的决策系统",
+        "痛点决定架构：每一个痛点都对应莱森购的一项硬核工程约束（四值规则引擎、白名单工具、主动监控与复核状态机）",
     )
-    # 顶部深色场景横幅
-    sb2.add_rect(80, 170, 1760, 115, fill_hex="0F172A", line_hex="334155")
+    sb2.add_rect(76, 162, 1768, 130, fill_hex="142030", line_hex="1E3A5F")
     sb2.add_textbox(
-        105,
-        182,
-        1710,
-        92,
+        96,
+        172,
+        1728,
+        110,
         [
-            {"text": "核心落地应用场景（区域经理 / 运营督导 / 选址团队的高频决策工作台 · 以长春 5 大城区无人零售网络为样本）", "size": 12, "bold": True, "color": "93C5FD", "space_after": 8},
+            {"text": "五大核心业务应用场景（5 Core Business Scenarios）", "size": 11, "bold": True, "color": "FCD34D", "space_after": 6},
             {
-                "text": "① 周会经营问数与同城对标      |      ② 门店业绩异动与退款激增审计      |      ③ 7×24h 设备心跳离线主动告警      |      ④ 新商圈点位投放与回本周期测算",
-                "size": 15,
+                "text": "① 全域经营巡检与 GIS 风险地图（¥105.4万销额 / ¥21.8万利润 / 42台设备 / 95.2%在线率）   |   ② 门店异动诊断与同城对标（A店/S001 退款率 7.0% vs 同城中位 2.1%，订单跌 31%）",
+                "size": 11.5,
                 "bold": True,
                 "color": "FFFFFF",
+                "space_after": 4,
+            },
+            {
+                "text": "③ 新区选址四维评分与 ROI 测算（朝阳区 86.5分/8.4月回本 vs 南关区 71.0分/缺租金返回 null）   |   ④ 7×24h 设备心跳离线主动巡检   |   ⑤ 整改派单与下一周期指标复核",
+                "size": 11.5,
+                "bold": True,
+                "color": "93C5FD",
             },
         ],
     )
-    # 三大现实痛点卡片
-    pains = [
-        (
-            "现实痛点 01 · 传统看表困境",
-            "“只给图表，不给归因与证据”",
-            "运营人员面对几十张分散的销售、订单、盘点与设备表，看到门店销售额下跌时，需手动跨表排查是【客流订单萎缩】、【客单价下滑】还是【区域性集体波动】，耗时极长且易误判。",
-            "真实案例：朝阳 A 店本周销售额突降 -28.0%，传统报表仅标红数字，店长无法一眼识别是订单量暴跌（-31.0%）叠加退款率激增（7.0%）所致。",
-        ),
-        (
-            "现实痛点 02 · 通用 AI 问数之坑",
-            "“AI 自由写 SQL 算错账、武断下结论”",
-            "直接让 LLM 写 SQL 极易发生【口径事故】：用订单原价代替扣退销售额、漏筛员工测试单、把每日客单价直接取平均（大店小店被同等对待）；且在证据不足时强行编造根因。",
-            "致命风险：财务与运营口径不一致（如新开店直接纳入同比导致数据虚高），一句话提示词约束不住 AI 跳步调用，企业根本不敢用于真实经营。",
-        ),
-        (
-            "现实痛点 03 · 落地执行断层",
-            "“分析停留在报告，无人跟进与复核”",
-            "无论是周会 PPT 还是 AI 聊天框，往往止步于“建议加强管理”的空洞套话。谁去核查？几小时内完成？下周看哪个指标确认修好了？缺乏状态机追踪与主动监控唤醒。",
-            "管理黑洞：冰柜离线或异常退款发生时，若无人主动提问就被长期搁置；派发的整改任务没有下一周期的自动指标复核，问题反复重演。",
-        ),
-    ]
-    for idx, (badge, h3, desc, case_txt) in enumerate(pains):
-        px = 80 + idx * 596
-        py = 310
-        pw = 568
-        ph = 675
-        sb2.add_rect(px, py, pw, ph, fill_hex="FFFFFF", line_hex="E5E0D8")
-        sb2.add_rect(px, py, pw, 8, fill_hex="C2410C", line_hex=None)
-        sb2.add_textbox(
-            px + 24,
-            py + 28,
-            pw - 48,
-            420,
-            [
-                {"text": badge, "size": 11.5, "bold": True, "color": "C2410C", "space_after": 10},
-                {"text": h3, "size": 19, "bold": True, "color": "111827", "space_after": 14},
-                {"text": desc, "size": 13.5, "bold": False, "color": "374151"},
-            ],
-        )
-        sb2.add_rect(px + 24, py + 470, pw - 48, 175, fill_hex="FFF7ED", line_hex="FED7AA")
-        sb2.add_textbox(
-            px + 38,
-            py + 482,
-            pw - 76,
-            150,
-            [{"text": case_txt, "size": 12, "bold": False, "color": "9A3412"}],
-        )
+    add_bullet_card_xml(
+        sb2,
+        76,
+        312,
+        568,
+        682,
+        "PAIN POINT 01 // 传统 BI 报表的局限",
+        "只给图表不给归因 · 聚合掩盖斜坡与断报假阴性",
+        [
+            "跨表人肉排查耗时耗力：面对 20+ 门店与 40+ 智能柜，运营需在多张表间手工关联销售额、订单量、客单价与退款率。",
+            "周期平均值掩盖恶化斜坡：传统周报只看汇总均值，完全掩盖了 S001 门店连续 3 天加速下滑的日趋势斜率。",
+            "字段断报导致致命“假阴性”：当 S004 门店自 10月6日起退款字段缺失（NULL 占比 33%），传统 BI 常将其当作 0 异常，漏掉高危故障。",
+            "容易误伤单店店长：不区分“整个城区受天气/停电同步下滑（区域性波动）”与“单店自身经营恶化”。",
+        ],
+        top_hex="C84B31",
+        footer_text="核心症结：只有静态数字，没有双因子拆解与数据完整性防呆",
+        footer_bg="FDF2F0",
+        footer_clr="C84B31",
+    )
+    add_bullet_card_xml(
+        sb2,
+        676,
+        312,
+        568,
+        682,
+        "PAIN POINT 02 // 通用大模型 / Text-to-SQL 的隐患",
+        "AI 自由写 SQL 算错口径 · 样本不足强行幻觉定责",
+        [
+            "口径失真与除零错误：LLM 极易直接对每日比率求平均（AVG(daily_rate)），而非先聚合分子分母（SUM(refunds)/NULLIF(SUM(orders),0)）。",
+            "小样本与缺字段强行编造：当可比门店少于 3 家，或南关区缺失长租成本（fixed_monthly_rent = null）时，通用 AI 仍会编造回本周期。",
+            "武断归因与词汇越界：仅凭单一指标波动就咬定“店长舞弊”或“冷链损坏”，缺乏同城基准（Peer Median）与多规则交叉印证。",
+            "安全与注入风险：直接放开 SQL 生成极易遭遇 Prompt 注入（如越权查询、篡改规则阈值或直接触发外部写操作）。",
+        ],
+        top_hex="D97706",
+        footer_text="核心症结：把大模型当计算器，缺乏领域契约与输出数值白名单校验",
+        footer_bg="FEF7EA",
+        footer_clr="D97706",
+    )
+    add_bullet_card_xml(
+        sb2,
+        1276,
+        312,
+        568,
+        682,
+        "PAIN POINT 03 // 问答与工单系统割裂",
+        "被动等待提问 · 聊完即止无派单、无升级、无复核",
+        [
+            "设备掉线无人主动盯防：传统 AI 必须等运营主动提问才响应；半夜智能柜心跳离线若无人察觉，将直接造成冰品化冻与客诉。",
+            "建议沦为空话、缺乏四要素：只输出“建议加强退款管理”，没有明确执行动作、负责角色（Owner）、时限（Due）与复核目标。",
+            "无人工确认护栏与幂等保护：要么无法落地建单，要么失控重复建单，缺乏从建议草案（decisionProposal）到正式任务的审批关卡。",
+            "缺乏下一周期效果复核：派单后不知是否有效，无法根据下一周期 refund_rate 改善情况自动关闭（closed）或升级（escalated）。",
+        ],
+        top_hex="1E3A5F",
+        footer_text="核心症结：停留在“聊天问答”，未打通主动监控与复核闭环",
+        footer_bg="EFF4FA",
+        footer_clr="1E3A5F",
+    )
     slides_data.append((sb2.to_slide_xml(), []))
 
-    # ---------------- SLIDE 3: 与传统方案的核心差异 ----------------
+    # ==================== P3: 与传统方案的核心差异 ====================
     sb3 = ShapeBuilder()
     add_common_frame(
         sb3,
-        "02 · KEY DIFFERENTIATION VS. TRADITIONAL SOLUTIONS",
-        "核心差异化：我们与传统 BI 及传统 AI 问数哪里不一样？",
-        "核心设计哲学：人守住“契约”与“验收”，确定性代码当“后厨”，大模型当“受控服务员”",
-        "0:35 - 1:00 (25秒 · P3/6)",
+        "KEY DIFFERENTIATORS // 03 · 为什么我们和传统 BI / 通用大模型完全不同？",
+        "核心哲学：确定性引擎做“后厨”算准事实，受控 Agent 做“服务员”编排与表达",
+        "A（前端五视图）/ B（确定性数据与规则层）/ C（LangGraph 智能体与 API）基于冻结契约 API Contract v0.1 并行解耦协作",
+        "00:30 - 00:50 (20秒 · P3/7)",
         "莱森购 Retail Intelligence Agent  |  P3 · 核心差异化对比",
-        "牺牲“无边界自由闲聊”的虚假灵活，换取企业级经营决策 100% 可信、可审计、可复核的确定性价值",
+        "不是“给大模型接个数据库”，而是用冻结契约、规则状态机、KV Cache 六铁律、安全护栏与主动闭环重塑企业级 Agent 标准",
     )
-    # 餐厅点菜模型横条
     metaphors = [
-        ("菜单 = 指标契约库", "预定义公式、同店口径、扣退规则，拒绝临时拼凑"),
-        ("服务员 = 受控 Agent", "只做意图解析与白名单点单，0 SQL、0 心算"),
-        ("厨师长 = 规则引擎", "代码级确定性判定（如至少满足2项异常才建案）"),
-        ("小票 = Trace 证据链", "每个数字绑定 evidence_id 与 trace_id 可回放"),
+        ("1. 标准化后厨 (B层确定性引擎)", "先SUM后算比率、中位数ROI、unavailable→insufficient→possible→none四值序", "1E3A5F"),
+        ("2. 受控服务员 (C层7工具+双向护栏)", "禁写SQL/禁改阈值，collectAllowedNumbers逐字核对证据池，100%零数值幻觉", "C84B31"),
+        ("3. 高性能上下文 (KV Cache六铁律+三层记忆)", "静态前缀deepFreeze、Append-Only、SHA-256压缩复用、跨轮次实体槽指代消解", "5B4B8A"),
+        ("4. 全天候巡检员 (主动监控+人工复核)", "离线5min告警唤醒Agent审计、15min升级；人工确认建单并按周期复核关闭/升级", "1F6F54"),
     ]
-    for i, (mr, md) in enumerate(metaphors):
-        mx = 80 + i * 445
-        sb3.add_rect(mx, 168, 425, 86, fill_hex="FFFFFF", line_hex="BFDBFE")
+    for i, (mt, md, mc) in enumerate(metaphors):
+        mx = 76 + i * 446
+        sb3.add_rect(mx, 162, 430, 92, fill_hex="FFFFFF", line_hex="DCD6C8")
+        sb3.add_rect(mx, 162, 6, 92, fill_hex=mc, line_hex=None)
         sb3.add_textbox(
             mx + 14,
-            176,
-            397,
-            70,
+            170,
+            406,
+            76,
             [
-                {"text": mr, "size": 12.5, "bold": True, "color": "1E3A8A", "space_after": 3},
-                {"text": md, "size": 11, "bold": False, "color": "4B5563"},
+                {"text": mt, "size": 11.5, "bold": True, "color": mc, "space_after": 3},
+                {"text": md, "size": 10.2, "bold": False, "color": "3E4E63"},
             ],
         )
 
-    # 对比矩阵表（使用精细对齐的网格卡片构建，确保任何软件打开视觉100%整齐）
-    col_x = [80, 320, 740, 1200]
-    col_w = [240, 420, 460, 640]
+    col_x = [76, 326, 736, 1186]
+    col_w = [250, 410, 450, 658]
     headers = [
         "核心对比维度",
-        "传统 BI 报表 / 数据看板",
-        "传统 AI Agent / Text-to-SQL",
+        "传统 BI 报表系统",
+        "传统通用 AI (Text-to-SQL)",
         "✦ 莱森购 Retail Intelligence Agent（本项目）",
     ]
     for c in range(4):
         is_hl = c == 3
-        sb3.add_rect(
-            col_x[c],
-            272,
-            col_w[c],
-            58,
-            fill_hex="1E3A8A" if is_hl else "EFECE6",
-            line_hex="1E3A8A" if is_hl else "D6D3CD",
-        )
+        sb3.add_rect(col_x[c], 270, col_w[c], 54, fill_hex="1E3A5F" if is_hl else "142030", line_hex="DCD6C8")
         sb3.add_textbox(
             col_x[c] + 12,
-            280,
+            276,
             col_w[c] - 24,
             42,
-            [{"text": headers[c], "size": 12.5, "bold": True, "color": "FFFFFF" if is_hl else "111827"}],
+            [{"text": headers[c], "size": 12, "bold": True, "color": "FCD34D" if is_hl else "FFFFFF"}],
             anchor="ctr",
         )
 
     rows_s3 = [
         (
-            "1. 指标计算与口径",
-            "固定图表展示，跨维拆解需人工导出 Excel 计算",
-            "LLM 现场写 SQL 或心算，易把每日比率简单平均、混淆含税/扣退口径",
-            "先聚合再算比率（SUM(sales)/NULLIF(SUM(orders),0)），自动拆解订单量与客单价双因子，100% 财务口径对齐",
+            "1. 口径与计算准确性",
+            "静态 SQL 聚合，易掩盖斜坡下滑，无双因子自动拆解",
+            "LLM 自由写 SQL 易平均每日比率、算错口径，结果不可复现",
+            "Contract-First 确定性计算：先 SUM 再算比率，区域利润/回本取门店中位数，0 算账幻觉",
         ),
         (
-            "2. 异常判定与归因",
-            "仅提供红绿阈值高亮，靠运营人员凭经验猜原因",
-            "单指标下滑即武断定性，甚至编造输入数据中不存在的根因与责任人",
-            "多条件确定性规则判定（store_anomaly_v1 至少命中2项）+ 全区域同步波动识别 + 挂载结构化 SOP 知识库",
+            "2. 数据缺失与可比防呆",
+            "字段断报常显示为 0，造成“无异常”的致命假阴性",
+            "样本不足或缺成本时仍强行编造回本周期与确定性根因",
+            "S004 缺失熔断 + 两层逐指标可比准入：少于 3 家返回 insufficient，缺租金返回 null",
         ),
         (
-            "3. 数据缺失与边界护栏",
-            "直接显示空值 NaN 或报错图表",
-            "靠提示词软约束，极易强行幻觉作答，无视样本量不足",
-            "硬核降级机制：可比门店 < 3家 或缺 CAPEX 成本时（如南关区），强制返回 insufficient 拒算回本期，诚实守界",
+            "3. 安全边界与防幻觉",
+            "无自然语言交互，仅支持固定筛选器查询",
+            "易受 Prompt 注入越权，总结文本常夹带未查询的幻觉数字",
+            "7 白名单工具 + 双向护栏：拦截 SQL 注入/改阈值，collectAllowedNumbers 零幻觉校验",
         ),
         (
-            "4. 触发模式",
-            "纯被动：人打开网页看表",
-            "纯被动：人输入问题才回复",
-            "双轮驱动：人主动自然语言问数 + IoT 心跳主动监控 Loop（离线 5min 告警并自动唤醒 Agent 预审计）",
+            "4. 记忆与上下文工程",
+            "无上下文记忆，每次筛选互不关联",
+            "系统提示词插值破坏缓存，用 slice(-N) 截断丢失历史",
+            "KV Cache 六铁律 + 三层记忆：静态前缀冻结、SHA-256 压缩复用、支持“帮它派单”指代消解",
         ),
         (
-            "5. 决策落地与闭环",
-            "止步于图表浏览，无任务系统",
-            "止步于聊天框建议，甚至危险地自动执行写操作",
-            "人机协同状态机：生成结构化行动卡 → 人工确认护栏 → 派单限办 → 下一周期 verify_task 自动核验关闭/升级",
+            "5. 触发方式与执行闭环",
+            "纯被动看图，无任务派发与效果追踪",
+            "被动一问一答，聊完即止，无 SLA 升级与复核机制",
+            "主动监控 Loop + 人机复核闭环：心跳离线唤醒 Agent 审计，人工确认派单并按周期复核关闭/升级",
         ),
     ]
     for r_idx, row_vals in enumerate(rows_s3):
-        ry = 330 + r_idx * 130
-        rh = 130
+        ry = 324 + r_idx * 134
+        rh = 134
         for c in range(4):
             is_hl = c == 3
             sb3.add_rect(
@@ -643,303 +707,282 @@ def build_editable_slides() -> list[tuple[str, list[tuple[str, Path]]]]:
                 ry,
                 col_w[c],
                 rh,
-                fill_hex="F8FAFC" if is_hl else "FFFFFF",
-                line_hex="1E3A8A" if is_hl else "E5E0D8",
+                fill_hex="F3F8F5" if is_hl else "FFFFFF",
+                line_hex="1F6F54" if is_hl else "DCD6C8",
                 line_pt=1.5 if is_hl else 1.0,
             )
-            txt_color = "1E3A8A" if is_hl else ("9A3412" if c == 2 else "111827")
+            txt_color = "142030" if c in (0, 3) else ("C84B31" if c == 2 else "3E4E63")
             sb3.add_textbox(
-                col_x[c] + 14,
-                ry + 10,
-                col_w[c] - 28,
-                rh - 20,
-                [
-                    {
-                        "text": row_vals[c],
-                        "size": 12.2,
-                        "bold": c in (0, 3),
-                        "color": txt_color,
-                    }
-                ],
+                col_x[c] + 12,
+                ry + 8,
+                col_w[c] - 24,
+                rh - 16,
+                [{"text": row_vals[c], "size": 11.5, "bold": c in (0, 3), "color": txt_color}],
                 anchor="ctr",
             )
     slides_data.append((sb3.to_slide_xml(), []))
 
-    # ---------------- SLIDE 4: 最核心部分展示（一） ----------------
+    # ==================== P4: 核心重点（一）A+B 端 ====================
     sb4 = ShapeBuilder()
     add_common_frame(
         sb4,
-        "03 · CORE SHOWCASE PART I — DETERMINISTIC ENGINE & PROACTIVE LOOP",
-        "核心部分展示（一）：确定性审计对标引擎 + IoT 主动监控闭环",
-        "以长春 5 店真实切片数据（demo_v1）为例：从全局态势、单店归因、区域 ROI 到毫秒级心跳告警",
-        "1:00 - 1:25 (25秒 · P4/6)",
-        "莱森购 Retail Intelligence Agent  |  P4 · 核心部分展示（上）",
-        "区分四类严谨审计状态：正常 / 疑似异常 / 证据不足 (insufficient) / 无法判断 (unavailable)",
+        "CORE ARCHITECTURE PART 1 // 04 · 五位一体前端工作台 + 确定性数据层与结构化 Wiki（A & B 层）",
+        "五位一体交互工作台 × 四值规则防呆引擎 × Supabase 结构化知识 Wiki",
+        "所有金额与数量先聚合再算比率，每个指标、排名与异常结论均携带 evidence_ids、data_version 与 trace_id",
+        "00:50 - 01:10 (20秒 · P4/7)",
+        "莱森购 Retail Intelligence Agent  |  P4 · 核心重点（一）：A & B 层",
+        "核心代码：src/services/{metric_service,rule_engine,benchmark_service,region_score}.ts · data_layer/{domain_services,rule_engine,wiki}.py",
     )
-    # 左侧 4 个关键指标卡
-    metrics_s4 = [
-        ("长春全市 7日总销额", "¥105.4万", "利润 ¥21.8万 · 5城区", "FFFFFF", "E5E0D8", "111827"),
-        ("朝阳 A店 · 高危异常", "退款率 7.0%", "同城中位 2.1% | 订单 -31%", "FFF7ED", "FED7AA", "C2410C"),
-        ("朝阳区 · 投放评分榜首", "81.9 分", "回本 8.4个月 (月利4.28万)", "FFFFFF", "E5E0D8", "1E3A8A"),
-        ("南关区 · 数据缺失降级", "回本期 NULL", "缺 CAPEX 强制拒算防幻觉", "FFFBEB", "FDE68A", "B45309"),
-    ]
-    for i, (ml, mv, ms, mbg, mbd, mclr) in enumerate(metrics_s4):
-        mx = 80 + i * 228
-        sb4.add_rect(mx, 172, 214, 145, fill_hex=mbg, line_hex=mbd)
-        sb4.add_textbox(
-            mx + 12,
-            182,
-            190,
-            125,
-            [
-                {"text": ml, "size": 10.5, "bold": True, "color": "6B7280", "space_after": 6},
-                {"text": mv, "size": 18, "bold": True, "color": mclr, "space_after": 6},
-                {"text": ms, "size": 10.5, "bold": False, "color": "4B5563"},
-            ],
-        )
-
-    # 左中：核心能力 A
-    sb4.add_rect(80, 338, 898, 290, fill_hex="FFFFFF", line_hex="E5E0D8")
-    sb4.add_rect(80, 338, 898, 7, fill_hex="1E3A8A", line_hex=None)
-    sb4.add_textbox(
-        104,
-        358,
-        850,
-        255,
+    add_bullet_card_xml(
+        sb4,
+        76,
+        165,
+        868,
+        830,
+        "FRONTEND & LOCATION SCORING // 五大共享视图与四维选址模型",
+        "1. 五页共享同一数据契约 + 区域四维加权 ROI 测算",
         [
-            {"text": "核心能力 A · 确定性差距拆解与区域 ROI 评分（metric_service + rule_engine）", "size": 14, "bold": True, "color": "1E3A8A", "space_after": 10},
-            {
-                "text": "• 双因子归因拆解：朝阳 A 店销售额较基线下跌 -28.0%（¥23.89万 → ¥17.20万），引擎自动拆解出【订单量暴跌 -31.0%】为主因，叠加退款率 7.0% 命中高风险规则，避免把客流异常误判为客单价问题。",
-                "size": 12.5,
-                "bold": False,
-                "color": "374151",
-                "space_after": 8,
-            },
-            {
-                "text": "• 区域投放 ROI 确定性模型：Score = w1·需求 + w2·竞品 + w3·毛利 - w4·成本。权重由配置文件锁定，LLM 不可篡改；南关区因缺少设备总投入（capex_investment=NULL），强制降级拒算回本周期。",
-                "size": 12.5,
-                "bold": False,
-                "color": "374151",
-            },
+            "真实核心业务指标：长春 7日总销售额 ¥1,054,000（总利润 ¥218,000）；A店/S001 退款率 7.0% vs 同城中位数 2.1%；朝阳区评分 86.5分 / 8.4个月回本（南关区缺长租成本强制返回 null）。",
+            "五大核心页面 + 双顾问入口：① 经营驾驶舱（含 21店×42天日销售斜坡序列与长春 Leaflet GIS 风险地图） ② 智能审计与同城对标 ③ 区域投放决策 ④ 经营行动中心 ⑤ “莱财”AI 经营顾问气泡 & Agent 检测工作台（实时检视规划合同、KV Cache 与 API 健康度）。",
+            "销售额双因子拆解：强制将销售额波动拆解为 order_change_pct（订单数）与 aov_change_pct（客单价），避免把客流规模波动误判为客单效率问题。",
+            "区域四维评分与门店中位数 ROI 模型：按 Score = 0.35×需求 + 0.25×竞争 + 0.25×毛利 - 0.15×成本 归一化评分；区域月利润与回本周期取区域内门店中位数（防止沦为门店数量比较）。",
         ],
+        top_hex="1E3A5F",
+        footer_text="前端零私算原则：React 前端只渲染后端契约返回的数值、单位、证据与状态标签，绝不在前端复制公式或篡改风险等级。",
+        footer_bg="EFF4FA",
+        footer_clr="1E3A5F",
     )
-
-    # 左下：核心能力 B 主动监控 Loop
-    sb4.add_rect(80, 650, 898, 335, fill_hex="FFFFFF", line_hex="E5E0D8")
-    sb4.add_rect(80, 650, 898, 7, fill_hex="15803D", line_hex=None)
-    sb4.add_textbox(
-        104,
-        670,
-        850,
-        295,
+    add_bullet_card_xml(
+        sb4,
+        976,
+        165,
+        868,
+        830,
+        "DETERMINISTIC DATA LAYER & WIKI // 规则状态机与三路径数据层",
+        "2. 四值防呆状态机 + 两层可比准入 + Supabase 4表 Wiki",
         [
-            {"text": "核心能力 B · Agent 主动监控 Loop（无需人提问自动唤醒 · src/agent/monitorLoop.js）", "size": 14, "bold": True, "color": "15803D", "space_after": 10},
-            {"text": "状态机流转：detected (2min超时) → alerted (5min告警并唤醒Agent审计) → escalated (15min未确认升级) → resolved (心跳恢复结案)", "size": 12, "bold": True, "color": "111827", "space_after": 10},
-            {
-                "text": "• 同一设备按 device-offline:{deviceId} 幂等去重；5分钟触发第一封负责人通知并异步调用 Agent 审计链路（保存 agentSummary、agentFindings 与 agentTraceId）。\n• 支持站内通知、外部 Webhook 与 QQ 邮箱 SMTP (SSL 465) 异步告警，本地状态持久化至 agent-monitor-state.json 重启不丢失。",
-                "size": 12,
-                "bold": False,
-                "color": "374151",
-            },
+            "四值规则状态机严格优先级：unavailable（有效天<5 或空值>20%）→ insufficient（可比店<3 或仅命中1条规则）→ possible（命中≥2条且样本充足）→ none（数据完整且无异常），彻底杜绝假阴性。",
+            "S004 缺失熔断与“两层逐指标可比准入”：S004 自 10月6日起退款字段断报（空值率 33% > 20%），单店审计严格触发 unavailable 熔断保护；但在同区对标时按逐指标准入保留其完整的销售/订单数据，防止朝阳区可比池跌破 min_peers = 3。",
+            "防误伤单店规则：当同区域 ≥40% 门店同步异常且离散度低时，自动标记为“区域性波动”，严禁直接归咎于单店店长。",
+            "三路径无缝切换 + Supabase 4张核心表：支持【前端内存夹具 / Python 离线服务 (--offline) / Supabase PostgreSQL】三路径；云端内置 store_operations_daily、region_market_inputs、tasks_and_traces 及 knowledge_wiki（承载 semantic_rule、sop_playbook、region_profile、historical_case 及 1536 维向量列）。",
         ],
+        top_hex="1F6F54",
+        footer_text="确定性验证保障：提供 python tools/verify_local.py 与 npm run validate:contracts 自动化校验全量指标与契约 Fixture。",
+        footer_bg="EEF7F4",
+        footer_clr="1F6F54",
     )
+    slides_data.append((sb4.to_slide_xml(), []))
 
-    # 右侧：嵌入两张高清 UI 概念图
-    img1 = ROOT / "output" / "imagegen" / "01-paper-navy.png"
-    img2 = ROOT / "output" / "imagegen" / "03-ivory-terracotta-v2.png"
-    rels_s4: list[tuple[str, Path]] = []
-    if img1.exists() and img2.exists():
-        sb4.add_rect(1005, 172, 835, 395, fill_hex="FFFFFF", line_hex="E5E0D8")
-        sb4.add_textbox(1020, 178, 800, 30, [{"text": "📊 经营驾驶舱与四态审计分布（真实产品视觉概念图 01-paper-navy）", "size": 11.5, "bold": True, "color": "1E3A8A"}])
-        sb4.add_picture("rIdImg1", 1020, 212, 805, 342)
-
-        sb4.add_rect(1005, 590, 835, 395, fill_hex="FFFFFF", line_hex="E5E0D8")
-        sb4.add_textbox(1020, 596, 800, 30, [{"text": "🔍 门店审计工作台与可比门店对标（真实产品视觉概念图 03-ivory-terracotta）", "size": 11.5, "bold": True, "color": "C2410C"}])
-        sb4.add_picture("rIdImg2", 1020, 630, 805, 342)
-        rels_s4 = [("rIdImg1", img1), ("rIdImg2", img2)]
-
-    slides_data.append((sb4.to_slide_xml(), rels_s4))
-
-    # ---------------- SLIDE 5: 最核心部分展示（二）7层受控Agent与行动闭环 ----------------
+    # ==================== P5: 核心重点（二）C 端智能体内核 ====================
     sb5 = ShapeBuilder()
     add_common_frame(
         sb5,
-        "04 · CORE SHOWCASE PART II — 7-LAYER LANGGRAPH AGENT & ACTION VERIFICATION",
-        "核心部分展示（二）：LangGraph 7层受控编排与“行动—复核”闭环",
-        "严禁脱离工具自由裸答（disallowOpenEndedDirectAnswer = true），高风险写操作强制人工确认",
-        "1:25 - 1:45 (20秒 · P5/6)",
-        "莱森购 Retail Intelligence Agent  |  P5 · 核心部分展示（下）",
-        "7大白名单工具：get_dashboard · run_audit · compare_regions · estimate_region_roi · create_task · verify_task · write_report",
+        "CORE ARCHITECTURE PART 2 // 05 · LangGraph 七层编排 + KV Cache 六大铁律 + 三层记忆与双向护栏（C 层）",
+        "LangGraph 7 节点受控状态图 × KV Cache 工程铁律 × 100% 零数值幻觉",
+        "严禁开放式裸答（disallowOpenEndedDirectAnswer = true），无 API Key 时自动启用确定性规划与模板兜底，保障离线 100% 可用",
+        "01:10 - 01:30 (20秒 · P5/7)",
+        "莱森购 Retail Intelligence Agent  |  P5 · 核心重点（二）：C 层智能体内核",
+        "核心代码：src/agent/{definition,pattern,mechanisms,safety,orchestrator}.js · src/agent/components/{contextBuilder,memoryManager}.js",
     )
-    # 左侧：7层架构栈
-    sb5.add_rect(80, 172, 860, 810, fill_hex="FFFFFF", line_hex="E5E0D8")
-    sb5.add_textbox(
-        104,
-        188,
-        812,
-        40,
-        [{"text": "LangGraph 7层工程化受控架构（src/agent/）", "size": 15, "bold": True, "color": "1E3A8A"}],
-    )
-    layers_s5 = [
-        ("1. 定义层 Definition", "冻结身份边界、State Schema 与 7 大白名单工具映射 (definition.js)"),
-        ("2. 模式层 Pattern", "意图分类枚举：门店审计 / 区域对比 / 驾驶舱 / 综合分析 / 任务复核 (pattern.js)"),
-        ("3. 组件层 Component", "意图解析、上下文构建、工具适配、证据总结器 (components/*)"),
-        ("4. 机制层 Mechanism", "固定拓扑序执行、重试退避、云端超时本地内存兜底 (mechanisms.js)"),
-        ("5. 安全层 Safety", "防 Prompt 注入、防越权写操作、禁止编造未返回数值 (safety.js)"),
-        ("6. 编排层 Orchestrator", "LangGraph 状态图流转与主动监控 Loop 唤醒桥接 (orchestrator.js)"),
-        ("7. 工程层 Engineering", "REST API 契约网关、幂等键控制、全链路 Trace 落库 (api.js / traceLogger.js)"),
-    ]
-    for i, (lt, ld) in enumerate(layers_s5):
-        ly = 242 + i * 102
-        is_safety = i == 4
-        sb5.add_rect(104, ly, 812, 88, fill_hex="FFF7ED" if is_safety else "F7F6F2", line_hex="FED7AA" if is_safety else "E5E0D8")
-        sb5.add_rect(104, ly, 8, 88, fill_hex="C2410C" if is_safety else "1E3A8A", line_hex=None)
-        sb5.add_textbox(
-            124,
-            ly + 10,
-            776,
-            68,
-            [
-                {"text": lt, "size": 13, "bold": True, "color": "C2410C" if is_safety else "1E3A8A", "space_after": 3},
-                {"text": ld, "size": 11.5, "bold": False, "color": "374151"},
-            ],
-        )
-
-    # 右上：可执行行动卡契约
-    sb5.add_rect(970, 172, 870, 515, fill_hex="FFFFFF", line_hex="E5E0D8")
-    sb5.add_rect(970, 172, 870, 7, fill_hex="1E3A8A", line_hex=None)
-    sb5.add_textbox(
-        998,
-        192,
-        814,
-        45,
-        [{"text": "可执行行动卡契约（Action Card Schema · 需人工确认后触发 create_task）", "size": 14.5, "bold": True, "color": "1E3A8A"}],
-    )
-    sb5.add_rect(998, 245, 814, 415, fill_hex="0F172A", line_hex="334155")
-    sb5.add_textbox(
-        1020,
-        262,
-        770,
-        385,
+    add_bullet_card_xml(
+        sb5,
+        76,
+        165,
+        568,
+        830,
+        "7-LAYER & 7-NODE STATEGRAPH // 架构解耦与状态机",
+        "1. 七层架构与有界重规划状态图",
         [
-            {"text": "{", "size": 12, "bold": True, "color": "93C5FD", "font": "Consolas", "space_after": 3},
-            {"text": '  "task_id": "task_chaoyang_A_001",', "size": 12, "bold": False, "color": "86EFAC", "font": "Consolas", "space_after": 3},
-            {"text": '  "problem": "朝阳A店退款率(7.0%)显著高于同城中位数(2.1%)，订单跌31%",', "size": 12, "bold": False, "color": "FDE047", "font": "Consolas", "space_after": 3},
-            {"text": '  "evidence_ids": ["ev_audit_A_refund", "ev_peer_changchun"],', "size": 12, "bold": False, "color": "86EFAC", "font": "Consolas", "space_after": 3},
-            {"text": '  "action": "抽查最近 20 笔退款订单，核查冷链温控与商品临期状态",', "size": 12.5, "bold": True, "color": "FFFFFF", "font": "Consolas", "space_after": 3},
-            {"text": '  "owner_role": "长春朝阳区域经理",  "due_hours": 24,', "size": 12, "bold": False, "color": "FBA94C", "font": "Consolas", "space_after": 3},
-            {"text": '  "verify_metric": "refund_rate",', "size": 12, "bold": False, "color": "86EFAC", "font": "Consolas", "space_after": 3},
-            {"text": '  "verify_target": "下一周期回落至同城中位数 + 2.0%（即 ≤ 4.1%）以内"', "size": 12, "bold": False, "color": "86EFAC", "font": "Consolas", "space_after": 3},
-            {"text": "}", "size": 12, "bold": True, "color": "93C5FD", "font": "Consolas", "space_after": 0},
+            "七层清晰解耦：① 定义层 definition.js ② 模式层 pattern.js ③ 组件层 components/* ④ 机制层 mechanisms.js ⑤ 安全层 safety.js ⑥ 编排层 orchestrator.js ⑦ 工程层 api.js & traceLogger.js。",
+            "7 节点受控 StateGraph：InputGuard → Planner → ToolExecutor ⇄ EvidenceVerifier (Bounded Re-plan 最多 1 次重规划补齐同区对标) → Normal/DegradedSynthesizer → OutputGuard。",
+            "7 个白名单工具（4 读 3 写）：读工具（get_dashboard / run_audit / compare_regions / estimate_region_roi）按拓扑序执行；写工具（create_task / verify_task / write_report）必须具备用户显式授权关键词，否则降级为待确认草案。",
+            "双模高可用容灾：配置 LLM API Key 时走原生 Tool Calling；断网或未配 Key 时自动无缝降级至确定性规则规划器。",
         ],
+        top_hex="1E3A5F",
+        footer_text="全链路可回放：每次调用生成唯一 traceId，完整记录 toolCalls、evidenceIds 与 latencyMs。",
+        footer_bg="EFF4FA",
+        footer_clr="1E3A5F",
     )
-
-    # 右下：任务复核状态机
-    sb5.add_rect(970, 710, 870, 272, fill_hex="FFFFFF", line_hex="E5E0D8")
-    sb5.add_rect(970, 710, 870, 7, fill_hex="15803D", line_hex=None)
-    sb5.add_textbox(
-        998,
-        730,
-        814,
-        235,
+    add_bullet_card_xml(
+        sb5,
+        676,
+        165,
+        568,
+        830,
+        "KV CACHE & 3-TIER MEMORY // 上下文工程与记忆架构",
+        "2. KV Cache 六铁律 + 三层记忆体系",
         [
-            {"text": "任务生命周期与下一周期自动复核（verify_task）", "size": 14.5, "bold": True, "color": "15803D", "space_after": 12},
-            {"text": "open (生成草案)  →  assigned (人工确认派单)  →  verifying (读取下周期指标)  →  closed / escalated", "size": 13, "bold": True, "color": "111827", "space_after": 12},
-            {
-                "text": "闭环验证逻辑：下一周期自动拉取朝阳 A 店最新 refund_rate，若回落至 ≤ 4.1% 则自动标记 closed 并归档复核证据；若仍超标则自动触发 escalated 升级督办，彻底杜绝“发完报告没人管”。",
-                "size": 12.5,
-                "bold": False,
-                "color": "374151",
-            },
+            "铁律 1-2（静态前缀零插值 & Schema 冻结）：STATIC_SYSTEM_MESSAGE 与 7 个工具 JSON Schema 启动时 Object.freeze，严禁在系统提示词中拼接时间戳或动态会话变量。",
+            "铁律 3-4（Append-Only & 标准四角色）：严格遵循 system -> user -> assistant(tool_calls) -> tool(tool_call_id) 追加模型，绝不原地篡改历史消息。",
+            "铁律 5-6（SHA-256 持久化摘要压缩 & 命中追踪）：严禁使用 .slice(-N) 滑动窗口截断（每轮改变首条消息会彻底击穿 KV Cache）；超阈值时执行带 SHA-256 哈希缓存的 compactMessagesIfNeeded，并实时监控 cached_tokens。",
+            "LangGraph 三层记忆与指代消解：① 工作记忆 AgentStateAnnotation ② 线程短期记忆 MemorySaver + 实体槽位（lastDeviceId/lastRegionIds/lastTaskId）③ 跨会话长期记忆 InMemoryStore，完美支持“那帮它创建一个整改任务”跨轮次指代。",
         ],
+        top_hex="5B4B8A",
+        footer_text="工程收益：大幅降低多轮对话首字延迟（TTFT）与 Token 成本，同时保持上下文连贯。",
+        footer_bg="F3F0FA",
+        footer_clr="5B4B8A",
+    )
+    add_bullet_card_xml(
+        sb5,
+        1276,
+        165,
+        568,
+        830,
+        "BIDIRECTIONAL GUARDRAILS // 安全护栏与业务脱敏",
+        "3. 双向安全护栏 + 0 幻觉数值校验",
+        [
+            "输入护栏（InputGuard）：正则拦截 SQL 注入（DROP TABLE）、Prompt 越权（ignore previous instructions）、系统提示词刺探、篡改规则阈值及自动改价/自动打款等高危指令。",
+            "输出数值白名单校验（collectAllowedNumbers）：递归提取当轮工具返回 JSON 中的所有合法数字与百分比；若 LLM 总结中出现任何不在白名单内的未授权数字，立即拦截并回退至确定性证据模板，实现 100% 零数值幻觉。",
+            "证据完备性校验（EvidenceVerifier）：当可比门店不足 3 家或关键字段缺失时，强制路由至 DegradedSynthesizer，严禁输出确定性根因或武断指责词汇。",
+            "全业务化脱敏与思考流可视化：对最终用户严禁暴露内部函数名/字段名，同时输出类 Antigravity 风格的 thinkingSteps 折叠思考链路。",
+        ],
+        top_hex="C84B31",
+        footer_text="安全验证：npm run test:agent 全自动通过单轮、多轮指代、越权拦截与数值防幻觉测试。",
+        footer_bg="FDF2F0",
+        footer_clr="C84B31",
     )
     slides_data.append((sb5.to_slide_xml(), []))
 
-    # ---------------- SLIDE 6: 未来扩展愿景 ----------------
+    # ==================== P6: 核心重点（三）双闭环引擎 ====================
     sb6 = ShapeBuilder()
     add_common_frame(
         sb6,
-        "05 · FUTURE EXPANSION VISION & ROADMAP",
-        "未来扩展愿景：从“单域智能审计”迈向“全域自治零售大脑”",
-        "架构预留标准化契约与 pgvector 向量检索底座，支持三阶段平滑演进",
-        "1:45 - 2:00 (15秒 · P6/6)",
-        "莱森购 Retail Intelligence Agent  |  P6 · 未来扩展愿景",
-        "2分钟核心路演结束 · 支持现场切换至 Live Demo 演示（朝阳 A 店审计闭环 & 主动监控 Loop）",
+        "CORE ARCHITECTURE PART 3 // 06 · 人机协同任务复核闭环 + IoT 主动监控告警闭环（Dual Closed-Loop Engines）",
+        "不止于“问答”：把每一次异常诊断转化为可追责、可升级、可复核的闭环",
+        "一条链路面向“运营决策执行与周期复核”，一条链路面向“7×24h 设备心跳监控与自动唤醒审计”",
+        "01:30 - 01:48 (18秒 · P6/7)",
+        "莱森购 Retail Intelligence Agent  |  P6 · 核心重点（三）：双闭环落地引擎",
+        "核心代码：src/agent/monitorLoop.js · src/AgentLoopPanel.jsx · scripts/verify-monitor-loop.mjs",
     )
-    visions = [
-        (
-            "阶段一 · 连接真实世界 (近期)",
-            "实时数仓与边缘 IoT 网关全面接轨",
-            "• 生产级数据接入：从 CSV/Supabase 种子切片平滑切换至实时 POS 流水、ERP 库存与外部地理/客流 API 适配器。\n• 真实 IoT 边缘网关：将主动监控 Loop 接入智能冰柜温控、门磁与电压传感器，实现秒级硬件故障预判。\n• 企业级协同触达：打通企业微信、飞书与钉钉卡片审批，店长在手机端一键确认行动卡并上传整改照片。",
-            "架构优势：当前前后端 API 契约与模块化单体已完全解耦，替换底层数据源零需重写前端与 Agent 编排层。",
-            "1E3A8A",
-            "EFF6FF",
-            "BFDBFE",
-        ),
-        (
-            "阶段二 · 多模态与全域扩维 (中期)",
-            "多模态视觉巡检 + 业财供应链全链路",
-            "• 多模态视觉审计：融合智能柜摄像头图像识别，自动检测【货架缺货率、陈列合规度、异常拿取防损】，生成视觉证据 ID。\n• 经营维度扩展：在销售额/退款率基础上，纳入【商品保质期损耗、会员复购率、营销活动归因与补货人效】指标库。\n• 跨城多租户治理：引入 RBAC 区域权限隔离、多级审批流与 SLA 考核看板，支撑千店级规模化运营。",
-            "演进原则：视觉与预测模型同样遵循“只输出带置信度的结构化证据，由确定性规则定级”的安全边界。",
-            "C2410C",
-            "FFF7ED",
-            "FED7AA",
-        ),
-        (
-            "阶段三 · 自演进决策飞轮 (远期)",
-            "基于复核结果反哺的自治零售大脑",
-            "• 历史案件向量检索（pgvector）：将每一次结案的异常特征、处置动作与复核改善幅度存入向量库，新发异常自动匹配历史最优 SOP。\n• 策略权重动态校准：根据历史任务复核通过率（Closed vs Escalated），自动评估哪些行动建议真正有效，反哺风险排序模型。\n• 受控多 Agent 协同：在契约稳定后，由审计 Agent、选址 Agent 与供应链补货 Agent 协同推演全局利润最大化方案。",
-            "终极愿景：让每一家无人零售小店都拥有一位“算得准、守规矩、盯得住结果”的 AI 首席运营官。",
-            "15803D",
-            "F0FDF4",
-            "BBF7D0",
-        ),
-    ]
-    for idx, (v_badge, v_title, v_list, v_foot, v_clr, v_bg, v_bd) in enumerate(visions):
-        vx = 80 + idx * 596
-        vy = 172
-        vw = 568
-        vh = 700
-        sb6.add_rect(vx, vy, vw, vh, fill_hex="FFFFFF", line_hex="E5E0D8")
-        sb6.add_rect(vx, vy, vw, 8, fill_hex=v_clr, line_hex=None)
-        sb6.add_textbox(
-            vx + 24,
-            vy + 26,
-            vw - 48,
-            465,
-            [
-                {"text": v_badge, "size": 11.5, "bold": True, "color": v_clr, "space_after": 10},
-                {"text": v_title, "size": 18.5, "bold": True, "color": "111827", "space_after": 14},
-                {"text": v_list, "size": 12.8, "bold": False, "color": "374151"},
-            ],
-        )
-        sb6.add_rect(vx + 24, vy + 510, vw - 48, 160, fill_hex=v_bg, line_hex=v_bd)
-        sb6.add_textbox(
-            vx + 36,
-            vy + 522,
-            vw - 72,
-            136,
-            [{"text": v_foot, "size": 11.8, "bold": True, "color": v_clr}],
-        )
+    add_bullet_card_xml(
+        sb6,
+        76,
+        165,
+        868,
+        830,
+        "HUMAN-IN-THE-LOOP ACTION VERIFICATION // 经营行动与复核闭环",
+        "1. 审批卡确认 → 幂等建单 → 下一周期指标复核",
+        [
+            "状态流转：decisionProposal (待确认草案) → open → assigned → investigating → verifying → closed (达标关闭) / escalated (未达标升级)。",
+            "人机协同审批卡（Human-in-the-Loop）：当用户未显式下达写指令时，Agent 自动生成包含同行对标摘要（peerSummary）、预期挽回收益（expectedImpact）与紧急度的待确认行动卡，需人工点击“确认转化”后才真正落库。",
+            "幂等键防重（Idempotency Key）：POST /api/v1/tasks/from-recommendation 通过 idempotencyKey 保证同一建议绝不重复建单，自动绑定 assignee、dueAt 与 evidenceIds。",
+            "下一周期自动复核（verify_task）：以朝阳 A 店为例，复核目标设定为“下一周期 refund_rate 回落至同城中位数 + 2.0% 以内”；达标自动流转为 closed，未达标自动触发 escalated 升级督办。",
+        ],
+        top_hex="1F6F54",
+        footer_text="真实闭环示例：task_001（抽查 A 店最近 20 笔退款订单）→ 负责人：长春朝阳区域经理 → 期限：24h → 复核指标：refund_rate",
+        footer_bg="EEF7F4",
+        footer_clr="1F6F54",
+    )
+    add_bullet_card_xml(
+        sb6,
+        976,
+        165,
+        868,
+        830,
+        "PROACTIVE IOT MONITOR LOOP // 设备心跳主动监控与自唤醒审计",
+        "2. 无需人工提问：设备离线自动唤醒 Agent 预审计",
+        [
+            "状态流转：detected (2min超时去重) → alerted (5min通知+唤醒Agent) → acknowledged (负责人确认) → escalated (15min未确认升级) → resolved (设备恢复结案)。",
+            "去重检测与分级 SLA 升级：后台独立运行心跳巡检，按 device-offline:{deviceId} 严格去重；离线满 5 分钟发送首次负责人通知（alerted），满 15 分钟仍未确认自动发送升级通知（escalated）。",
+            "无人工干预自动唤醒 Agent 审计：进入 alerted 阶段后，监控引擎自动异步调用 Agent 审计链路（runAgentTurn），将诊断摘要保存至告警的 agentSummary、agentFindings 与 agentTraceId 中。",
+            "三通道异步通知 + 状态持久化恢复：内置【站内通知列表 + 外部 Webhook JSON 推送 + QQ 邮箱 SSL SMTP (smtp.qq.com:465)】三通道适配器；状态实时写入 tmp/agent-monitor-state.json，服务重启零丢失。",
+        ],
+        top_hex="C84B31",
+        footer_text="回归测试保障：npm run test:monitor-loop 全面覆盖去重、5min通知、15min升级、确认、恢复与重启持久化。",
+        footer_bg="FDF2F0",
+        footer_clr="C84B31",
+    )
+    slides_data.append((sb6.to_slide_xml(), []))
 
-    # 底部总结金句横幅
-    sb6.add_rect(80, 895, 1760, 95, fill_hex="0F172A", line_hex="334155")
-    sb6.add_textbox(
-        105,
-        912,
-        1710,
-        60,
+    # ==================== P7: 未来扩展愿景 ====================
+    sb7 = ShapeBuilder()
+    add_common_frame(
+        sb7,
+        "FUTURE EXPANSION VISION // 07 · 三阶段演进蓝图（Roadmap & Scalability）",
+        "从“契约驱动的经营审计平台”演进为“自进化的全域无人零售经营大脑”",
+        "当前模块化单体与冻结契约已预留完整的 OIDC 租户上下文、外部数据适配器与 pgvector(1536) 向量检索接口",
+        "01:48 - 02:00 (12秒 · P7/7)",
+        "莱森购 Retail Intelligence Agent  |  P7 · 未来扩展愿景（2分钟路演完毕）",
+        "一键验证命令：npm run validate:contracts | npm run test:agent | npm run test:monitor-loop | python tools/verify_local.py",
+    )
+    add_bullet_card_xml(
+        sb7,
+        76,
+        165,
+        568,
+        665,
+        "PHASE 01 · 生产级多租户底座 (1-3个月)",
+        "连接真实世界：实时数仓、边缘网关与多租户安全",
+        [
+            "真实 IoT 边缘网关与实时数仓接入：将主动监控入口对接鉴权后的智能货柜 MQTT/边缘网关，数据层平滑切换至企业 ERP/POS 实时数仓。",
+            "OIDC 认证与 PostgreSQL RLS 多租户隔离：落地 TECHNICAL_ARCHITECTURE.md 规划的 OIDC/OAuth2 登录，由后端注入 tenant_id、user_id 与区域权限，开启行级安全策略。",
+            "Redis 分布式幂等锁与企微/飞书卡片：将进程内幂等控制升级为 Redis 分布式锁，Webhook 适配器对接企业微信与飞书交互式审批卡片。",
+        ],
+        top_hex="1E3A5F",
+        footer_text="阶段里程碑：零代码改动前端契约，完成从本地/云端 Demo 到千台智能柜生产环境上线",
+        footer_bg="EFF4FA",
+        footer_clr="1E3A5F",
+    )
+    add_bullet_card_xml(
+        sb7,
+        676,
+        165,
+        568,
+        665,
+        "PHASE 02 · 多模态与全域经营扩维 (3-6个月)",
+        "看得更全：视觉货柜巡检 + 库存/会员/营销/人效",
+        [
+            "边缘多模态视觉审计（Vision Audit）：在数据契约稳定基础上，接入智能柜摄像头视觉模型，自动识别货道缺货、陈列错放、冷链结霜与异常开门。",
+            "四大业务域指标横向扩展：在销售与退款之上，新增库存周转与缺货损失、会员复购分层、促销活动弹性以及补货员路径与人效对标工具。",
+            "外部时空与竞品适配器：接入高德/百度 POI 客流热力、天气突变与周边竞品点位动态接口，提升区域选址 ROI 模型的时空灵敏度。",
+        ],
+        top_hex="C84B31",
+        footer_text="阶段里程碑：从“事后交易数据审计”扩展为“交易 + 库存 + 视觉 + 时空”的全维实时感知",
+        footer_bg="FDF2F0",
+        footer_clr="C84B31",
+    )
+    add_bullet_card_xml(
+        sb7,
+        1276,
+        165,
+        568,
+        665,
+        "PHASE 03 · 向量检索与自进化大脑 (6-12个月)",
+        "越用越准：pgvector 经验召回 + 复核结果强化调优",
+        [
+            "全面激活 pgvector(1536) 混合检索：启用 knowledge_wiki 表已预留的 embedding vector(1536) 列，将每次 closed 的成功案件沉淀为向量化历史经验自动召回。",
+            "基于复核结果的策略权重闭环校准：利用 verify_task 积累的“行动建议 → 下一周期真实改善幅度”闭环数据，自动校准风险排序权重与 ROI 参数。",
+            "受契约约束的多 Agent 协同网络：演进为“巡检审计 Agent + 供应链补货 Agent + 动态定价与选址 Agent”多智能体协同。",
+        ],
+        top_hex="1F6F54",
+        footer_text="阶段里程碑：构建“每次复核都在让系统更聪明”的无人零售经营自进化飞轮",
+        footer_bg="EEF7F4",
+        footer_clr="1F6F54",
+    )
+    sb7.add_rect(76, 850, 1768, 145, fill_hex="142030", line_hex="1E3A5F")
+    sb7.add_textbox(
+        104,
+        866,
+        1712,
+        115,
         [
             {
-                "text": "🎯 总结：莱森购不是又一个“会聊天的报表插件”，而是用【确定性工程契约】驯服大模型、打通【感知→归因→行动→复核】的新一代智能经营范式。   |   THANK YOU · Q&A",
-                "size": 13.5,
+                "text": "🎯 莱森购 Retail Intelligence Agent · 让每一次无人零售经营决策都有据可查、有果必验",
+                "size": 17,
                 "bold": True,
                 "color": "FFFFFF",
-            }
+                "space_after": 6,
+            },
+            {
+                "text": "Contract-First 确定性底座 × 四值防呆规则引擎 × LangGraph 七层受控编排 × KV Cache 六铁律 × 主动监控与人工复核双闭环     |     THANK YOU // Q&A",
+                "size": 12.5,
+                "bold": True,
+                "color": "34D399",
+            },
         ],
         anchor="ctr",
     )
-    slides_data.append((sb6.to_slide_xml(), []))
+    slides_data.append((sb7.to_slide_xml(), []))
 
     return slides_data
 
@@ -961,7 +1004,6 @@ def write_pptx_package(
 ) -> None:
     num_slides = len(slides_data)
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        # 1. [Content_Types].xml
         slide_overrides = "\n".join(
             f'  <Override PartName="/ppt/slides/slide{i}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>\n'
             f'  <Override PartName="/ppt/notesSlides/notesSlide{i}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>'
@@ -985,7 +1027,6 @@ def write_pptx_package(
 </Types>"""
         zf.writestr("[Content_Types].xml", content_types)
 
-        # 2. _rels/.rels
         zf.writestr(
             "_rels/.rels",
             """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -994,7 +1035,6 @@ def write_pptx_package(
 </Relationships>""",
         )
 
-        # 3. ppt/presentation.xml & _rels
         sld_id_entries = "\n".join(
             f'    <p:sldId id="{255 + i}" r:id="rIdSlide{i}"/>' for i in range(1, num_slides + 1)
         )
@@ -1037,7 +1077,6 @@ def write_pptx_package(
 </Relationships>""",
         )
 
-        # 4. Auxiliary props & theme
         zf.writestr(
             "ppt/presProps.xml",
             '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:presProps xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>',
@@ -1055,18 +1094,18 @@ def write_pptx_package(
 <a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="LaisenTheme">
   <a:themeElements>
     <a:clrScheme name="LaisenColors">
-      <a:dk1><a:srgbClr val="111827"/></a:dk1>
+      <a:dk1><a:srgbClr val="142030"/></a:dk1>
       <a:lt1><a:srgbClr val="FFFFFF"/></a:lt1>
-      <a:dk2><a:srgbClr val="0F172A"/></a:dk2>
-      <a:lt2><a:srgbClr val="F7F6F2"/></a:lt2>
-      <a:accent1><a:srgbClr val="1E3A8A"/></a:accent1>
-      <a:accent2><a:srgbClr val="C2410C"/></a:accent2>
-      <a:accent3><a:srgbClr val="15803D"/></a:accent3>
-      <a:accent4><a:srgbClr val="B45309"/></a:accent4>
-      <a:accent5><a:srgbClr val="2563EB"/></a:accent5>
-      <a:accent6><a:srgbClr val="4B5563"/></a:accent6>
-      <a:hlink><a:srgbClr val="2563EB"/></a:hlink>
-      <a:folHlink><a:srgbClr val="1E3A8A"/></a:folHlink>
+      <a:dk2><a:srgbClr val="1E3A5F"/></a:dk2>
+      <a:lt2><a:srgbClr val="F6F3EC"/></a:lt2>
+      <a:accent1><a:srgbClr val="1E3A5F"/></a:accent1>
+      <a:accent2><a:srgbClr val="C84B31"/></a:accent2>
+      <a:accent3><a:srgbClr val="1F6F54"/></a:accent3>
+      <a:accent4><a:srgbClr val="D97706"/></a:accent4>
+      <a:accent5><a:srgbClr val="5B4B8A"/></a:accent5>
+      <a:accent6><a:srgbClr val="3E4E63"/></a:accent6>
+      <a:hlink><a:srgbClr val="1E3A5F"/></a:hlink>
+      <a:folHlink><a:srgbClr val="1E3A5F"/></a:folHlink>
     </a:clrScheme>
     <a:fontScheme name="LaisenFonts">
       <a:majorFont><a:latin typeface="Microsoft YaHei"/><a:ea typeface="Microsoft YaHei"/><a:cs typeface="Microsoft YaHei"/></a:majorFont>
@@ -1082,7 +1121,6 @@ def write_pptx_package(
 </a:theme>"""
         zf.writestr("ppt/theme/theme1.xml", theme_xml)
 
-        # 5. SlideMaster, SlideLayout, NotesMaster
         zf.writestr(
             "ppt/slideMasters/slideMaster1.xml",
             """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1137,7 +1175,6 @@ def write_pptx_package(
 </Relationships>""",
         )
 
-        # 6. Write Slides, Media, and Speaker Notes
         media_counter = 1
         for i, (slide_xml, img_rels) in enumerate(slides_data, start=1):
             zf.writestr(f"ppt/slides/slide{i}.xml", slide_xml)
@@ -1163,7 +1200,6 @@ def write_pptx_package(
 </Relationships>""",
             )
 
-            # Speaker Notes
             note_text = escape(notes_list[i - 1] if i - 1 < len(notes_list) else "")
             zf.writestr(
                 f"ppt/notesSlides/notesSlide{i}.xml",
@@ -1201,11 +1237,11 @@ def write_pptx_package(
 def main() -> None:
     png_paths = render_slides_and_pdf()
     editable_slides = build_editable_slides()
-    write_pptx_package(PPTX_EDITABLE_PATH, editable_slides, SLIDE_NOTES)
+    write_pptx_package(PPTX_EDITABLE_PATH, editable_slides, SPEAKER_NOTES)
     print(f"[OK] Generated Native Editable PPTX: {PPTX_EDITABLE_PATH}")
 
     visual_slides = build_visual_slides(png_paths)
-    write_pptx_package(PPTX_VISUAL_PATH, visual_slides, SLIDE_NOTES)
+    write_pptx_package(PPTX_VISUAL_PATH, visual_slides, SPEAKER_NOTES)
     print(f"[OK] Generated High-Fidelity Visual PPTX: {PPTX_VISUAL_PATH}")
 
 

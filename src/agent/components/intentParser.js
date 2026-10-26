@@ -23,11 +23,11 @@ const REGION_KEYWORDS = [
 ]
 
 const STORE_KEYWORDS = [
-  { storeId: 'A', deviceId: 'device-A-001', regionId: 'chaoyang', patterns: ['a店', 'a 店', '朝阳旗舰店', 'device-a-001'] },
-  { storeId: 'B', deviceId: 'device-B-001', regionId: 'nanguan', patterns: ['b店', 'b 店', '南关生活店', 'device-b-001'] },
-  { storeId: 'C', deviceId: 'device-C-001', regionId: 'kuancheng', patterns: ['c店', 'c 店', '宽城北站店', 'device-c-001'] },
-  { storeId: 'D', deviceId: 'device-D-001', regionId: 'erdao', patterns: ['d店', 'd 店', '二道东盛店', 'device-d-001'] },
-  { storeId: 'E', deviceId: 'device-E-001', regionId: 'luyuan', patterns: ['e店', 'e 店', '绿园吾悦店', 'device-e-001'] },
+  { storeId: 'A', deviceId: 'device-A-001', regionId: 'chaoyang', patterns: ['a店', 'a 店', '朝阳旗舰店', '朝阳店', 'device-a-001'] },
+  { storeId: 'B', deviceId: 'device-B-001', regionId: 'nanguan', patterns: ['b店', 'b 店', '南关生活店', '南关店', 'device-b-001'] },
+  { storeId: 'C', deviceId: 'device-C-001', regionId: 'kuancheng', patterns: ['c店', 'c 店', '宽城北站店', '宽城店', 'device-c-001'] },
+  { storeId: 'D', deviceId: 'device-D-001', regionId: 'erdao', patterns: ['d店', 'd 店', '二道东盛店', '二道店', 'device-d-001'] },
+  { storeId: 'E', deviceId: 'device-E-001', regionId: 'luyuan', patterns: ['e店', 'e 店', '绿园吾悦店', '绿园店', 'device-e-001'] },
   { storeId: 'S001', deviceId: 'S001', regionId: 'chaoyang', patterns: ['s001', '朝阳红旗街店'] },
   { storeId: 'S002', deviceId: 'S002', regionId: 'chaoyang', patterns: ['s002', '朝阳桂林路店'] },
   { storeId: 'S003', deviceId: 'S003', regionId: 'chaoyang', patterns: ['s003', '朝阳前进大街店'] },
@@ -79,11 +79,87 @@ export function normalizeDeviceIdAlias(rawDevice) {
   return null
 }
 
+const BUSINESS_SIGNAL_KEYWORDS = [
+  '门店', '店', '设备', '货柜', '终端', '冰柜', '区域', '选址', '投放', '扩张', '开店',
+  '回本', 'roi', '收益', '利润', '净利', '毛利', '赚钱', '盈利', '销售', '营业额', '营收', '销量', 'gmv',
+  '订单', '单量', '客单', '退款', '退单', '损耗', '防损', '盘点', '异常', '隐患', '风险',
+  '高风险', '中风险', '低风险', '亏损', '下滑', '下降', '暴跌', '表现', '审计', '核查', '排查',
+  '诊断', '分析', '评估', '对比', '比较', '对标', '同类', '同行', '大盘', '全局', '总览',
+  '驾驶舱', '在线率', '生意', '经营', '运营', '业绩', '整改', '工单', '派单', '任务', '复核',
+  '验证', '报告', '先改什么', '怎么改', '怎么办', '怎么看', '全面', '下一步', '综合建议', '战略',
+  '数据不足', '样本不足', '少于3家', '少于 3 家', '租金', '成本', '客流', '长春', '全市',
+]
+
+const PURE_GREETING_REGEX =
+  /^(你好|您好|嗨|哈喽|早上好|上午好|中午好|下午好|晚上好|早安|晚安|hi|hello|hey|在吗|在不在|有人吗|忙吗|测试|test)[!！~～，,。.？?\s呀啊呢吧嘛哦]*$/i
+
+const PURE_POLITE_ACK_REGEX =
+  /^(谢谢|多谢|感谢|辛苦了|好的|好哒|好的呢|明白|明白了|知道了|收到|了解了|ok|okay|行|可以|没问题|再见|拜拜|bye)[!！~～，,。.？?\s呀啊呢吧嘛哦]*$/i
+
+const IDENTITY_OR_CAPABILITY_REGEX =
+  /(你是谁|你叫什么|介绍一下你|自我介绍|你能做什么|你会做什么|你能干嘛|你会干嘛|有什么功能|有哪些功能|怎么用|如何使用|能帮我做什么|你可以做什么)/i
+
+/**
+ * 判断用户输入是否属于日常寒暄、礼貌用语、身份/能力咨询等无需调用业务工具的对话意图
+ */
+export function isConversationalOrGreetingQuery(query) {
+  const trimmed = String(query || '').trim()
+  if (!trimmed) return true
+  const lower = trimmed.toLowerCase()
+
+  if (PURE_GREETING_REGEX.test(trimmed) || PURE_POLITE_ACK_REGEX.test(trimmed)) {
+    return true
+  }
+
+  const hasExplicitRegion = REGION_KEYWORDS.some(
+    (item) => item.id !== 'changchun' && item.patterns.some((p) => lower.includes(p)),
+  )
+  const hasExplicitStore = STORE_KEYWORDS.some((store) =>
+    store.patterns.some((p) => lower.includes(p)),
+  )
+
+  if (IDENTITY_OR_CAPABILITY_REGEX.test(trimmed) && !hasExplicitRegion && !hasExplicitStore) {
+    return true
+  }
+
+  const hasBusinessSignal =
+    /(这家店|这家门店|当前门店|当前店|本店|该门店|刚才那家|帮它|那它|它的|哪个区|选址评分|区域对比|区域比较|比较.*区|去哪开店|去长春开新店|新开门店|投放收益|整体生意|查看.*大盘|全局经营大盘|整体经营指标|全面盘点|驾驶舱|创建.*任务|生成.*任务|建个.*任务|建个工单|整改任务|派单|复核|验证任务|关闭任务|升级任务|生成报告|保存报告|写报告|数据不足|少于3家|少于 3 家|样本不足|drop\s+table|delete\s+from|直接改价|修改阈值|篡改规则)/i.test(
+      trimmed,
+    )
+  if (!hasBusinessSignal && !hasExplicitRegion && !hasExplicitStore) {
+    return true
+  }
+
+  return false
+}
+
 /**
  * 解析自然语言 query 并生成初始工具调用计划（支持基于 memoryContext 的多轮指代消解与复杂开放复合问题拆解）
  */
 export function parseIntentAndPlanTools(query, memoryContext = null) {
   const lower = String(query || '').toLowerCase()
+
+  // 0. 优先检测日常寒暄、问候、礼貌确认或助手能力咨询（不触发白名单工具调用与四步思考链）
+  if (isConversationalOrGreetingQuery(query)) {
+    return {
+      intent: {
+        type: INTENT_TYPES.CONVERSATIONAL,
+        filters: {},
+        regionIds: [],
+        targetStoreId: null,
+        forceInsufficient: false,
+        contractFlags: {
+          allowCreateTask: false,
+          allowVerifyTask: false,
+          allowWriteReport: false,
+          isComplexOpenQuery: false,
+          isConversational: true,
+          matchedTopicCount: 0,
+        },
+      },
+      plannedTools: [],
+    }
+  }
 
   // 1. 提取涉及的区域列表（不含全城默认 changchun，除非专门查询大盘）
   const matchedRegions = []

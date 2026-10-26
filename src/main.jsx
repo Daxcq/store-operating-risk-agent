@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MapContainer, TileLayer, CircleMarker, Popup, GeoJSON, Polyline, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -37,7 +37,13 @@ import './styles.css'
 import changchunGeo from './data/changchun_geo.json'
 import { AgentWorkbench } from './AgentWorkbench.jsx'
 import { AgentLoopPanel } from './AgentLoopPanel.jsx'
-import { AgentStructuredOutput, AgentLiveThinkingState } from './AgentStructuredOutput.jsx'
+import {
+  AgentStructuredOutput,
+  AgentLiveThinkingState,
+  CopyFeedbackButton,
+  isCasualGreetingQuery,
+  streamAgentRun,
+} from './AgentStructuredOutput.jsx'
 import laicaiAvatar from './assets/laicai.jpg'
 
 const DISTRICT_PEER_SERIES = {
@@ -638,6 +644,8 @@ const taskStatusMeta = {
 }
 
 const QUICK_PROMPTS = [
+  { label: '💬 自由聊聊：怎么提毛利？', query: '无人超市怎么提高毛利和复购率？' },
+  { label: '🛡️ 夜班云值守防损', query: '夜班云值守怎么防盗损和降低退款率？' },
   { label: '异常根因诊断', query: '为什么朝阳店最近销售额掉得这么厉害？' },
   { label: '长春选址 ROI', query: '长春哪个区最适合新开门店？南关区能算回本周期吗？' },
   { label: 'S001 vs S004 实测', query: '对比 S001 和 S004 的规则引擎判定结果' },
@@ -925,75 +933,21 @@ function App() {
   const [agentInput, setAgentInput] = useState('')
   const [agentLoading, setAgentLoading] = useState(false)
   const [agentResult, setAgentResult] = useState(null)
+  const [agentStreamSteps, setAgentStreamSteps] = useState([])
+  const [agentStreamText, setAgentStreamText] = useState('')
   const [copilotSize, setCopilotSize] = useState('minimized') // 'minimized' 只显示莱财头像；normal / expanded 显示气泡框
   const [copilotMessages, setCopilotMessages] = useState([
     {
       role: 'assistant',
       at: '10:30',
+      isConversational: true,
       summary:
-        '您好！我是莱森云值守经营 Copilot。当前已同步长春市五区（朝阳/南关/宽城/二道/绿园）共 26 家门店（5 家标杆店 + 21 家实测店）近 42 天流水与防损数据。您可以用自然语言自由提问任何经营、归因或选址问题。',
-      thinkingSteps: [
-        {
-          phase: 'thinking',
-          title: '思考环节 · 初始化全城五区经营监测上下文',
-          detail: '锁定长春市五区 26 家无人零售网点与云值守终端监控范围，准备响应自由问数与诊断诉求。',
-          status: 'done',
-          durationMs: 35,
-        },
-        {
-          phase: 'query',
-          title: '数据查询 · 同步近 42 天门店流水与同城可比基线',
-          detail: '已完成全城周度销售额、退款率、云值守盘点差异及五区选址四维指标同步。',
-          status: 'done',
-          durationMs: 92,
-        },
-        {
-          phase: 'retry',
-          title: '执行状态与重试校验 · 数据完整性核验与缺失保护',
-          detail: '检测到 S004/E 店部分周期核心退款流水缺失，已自动启用防编造熔断保护，杜绝虚假归因。',
-          status: 'retried',
-          durationMs: 48,
-        },
-        {
-          phase: 'analysis',
-          title: '分析步骤 · 生成高风险门店预警与区域投放优先级',
-          detail: '定位朝阳旗舰店与 S001 店为多指标共振高优异常，同时完成五区投资回本周期排序。',
-          status: 'done',
-          durationMs: 74,
-        },
-      ],
-      structuredBlocks: {
-        questionFocus: '全城 26 店经营体检与区域投放全景速览',
-        directAnswer:
-          '当前全城近 7 天总销售额 ¥1,001,220，云值守终端在线率 95.2%。其中朝阳旗舰店（A店）与 S001 店出现销售额下滑、退款率偏高及盘点差异三项共振异常；增量开店方面，朝阳区综合评分 86.5 分居首（预计 8.4 个月回本），南关区因缺少投资额基线已触发回本周期暂缓估算保护。',
-        keyMetrics: [
-          { label: '全城周总销售额', value: '¥1,001,220', trend: 'neutral' },
-          { label: '高优异常门店', value: 'A店 / S001店', trend: 'negative' },
-          { label: '缺失保护门店', value: 'S004 / E店', trend: 'warning' },
-          { label: '首选投放区域', value: '朝阳区 (86.5分)', trend: 'positive' },
-        ],
-        diagnosisItems: [],
-        comparisonRows: [],
-      },
-      decisionProposal: {
-        proposalType: 'store_rectification_plan',
-        title: '高优异常门店（朝阳旗舰店 / S001）专项防损核查方案',
-        targetLabel: '朝阳旗舰店 (A店)',
-        decisionBasis: [
-          '近 7 天销售额环比下滑 24%，退款率升至 7.0%（高于同区同行中位数 2.1% 达 4.9 个百分点）',
-          '订单数变动贡献度达 -78%，云值守夜间货柜盘点差异达 -¥1,200',
-        ],
-        analysis:
-          '通过双因子拆解确认销售额下滑并非客单价波动所致，而是夜间订单流失与异常退款集中爆发引起，需优先排查夜间视觉防损告警录像与 02 号冷柜锁控状态。',
-        expectedImpact:
-          '预计 24 小时内修复异常锁控并拦截重复退款后，门店退款率可回落至 4.1% 安全线以内，周销售额预计挽回约 ¥18,000。',
-        ownerRole: '区域经理 · 张伟',
-        dueHours: 24,
-        primaryActionLabel: '批准并派发整改任务',
-        secondaryActionLabel: '暂缓执行',
-      },
-      evidence: ['A店/S001 命中3项异常规则', 'S004/E店 触发缺失保护', '朝阳区选址评分 Top 1'],
-      recommendations: ['抽查朝阳店近 20 笔异常退款单并调取云值守夜间录像'],
+        '您好！我是莱森云值守经营 Copilot（莱财决策顾问）。当前已同步长春市五区（朝阳/南关/宽城/二道/绿园）共 26 家门店近 42 天流水与防损数据。您可以随时向我打招呼，或自由提问门店异常归因、退款核查与区域选址回本问题。',
+      thinkingSteps: [],
+      structuredBlocks: null,
+      decisionProposal: null,
+      evidence: [],
+      recommendations: [],
     },
   ])
   const [actionBusy, setActionBusy] = useState(false)
@@ -1023,60 +977,188 @@ function App() {
     }, 3800)
   }
 
+  /**
+   * 统一跳转并打开经营行动中心工单：
+   * 1. 锁定新建或当前选中的工单 ID
+   * 2. 收起顶部 AI 快捷栏大尺寸结论面板，避免把下方 TasksView 顶出屏幕可视区
+   * 3. 最小化右下角莱财对话浮窗，避免遮挡右侧工单抽屉
+   * 4. 切换主视图到 'tasks' 并同步打开右侧工单详情抽屉 CaseDrawer
+   */
+  function handleNavigateToTaskCenter(targetTaskId) {
+    if (typeof targetTaskId === 'string' && targetTaskId) {
+      setActiveTaskId(targetTaskId)
+    }
+    setAgentResult(null)
+    setCopilotSize('minimized')
+    setView('tasks')
+    setCaseOpen(true)
+    showToast('已为您打开经营行动中心工单详情')
+    setTimeout(() => {
+      const el = document.querySelector('.tasks-view') || document.querySelector('.main-panel')
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 60)
+  }
+
+  useEffect(() => {
+    const onNavigateEvent = (e) => {
+      const targetTaskId = e?.detail?.taskId || null
+      handleNavigateToTaskCenter(targetTaskId)
+    }
+    const onApproveEvent = (e) => {
+      if (e?.detail?.proposal) {
+        handleApproveDecisionProposal(e.detail.proposal, e.detail.response)
+      }
+    }
+    window.addEventListener('laisen:navigate-tasks', onNavigateEvent)
+    window.addEventListener('laisen:approve-decision', onApproveEvent)
+    return () => {
+      window.removeEventListener('laisen:navigate-tasks', onNavigateEvent)
+      window.removeEventListener('laisen:approve-decision', onApproveEvent)
+    }
+  })
+
   async function runQuickAgent(customQuery, fromCopilot = false) {
     const q = (customQuery ?? agentInput).trim()
     if (!q) return
     if (!fromCopilot) setAgentInput(q)
     setAgentLoading(true)
+    setAgentStreamSteps([])
+    setAgentStreamText('')
 
     // 当用户使用“这家店 / 当前门店 / 本店”等指代词时，自动绑定当前选中的门店上下文
     const contextualQuery = /(这家门店|这家店|当前门店|当前店|本店)/.test(q)
       ? q.replace(/(这家门店|这家店|当前门店|当前店|本店)/g, `${selected?.id || 'A'}店（${selected?.name || '朝阳旗舰店'}）`)
       : q
 
+    const nowTime = new Date().toTimeString().slice(0, 5)
+    const streamMsgId = `stream_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+    const initialIsConversational = isCasualGreetingQuery(contextualQuery)
+    const initialStreamAssistantMsg = {
+      id: streamMsgId,
+      role: 'assistant',
+      at: nowTime,
+      query: contextualQuery,
+      isStreaming: true,
+      isConversational: initialIsConversational,
+      summary: '',
+      streamChunks: [],
+      thinkingSteps: [],
+      structuredBlocks: null,
+      decisionProposal: null,
+      findings: [],
+      regionComparison: [],
+      assumptions: [],
+      evidence: [],
+      recommendations: [],
+    }
+
+    if (!fromCopilot) {
+      setAgentResult(initialStreamAssistantMsg)
+    }
+
     setCopilotMessages((prev) => [
       ...prev,
       {
         role: 'user',
-        at: new Date().toTimeString().slice(0, 5),
+        at: nowTime,
         text: q,
         contextLabel: `${selected?.id || 'A'} · ${selected?.district || '朝阳区'}`,
       },
+      initialStreamAssistantMsg,
     ])
+
+    const updateStreamingTarget = (updater) => {
+      if (!fromCopilot) {
+        setAgentResult((prev) => (prev ? updater(prev) : prev))
+      }
+      setCopilotMessages((prev) =>
+        prev.map((m) => (m.id === streamMsgId ? updater(m) : m)),
+      )
+    }
+
     try {
-      const res = await fetch('/api/v1/agent/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: contextualQuery,
-          sessionId: 'workspace_copilot_session',
-          context: {
-            regionId: selected?.regionId || 'chaoyang',
-            storeId: selected?.id || 'A',
-          },
-        }),
-      })
-      const data = await res.json()
-      setAgentResult(data)
-      setCopilotMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          at: new Date().toTimeString().slice(0, 5),
-          summary: data.summary || '已完成业务数据核验与归因分析。',
-          thinkingSteps: data.thinkingSteps || [],
-          structuredBlocks: data.structuredBlocks || null,
-          decisionProposal: data.decisionProposal || null,
-          findings: data.findings || [],
-          regionComparison: data.regionComparison || [],
-          assumptions: data.assumptions || [],
-          evidence: data.evidence || [],
-          recommendations: data.recommendations || [],
+      const data = await streamAgentRun({
+        query: contextualQuery,
+        sessionId: 'workspace_copilot_session',
+        context: {
+          regionId: selected?.regionId || 'chaoyang',
+          storeId: selected?.id || 'A',
         },
-      ])
+        onStep: (payload) => {
+          if (payload?.step) {
+            setAgentStreamSteps((prev) => {
+              const next = [...prev]
+              next[payload.index ?? next.length] = payload.step
+              return next
+            })
+            updateStreamingTarget((prev) => {
+              const nextSteps = Array.isArray(prev.thinkingSteps) ? [...prev.thinkingSteps] : []
+              nextSteps[payload.index ?? nextSteps.length] = payload.step
+              return {
+                ...prev,
+                isConversational: false,
+                thinkingSteps: nextSteps,
+              }
+            })
+          }
+        },
+        onDelta: (payload) => {
+          if (typeof payload?.text === 'string') {
+            setAgentStreamText(payload.text)
+            updateStreamingTarget((prev) => ({
+              ...prev,
+              isConversational:
+                typeof payload.isConversational === 'boolean'
+                  ? payload.isConversational
+                  : prev.isConversational,
+              usedLLM: Boolean(payload.usedLLM || prev.usedLLM),
+              summary: payload.text,
+              streamChunks: Array.isArray(payload.chunks)
+                ? payload.chunks
+                : [...(prev.streamChunks || []), payload.delta || ''],
+            }))
+          }
+        },
+        onStructured: (payload) => {
+          if (payload) {
+            updateStreamingTarget((prev) => ({
+              ...prev,
+              isConversational: false,
+              structuredBlocks: payload.structuredBlocks || prev.structuredBlocks,
+              decisionProposal: payload.decisionProposal || prev.decisionProposal,
+              findings: payload.findings || prev.findings,
+              regionComparison: payload.regionComparison || prev.regionComparison,
+              evidence: payload.evidence || prev.evidence,
+              recommendations: payload.recommendations || prev.recommendations,
+            }))
+          }
+        },
+      })
+
+      updateStreamingTarget((prev) => ({
+        ...prev,
+        isStreaming: false,
+        isConversational: Boolean(data.isConversational),
+        usedLLM: Boolean(data.usedLLM || prev.usedLLM),
+        llmModel: data.llmModel || prev.llmModel || null,
+        summary: data.summary || prev.summary || '已完成业务数据核验与归因分析。',
+        thinkingSteps: data.thinkingSteps || prev.thinkingSteps || [],
+        structuredBlocks: data.structuredBlocks || null,
+        decisionProposal: data.decisionProposal || null,
+        findings: data.findings || [],
+        regionComparison: data.regionComparison || [],
+        assumptions: data.assumptions || [],
+        evidence: data.evidence || [],
+        recommendations: data.recommendations || [],
+      }))
     } catch (err) {
       const fallbackMsg = `请求失败：${err?.message || '网络异常'}`
-      setAgentResult({
+      updateStreamingTarget((prev) => ({
+        ...prev,
+        isStreaming: false,
+        isConversational: false,
         summary: fallbackMsg,
         thinkingSteps: [
           {
@@ -1096,35 +1178,18 @@ function App() {
         },
         evidence: [],
         recommendations: [],
-      })
-      setCopilotMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          at: new Date().toTimeString().slice(0, 5),
-          summary: fallbackMsg,
-          thinkingSteps: [
-            {
-              phase: 'retry',
-              title: '执行状态与失败重试 · 网络通信异常拦截',
-              detail: `服务端连接暂时不可用（${err?.message || '网络异常'}），已启动本地防幻觉保护。`,
-              status: 'degraded',
-              durationMs: 120,
-            },
-          ],
-          evidence: [],
-          recommendations: [],
-        },
-      ])
+      }))
     } finally {
       setAgentLoading(false)
+      setAgentStreamSteps([])
+      setAgentStreamText('')
     }
   }
 
-  function handleApproveDecisionProposal(proposal, responseObj) {
-    if (!proposal) return
+  async function handleApproveDecisionProposal(proposal, responseObj) {
+    if (!proposal) return null
     if (proposal.proposalType === 'region_investment_plan') {
-      triggerTaskAction('create_from_agent', {
+      const createdId = await triggerTaskAction('create_from_agent', {
         customTask: {
           storeId: selected?.id || 'A',
           storeName: `${proposal.targetLabel || '首选区域'} · 新店筹建组`,
@@ -1135,21 +1200,22 @@ function App() {
         },
       })
       showToast(`已确认采纳「${proposal.title}」，并同步生成拓展执行工单`)
-    } else {
-      triggerTaskAction('create_from_agent', {
-        customTask: {
-          storeId: selected?.id || 'A',
-          storeName: proposal.targetLabel || selected?.name || '朝阳旗舰店',
-          regionName: selected?.district || '朝阳区',
-          problem: (proposal.decisionBasis || [])[0] || responseObj?.summary?.slice(0, 88) || '门店多项经营与防损指标偏离同行基线',
-          action:
-            responseObj?.recommendations?.[0] ||
-            proposal.analysis ||
-            '抽查异常退款订单并调取云值守夜间录像核对原因',
-          ownerRole: proposal.ownerRole || '区域经理 · 张伟',
-        },
-      })
+      return createdId
     }
+    const createdId = await triggerTaskAction('create_from_agent', {
+      customTask: {
+        storeId: selected?.id || 'A',
+        storeName: proposal.targetLabel || selected?.name || '朝阳旗舰店',
+        regionName: selected?.district || '朝阳区',
+        problem: (proposal.decisionBasis || [])[0] || responseObj?.summary?.slice(0, 88) || '门店多项经营与防损指标偏离同行基线',
+        action:
+          responseObj?.recommendations?.[0] ||
+          proposal.analysis ||
+          '抽查异常退款订单并调取云值守夜间录像核对原因',
+        ownerRole: proposal.ownerRole || '区域经理 · 张伟',
+      },
+    })
+    return createdId
   }
 
   async function triggerTaskAction(actionType, extra = {}) {
@@ -1167,6 +1233,12 @@ function App() {
       })
       const data = await res.json()
       if (data && data.ok) {
+        if (Array.isArray(data.tasks)) {
+          setOverview((prev) => ({
+            ...prev,
+            tasks: data.tasks,
+          }))
+        }
         if (data.task?.taskId) {
           setActiveTaskId(data.task.taskId)
         }
@@ -1180,10 +1252,52 @@ function App() {
         } else if (actionType === 'verify_unresolved') {
           showToast('下一周期复核未达标：已保留证据链并升级为 P0 督办')
         }
+        return data.task?.taskId || null
+      }
+    } catch {
+      // 若接口离线，针对 create_from_agent 提供本地兜底工单生成，确保工单中心一定可打开
+      if (actionType === 'create_from_agent' && extra.customTask) {
+        const fallbackId = `task_${Date.now()}`
+        const nowStr = new Date().toTimeString().slice(0, 8)
+        const localTask = {
+          taskId: fallbackId,
+          sourceCaseId: `case_${extra.customTask.storeId || 'A'}_local`,
+          storeId: extra.customTask.storeId || 'A',
+          storeName: extra.customTask.storeName || '朝阳旗舰店',
+          deviceId: 'device-A-001',
+          regionName: extra.customTask.regionName || '朝阳区',
+          priority: 'P1',
+          severity: 'high',
+          problem: extra.customTask.problem || 'Agent 诊断检出多项指标偏离同行基线',
+          evidenceIds: ['EV-AGENT-001'],
+          evidenceDetails: [
+            { id: 'EV-AGENT-001', label: 'Agent 审计结论锚点', value: extra.customTask.problem || '见诊断摘要' },
+          ],
+          action: extra.customTask.action || '抽查异常退款订单并核对云值守录像',
+          ownerRole: extra.customTask.ownerRole || '区域经理 · 张伟',
+          dueHours: 24,
+          dueLabel: '24 小时内',
+          verifyMetric: 'refund_rate',
+          verifyTarget: '下一周期退款率回落至同类中位数 + 2 个百分点以内',
+          status: 'assigned',
+          traceId: `trace_local_${Date.now().toString(36)}`,
+          updatedAt: nowStr,
+          history: [
+            { at: nowStr, step: 'assigned', text: '从 Agent 决策审批卡片确认并派发执行工单' },
+          ],
+          verificationResult: null,
+        }
+        setOverview((prev) => ({
+          ...prev,
+          tasks: [localTask, ...(prev.tasks || FALLBACK_TASKS)],
+        }))
+        setActiveTaskId(fallbackId)
+        return fallbackId
       }
     } finally {
       setActionBusy(false)
     }
+    return null
   }
 
   const stores = overview.stores || FALLBACK_STORES
@@ -1665,20 +1779,14 @@ function App() {
                   )}
                 </div>
 
-                {agentLoading && (
-                  <div className="ai-quick-structured-wrap">
-                    <AgentLiveThinkingState query={agentInput} />
-                  </div>
-                )}
-
-                {agentResult && !agentLoading && (
+                {agentResult && (
                   <div className="ai-quick-structured-wrap">
                     <AgentStructuredOutput
                       response={agentResult}
                       compact={false}
                       actionBusy={actionBusy}
                       onApproveDecision={handleApproveDecisionProposal}
-                      onNavigateTasks={() => setView('tasks')}
+                      onNavigateTasks={handleNavigateToTaskCenter}
                     />
                   </div>
                 )}
@@ -1689,7 +1797,11 @@ function App() {
           {view === 'agent-loop' ? (
             <AgentLoopPanel />
           ) : view === 'workbench' ? (
-            <AgentWorkbench />
+            <AgentWorkbench
+              actionBusy={actionBusy}
+              onApproveDecision={handleApproveDecisionProposal}
+              onNavigateTasks={handleNavigateToTaskCenter}
+            />
           ) : view === 'regions' ? (
             <RegionsView
               regions={regions}
@@ -1705,6 +1817,7 @@ function App() {
               tasks={tasks}
               activeTask={activeTask}
               onSelectTask={(tid) => setActiveTaskId(tid)}
+              onOpenDrawer={() => setCaseOpen(true)}
               onAction={triggerTaskAction}
               busy={actionBusy}
             />
@@ -2163,7 +2276,7 @@ function App() {
                       <button className="secondary-button" onClick={() => setView('regions')}>
                         <Target size={14} /> 朝阳区选址评分 86.5（增量资金首选）
                       </button>
-                      <button className="secondary-button" onClick={() => setView('tasks')}>
+                      <button className="secondary-button" onClick={() => handleNavigateToTaskCenter('task_001')}>
                         <ClipboardCheck size={14} /> 推进 A/S001 店退款核查与复核关单
                       </button>
                     </div>
@@ -2182,10 +2295,12 @@ function App() {
         selectedStore={selected}
         messages={copilotMessages}
         loading={agentLoading}
+        streamedSteps={agentStreamSteps}
+        streamingText={agentStreamText}
         actionBusy={actionBusy}
         onSend={(q) => runQuickAgent(q, true)}
         onApproveDecision={handleApproveDecisionProposal}
-        onNavigateTasks={() => setView('tasks')}
+        onNavigateTasks={handleNavigateToTaskCenter}
       />
 
       {caseOpen && (
@@ -2902,7 +3017,7 @@ function RegionsView({ regions, stores = [], onAskRegion, onSelectDistrictOnMap 
   )
 }
 
-function TasksView({ tasks, activeTask, onSelectTask, onAction, busy }) {
+function TasksView({ tasks, activeTask, onSelectTask, onOpenDrawer, onAction, busy }) {
   const steps = [
     { key: 'open', label: '1. 待人工确认 (open)' },
     { key: 'assigned', label: '2. 已指派负责人 (assigned)' },
@@ -2920,13 +3035,25 @@ function TasksView({ tasks, activeTask, onSelectTask, onAction, busy }) {
           <h3>经营行动中心 · 人工确认派单与下一周期改善复核</h3>
           <p>遵循 PROJECT.md §2.5 铁律：发现异常 → 人工确认并补齐负责人/时限 → 核查执行 → 下一周期指标改善才允许关闭</p>
         </div>
-        <button
-          className="secondary-button"
-          disabled={busy}
-          onClick={() => onAction('reset_demo', { taskId: activeTask?.taskId })}
-        >
-          重置演示任务状态机
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {onOpenDrawer && (
+            <button
+              type="button"
+              className="primary-button"
+              onClick={onOpenDrawer}
+            >
+              打开当前工单详情抽屉
+            </button>
+          )}
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={busy}
+            onClick={() => onAction('reset_demo', { taskId: activeTask?.taskId })}
+          >
+            重置演示任务状态机
+          </button>
+        </div>
       </div>
 
       <div className="tasks-layout">
@@ -3115,7 +3242,16 @@ function CaseDrawer({ store, task, onClose, onAction, busy }) {
         </div>
 
         <div className="case-section">
-          <div className="subsection-label">已核查证据链 (Evidence IDs)</div>
+          <div className="case-section-head-row">
+            <div className="subsection-label">已核查证据链 (Evidence IDs)</div>
+            <CopyFeedbackButton
+              text={(activeTask.evidenceDetails || [])
+                .map((ev) => `${ev.id}: ${ev.label} (${ev.value})`)
+                .join('\n')}
+              label="复制证据链"
+              copiedLabel="已复制证据"
+            />
+          </div>
           <div className="evidence-list">
             {(activeTask.evidenceDetails || []).map((ev) => (
               <div key={ev.id}>
@@ -3217,16 +3353,27 @@ function FloatingAgentCopilot({
   selectedStore,
   messages = [],
   loading = false,
+  streamedSteps = [],
+  streamingText = '',
   actionBusy = false,
   onSend,
   onApproveDecision,
   onNavigateTasks,
 }) {
   const [draft, setDraft] = useState('')
+  const [lastSentQuery, setLastSentQuery] = useState('')
+  const msgListRef = useRef(null)
+
+  useEffect(() => {
+    if (msgListRef.current) {
+      msgListRef.current.scrollTop = msgListRef.current.scrollHeight
+    }
+  }, [messages, streamingText, streamedSteps])
 
   function handleSend() {
     const q = draft.trim()
     if (!q || loading) return
+    setLastSentQuery(q)
     setDraft('')
     onSend(q)
   }
@@ -3275,15 +3422,22 @@ function FloatingAgentCopilot({
 
       <div className="copilot-quick-prompts">
         {QUICK_PROMPTS.slice(0, 4).map((p) => (
-          <button key={p.label} disabled={loading} onClick={() => onSend(p.query)}>
+          <button
+            key={p.label}
+            disabled={loading}
+            onClick={() => {
+              setLastSentQuery(p.query)
+              onSend(p.query)
+            }}
+          >
             {p.label}
           </button>
         ))}
       </div>
 
-      <div className="copilot-messages">
+      <div className="copilot-messages" ref={msgListRef}>
         {messages.map((msg, idx) => (
-          <div key={idx} className={`copilot-msg ${msg.role}`}>
+          <div key={msg.id || idx} className={`copilot-msg ${msg.role}`}>
             <div className="copilot-msg-meta">
               <span className="copilot-msg-identity">
                 <span className="laicai-avatar laicai-avatar-message">
@@ -3291,7 +3445,7 @@ function FloatingAgentCopilot({
                 </span>
                 <strong>{msg.role === 'user' ? '莱财用户' : '莱财决策顾问'}</strong>
               </span>
-              <span>{msg.at}</span>
+              <span>{msg.isStreaming ? '正在流式生成...' : msg.at}</span>
             </div>
             {msg.role === 'user' ? (
               <p className="copilot-user-text">{msg.text}</p>
@@ -3308,20 +3462,6 @@ function FloatingAgentCopilot({
             )}
           </div>
         ))}
-        {loading && (
-          <div className="copilot-msg assistant">
-            <div className="copilot-msg-meta">
-              <span className="copilot-msg-identity">
-                <span className="laicai-avatar laicai-avatar-message">
-                  <img src={laicaiAvatar} alt="莱财" />
-                </span>
-                <strong>莱财决策顾问</strong>
-              </span>
-              <span>正在分析...</span>
-            </div>
-            <AgentLiveThinkingState query={draft} compact={true} />
-          </div>
-        )}
       </div>
 
         <footer className="copilot-footer">

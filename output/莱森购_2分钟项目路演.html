@@ -3,30 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>莱森购 Retail Intelligence Agent — 2分钟核心路演 PPT</title>
+  <title>莱森购 Retail Intelligence Agent — 2分钟全核心亮点项目路演</title>
   <style>
     :root {
-      --bg-paper: #F7F6F2;
+      --bg-paper: #F6F3EC;
       --bg-card: #FFFFFF;
-      --bg-subtle: #EFECE6;
-      --bg-dark: #0F172A;
-      --text-primary: #111827;
-      --text-secondary: #4B5563;
-      --text-muted: #6B7280;
-      --navy: #1E3A8A;
-      --navy-light: #EFF6FF;
-      --navy-border: #BFDBFE;
-      --terracotta: #C2410C;
-      --terracotta-light: #FFF7ED;
-      --terracotta-border: #FED7AA;
-      --sage: #15803D;
-      --sage-light: #F0FDF4;
-      --sage-border: #BBF7D0;
-      --amber: #B45309;
-      --amber-light: #FFFBEB;
-      --border: #E5E0D8;
-      --font-sans: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+      --bg-subtle: #EFECE4;
+      --bg-dark: #142030;
+      --bg-dark-card: #1C2C42;
+      --ink-primary: #142030;
+      --ink-secondary: #3E4E63;
+      --ink-muted: #6C7A8C;
+      --accent-navy: #1E3A5F;
+      --accent-terracotta: #C84B31;
+      --accent-amber: #D97706;
+      --accent-emerald: #1F6F54;
+      --accent-purple: #5B4B8A;
+      --border-soft: #DCD6C8;
+      --border-strong: #BDB5A4;
+      --shadow-card: 0 8px 24px rgba(20, 32, 48, 0.06);
+      --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
     }
 
     * {
@@ -35,120 +32,149 @@
       padding: 0;
     }
 
-    body {
-      background: #18181B;
-      color: var(--text-primary);
-      font-family: var(--font-sans);
+    html, body {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      height: 100vh;
-      width: 100vw;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
+      background: #0F1722;
+      font-family: var(--font-sans);
+      color: var(--ink-primary);
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* 16:9 Stage Container */
     .deck-viewport {
       position: relative;
-      width: min(96vw, calc(90vh * 16 / 9));
-      height: min(90vh, calc(96vw * 9 / 16));
-      background: var(--bg-paper);
-      border-radius: 10px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
-      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .slide-stage {
+      width: 1920px;
+      height: 1080px;
+      background: var(--bg-paper);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+      transform-origin: center center;
+    }
+
+    .slide-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(20, 32, 48, 0.028) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(20, 32, 48, 0.028) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
     }
 
     .slide {
       position: absolute;
       inset: 0;
-      padding: 3.2% 4.2% 4.2% 4.2%;
+      padding: 46px 68px 66px 68px;
       display: none;
       flex-direction: column;
       justify-content: space-between;
-      background: var(--bg-paper);
-      opacity: 0;
-      transition: opacity 0.25s ease;
+      z-index: 1;
     }
 
     .slide.active {
       display: flex;
-      opacity: 1;
-      z-index: 2;
     }
 
-    /* Slide Header */
-    .slide-header {
+    /* 顶部栏 */
+    .slide-topbar {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      border-bottom: 1.5px solid var(--border);
-      padding-bottom: 12px;
-      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--ink-primary);
+      margin-bottom: 20px;
       flex-shrink: 0;
     }
 
-    .header-left {
+    .topbar-left {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      gap: 14px;
     }
 
-    .eyebrow {
+    .section-tag {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
+      padding: 5px 13px;
+      background: var(--ink-primary);
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 14px;
       font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--navy);
+      letter-spacing: 0.06em;
+      border-radius: 4px;
     }
 
-    .eyebrow-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--terracotta);
+    .section-tag.terracotta { background: var(--accent-terracotta); }
+    .section-tag.emerald { background: var(--accent-emerald); }
+    .section-tag.navy { background: var(--accent-navy); }
+    .section-tag.purple { background: var(--accent-purple); }
+
+    .topbar-category {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      letter-spacing: 0.03em;
     }
 
-    .slide-title {
-      font-size: clamp(22px, 2.2vw, 31px);
-      font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-    }
-
-    .slide-subtitle {
-      font-size: clamp(12px, 1.05vw, 15px);
-      color: var(--text-secondary);
-      margin-top: 2px;
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--ink-muted);
     }
 
     .time-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      white-space: nowrap;
+      padding: 4px 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      color: var(--ink-primary);
+      font-weight: 700;
     }
 
-    .time-pill strong {
-      color: var(--terracotta);
+    /* 标题区 */
+    .slide-headline {
+      margin-bottom: 18px;
+      flex-shrink: 0;
     }
 
-    /* Slide Body */
+    .slide-headline h2 {
+      font-size: 38px;
+      line-height: 1.18;
+      font-weight: 800;
+      color: var(--ink-primary);
+      letter-spacing: -0.015em;
+    }
+
+    .slide-headline p {
+      margin-top: 6px;
+      font-size: 18px;
+      line-height: 1.45;
+      color: var(--ink-secondary);
+    }
+
+    .hl-red { color: var(--accent-terracotta); }
+    .hl-green { color: var(--accent-emerald); }
+    .hl-navy { color: var(--accent-navy); }
+    .hl-amber { color: var(--accent-amber); }
+
+    /* 通用网格与卡片 */
     .slide-body {
       flex: 1;
       display: flex;
@@ -158,47 +184,17 @@
       min-height: 0;
     }
 
-    /* Slide Footer */
-    .slide-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 10px;
-      margin-top: 12px;
-      border-top: 1px solid var(--border);
-      font-size: 12.5px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-
-    .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 700;
-      color: var(--text-secondary);
-    }
-
-    .footer-tag {
-      padding: 3px 8px;
-      background: var(--bg-subtle);
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
-
-    /* Grids & Cards */
-    .grid-3 {
+    .grid-2 {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
       flex: 1;
       min-height: 0;
     }
 
-    .grid-2 {
+    .grid-3 {
       display: grid;
-      grid-template-columns: 1.08fr 0.92fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 20px;
       flex: 1;
       min-height: 0;
@@ -206,1266 +202,1573 @@
 
     .card {
       background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px 22px;
+      border: 1.5px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 22px 24px;
+      box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       gap: 12px;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-      min-height: 0;
+      position: relative;
+      overflow: hidden;
     }
+
+    .card.accent-top-red { border-top: 5px solid var(--accent-terracotta); }
+    .card.accent-top-navy { border-top: 5px solid var(--accent-navy); }
+    .card.accent-top-green { border-top: 5px solid var(--accent-emerald); }
+    .card.accent-top-amber { border-top: 5px solid var(--accent-amber); }
+    .card.accent-top-purple { border-top: 5px solid var(--accent-purple); }
+
+    .card.dark-card {
+      background: var(--bg-dark);
+      color: #F8FAFC;
+      border-color: #2D3F58;
+    }
+
+    .card-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+    }
+
+    .card-title {
+      font-size: 23px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: var(--ink-primary);
+    }
+
+    .dark-card .card-title { color: #FFFFFF; }
+
+    .card-desc {
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ink-secondary);
+    }
+
+    .dark-card .card-desc { color: #CBD5E1; }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .bullet-list li {
+      position: relative;
+      padding-left: 20px;
+      font-size: 16px;
+      line-height: 1.44;
+      color: var(--ink-secondary);
+    }
+
+    .bullet-list li strong {
+      color: var(--ink-primary);
+      font-weight: 700;
+    }
+
+    .bullet-list li::before {
+      content: "▪";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent-terracotta);
+      font-weight: bold;
+    }
+
+    .bullet-list.green-bullets li::before { color: var(--accent-emerald); }
+    .bullet-list.navy-bullets li::before { color: var(--accent-navy); }
 
     .card-footer-box {
       margin-top: auto;
-      border-radius: 7px;
       padding: 12px 14px;
-      font-size: 13px;
-      line-height: 1.55;
+      border-radius: 8px;
+      font-size: 14.5px;
+      line-height: 1.42;
     }
 
-    .card-terracotta {
-      border-top: 4px solid var(--terracotta);
-    }
-
-    .card-navy {
-      border-top: 4px solid var(--navy);
-    }
-
-    .card-sage {
-      border-top: 4px solid var(--sage);
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
       padding: 4px 10px;
       border-radius: 5px;
-      font-size: 12.5px;
+      font-size: 13.5px;
       font-weight: 700;
-      width: fit-content;
-    }
-
-    .badge-pain {
-      background: var(--terracotta-light);
-      color: var(--terracotta);
-      border: 1px solid var(--terracotta-border);
-    }
-
-    .badge-navy {
-      background: var(--navy-light);
-      color: var(--navy);
-      border: 1px solid var(--navy-border);
-    }
-
-    .badge-sage {
-      background: var(--sage-light);
-      color: var(--sage);
-      border: 1px solid var(--sage-border);
-    }
-
-    .badge-amber {
-      background: var(--amber-light);
-      color: var(--amber);
-      border: 1px solid #FDE68A;
-    }
-
-    /* Slide 1 Cover Specifics */
-    .cover-layout {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 28px;
-      align-items: stretch;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .cover-hero {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 8px 0;
-    }
-
-    .cover-kicker {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 15px;
-      background: var(--navy-light);
-      border: 1px solid var(--navy-border);
-      color: var(--navy);
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 700;
-      width: fit-content;
-    }
-
-    .cover-title {
-      font-size: clamp(34px, 3.5vw, 50px);
-      font-weight: 900;
-      line-height: 1.14;
-      letter-spacing: -0.025em;
-      color: var(--bg-dark);
-    }
-
-    .cover-title span {
-      color: var(--navy);
-      display: block;
-      margin-top: 8px;
-    }
-
-    .cover-thesis {
-      font-size: clamp(15px, 1.25vw, 18.5px);
-      line-height: 1.65;
-      color: var(--text-secondary);
-      padding: 12px 16px;
-      border-left: 4px solid var(--terracotta);
-      background: rgba(255, 255, 255, 0.78);
-      border-radius: 0 8px 8px 0;
-    }
-
-    .cover-pills {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .cover-pill-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .cover-pill-card .num {
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--terracotta);
-    }
-
-    .cover-pill-card .lbl {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--text-primary);
-    }
-
-    .cover-pill-card .desc {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    .cover-visual {
-      background: var(--bg-dark);
-      color: #F8FAFC;
-      border-radius: 10px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border: 1px solid #334155;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .loop-step {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px 14px;
-      background: rgba(30, 41, 59, 0.85);
-      border: 1px solid #334155;
-      border-radius: 8px;
-      font-size: 13px;
-    }
-
-    .loop-step-idx {
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
-      background: var(--navy);
-      color: #fff;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    .loop-step strong {
-      display: block;
-      color: #F1F5F9;
-      font-size: 14px;
-      margin-bottom: 3px;
-    }
-
-    .loop-step span {
-      color: #94A3B8;
-      font-size: 12.5px;
-    }
-
-    /* Banner Box */
-    .scenario-banner {
-      background: var(--bg-dark);
-      color: #F8FAFC;
-      padding: 16px 22px;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      flex-shrink: 0;
-    }
-
-    .scenario-tags {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .scenario-tag {
-      padding: 6px 12px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      font-size: 13px;
-      color: #E2E8F0;
-      font-weight: 600;
-    }
-
-    /* Comparison Table */
-    .comp-table {
-      width: 100%;
-      flex: 1;
-      border-collapse: collapse;
-      background: var(--bg-card);
-      border-radius: 9px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      font-size: 14px;
-    }
-
-    .comp-table th,
-    .comp-table td {
-      padding: 14px 18px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-      line-height: 1.55;
-    }
-
-    .comp-table th {
       background: var(--bg-subtle);
-      font-weight: 800;
-      font-size: 14px;
-      color: var(--text-primary);
+      color: var(--ink-primary);
+      border: 1px solid var(--border-soft);
     }
 
-    .comp-table th.highlight-col {
-      background: var(--navy);
-      color: #FFFFFF;
-    }
-
-    .comp-table td.highlight-col {
-      background: #F8FAFC;
-      border-left: 2px solid var(--navy);
-      border-right: 2px solid var(--navy);
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .comp-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* Metaphor Bar */
-    .metaphor-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 14px 18px;
-      flex-shrink: 0;
-    }
-
-    .metaphor-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-right: 1px dashed var(--border);
-      padding-right: 12px;
-    }
-
-    .metaphor-item:last-child {
-      border-right: none;
-      padding-right: 0;
-    }
-
-    .metaphor-role {
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 800;
-      background: var(--navy-light);
-      color: var(--navy);
-      white-space: nowrap;
-    }
-
-    /* UI Mockup Frame - Stack vertically in right column so 16:9 images aren't cropped horizontally */
-    .mockup-pair {
-      display: grid;
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 12px;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .mockup-frame {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    .mockup-frame img {
-      width: 100%;
-      flex: 1;
-      min-height: 0;
-      object-fit: cover;
-      object-position: top center;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-
-    .metric-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      flex-shrink: 0;
-    }
-
-    .metric-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 14px;
-    }
-
-    .metric-box .m-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 3px;
-      font-weight: 600;
-    }
-
-    .metric-box .m-val {
-      font-family: var(--font-mono);
-      font-size: 21px;
-      font-weight: 800;
-      color: var(--text-primary);
-    }
-
-    .metric-box .m-sub {
-      font-size: 11.5px;
-      margin-top: 3px;
-      font-weight: 600;
-    }
-
-    /* Architecture Layer Stack */
-    .layer-stack {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-      flex: 1;
-    }
-
-    .layer-row {
-      display: grid;
-      grid-template-columns: 135px 1fr auto;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      background: var(--bg-paper);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--navy);
-      border-radius: 6px;
-      font-size: 13.5px;
-      flex: 1;
-    }
-
-    .layer-row strong {
-      color: var(--navy);
-      font-size: 13.5px;
-    }
-
-    .layer-row .l-code {
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-      color: var(--text-muted);
-      background: var(--bg-card);
-      padding: 3px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-    }
+    .badge.red { background: #FDF2F0; color: var(--accent-terracotta); border-color: #F5C6BD; }
+    .badge.green { background: #EEF7F4; color: var(--accent-emerald); border-color: #B6DFD1; }
+    .badge.navy { background: #EFF4FA; color: var(--accent-navy); border-color: #BDD0E8; }
+    .badge.amber { background: #FEF7EC; color: var(--accent-amber); border-color: #F6D8A6; }
+    .badge.purple { background: #F3F0FA; color: var(--accent-purple); border-color: #D2C7EC; }
 
     code {
       font-family: var(--font-mono);
       font-size: 0.92em;
-      background: var(--bg-subtle);
-      padding: 2px 6px;
+      background: rgba(20, 32, 48, 0.06);
+      padding: 1px 6px;
       border-radius: 4px;
-      color: var(--navy);
+      color: var(--accent-navy);
+      font-weight: 600;
     }
 
-    /* Controls Bar Outside or Bottom */
-    .presenter-bar {
-      width: min(96vw, calc(90vh * 16 / 9));
-      margin-top: 8px;
+    /* 页脚 */
+    .slide-footer {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-soft);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: #D4D4D8;
-      font-size: 12.5px;
-      padding: 0 4px;
+      font-size: 13.5px;
+      color: var(--ink-muted);
+      flex-shrink: 0;
     }
 
-    .ctrl-group {
+    .footer-brand {
+      font-weight: 700;
+      color: var(--ink-secondary);
+    }
+
+    /* ==================== P1 封面样式 ==================== */
+    .hero-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .hero-left {
       display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-right: 6px;
+      min-height: 0;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 6px 14px;
+      background: #EFECE4;
+      border-left: 4px solid var(--accent-terracotta);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink-primary);
+      width: fit-content;
     }
 
-    .ctrl-btn {
-      background: #27272A;
-      color: #F4F4F5;
-      border: 1px solid #3F3F46;
-      padding: 5px 11px;
-      border-radius: 5px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: var(--font-sans);
-      transition: background 0.15s;
+    .hero-title {
+      font-size: 50px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--ink-primary);
     }
 
-    .ctrl-btn:hover {
-      background: #3F3F46;
+    .hero-subtitle {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent-navy);
+      margin-top: 6px;
     }
 
-    .ctrl-btn.active-btn {
-      background: var(--navy);
-      border-color: #3B82F6;
+    .thesis-banner {
+      background: var(--bg-dark);
+      color: #FFFFFF;
+      padding: 16px 22px;
+      border-radius: 12px;
+      border-left: 7px solid var(--accent-terracotta);
+      box-shadow: var(--shadow-card);
     }
 
-    .timer-progress {
-      width: 180px;
-      height: 6px;
-      background: #27272A;
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .timer-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #22C55E, #EAB308, #EF4444);
-      transition: width 0.3s linear;
-    }
-
-    /* Teleprompter Drawer */
-    .teleprompter {
-      position: absolute;
-      bottom: 42px;
-      left: 4.2%;
-      right: 4.2%;
-      background: rgba(15, 23, 42, 0.94);
-      color: #F8FAFC;
-      padding: 14px 20px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      z-index: 20;
-      display: none;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-    }
-
-    .teleprompter.show {
+    .thesis-banner .thesis-label {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: #F59E0B;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
       display: block;
     }
 
-    .teleprompter-head {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11.5px;
-      color: #93C5FD;
+    .thesis-banner p {
+      font-size: 19.5px;
       font-weight: 700;
-      margin-bottom: 6px;
-      text-transform: uppercase;
+      line-height: 1.4;
     }
 
-    .teleprompter-text {
+    .loop-ribbon {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-soft);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .loop-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex: 1;
+    }
+
+    .loop-step strong {
+      font-size: 15px;
+      color: var(--ink-primary);
+    }
+
+    .loop-step span {
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+
+    .loop-arrow {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent-terracotta);
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .metric-tile {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-soft);
+      border-radius: 10px;
+      padding: 11px 14px;
+    }
+
+    .metric-tile .num {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent-navy);
+      line-height: 1.15;
+    }
+
+    .metric-tile .num.red { color: var(--accent-terracotta); }
+    .metric-tile .num.green { color: var(--accent-emerald); }
+
+    .metric-tile .lbl {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      margin-top: 4px;
+    }
+
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: space-between;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .preview-frame {
+      background: #FFFFFF;
+      border: 2px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: var(--shadow-card);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .preview-frame-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 8px 6px 8px;
+      border-bottom: 1px solid var(--border-soft);
+      margin-bottom: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      flex-shrink: 0;
+    }
+
+    .preview-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preview-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-strong);
+    }
+
+    .preview-dots span:nth-child(1) { background: #E15241; }
+    .preview-dots span:nth-child(2) { background: #E6A23C; }
+    .preview-dots span:nth-child(3) { background: #529B2E; }
+
+    .preview-img-wrap {
+      flex: 1;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #F4F1EA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+
+    .preview-img-wrap img {
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    /* ==================== P2 场景与痛点 ==================== */
+    .scenario-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      background: var(--bg-dark);
+      padding: 16px 20px;
+      border-radius: 12px;
+      color: #FFFFFF;
+      flex-shrink: 0;
+    }
+
+    .scenario-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+      padding-right: 12px;
+    }
+
+    .scenario-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .scenario-item .sc-tag {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #F59E0B;
+      font-weight: 700;
+    }
+
+    .scenario-item h4 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+    }
+
+    .scenario-item p {
+      font-size: 13.5px;
+      color: #CBD5E1;
+      line-height: 1.38;
+    }
+
+    /* ==================== P3 对比表格 ==================== */
+    .compare-layout {
+      display: grid;
+      grid-template-columns: 0.88fr 1.12fr;
+      gap: 20px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .metaphor-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .metaphor-stage {
+      padding: 15px 18px;
+      border-radius: 10px;
+      background: var(--bg-subtle);
+      border-left: 5px solid var(--accent-navy);
+    }
+
+    .metaphor-stage.waiter { border-left-color: var(--accent-terracotta); }
+    .metaphor-stage.loop { border-left-color: var(--accent-emerald); }
+    .metaphor-stage.cache { border-left-color: var(--accent-purple); }
+
+    .metaphor-stage h4 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-bottom: 4px;
+    }
+
+    .metaphor-stage p {
       font-size: 14.5px;
-      line-height: 1.65;
-      color: #F1F5F9;
+      line-height: 1.42;
+      color: var(--ink-secondary);
+    }
+
+    .compare-table-wrap {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-soft);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+    }
+
+    table.compare-table {
+      width: 100%;
+      height: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    table.compare-table th,
+    table.compare-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-soft);
+      font-size: 14.5px;
+      line-height: 1.38;
+      vertical-align: middle;
+    }
+
+    table.compare-table th {
+      background: var(--bg-dark);
+      color: #FFFFFF;
+      font-size: 15.5px;
+      font-weight: 800;
+    }
+
+    table.compare-table th.col-laisen {
+      background: var(--accent-terracotta);
+    }
+
+    table.compare-table td.dim-col {
+      font-weight: 800;
+      color: var(--ink-primary);
+      background: var(--bg-subtle);
+      width: 17%;
+    }
+
+    table.compare-table td.bad-col {
+      color: var(--ink-secondary);
+      width: 25%;
+    }
+
+    table.compare-table td.good-col {
+      background: #FDF8F6;
+      color: var(--ink-primary);
+      font-weight: 700;
+      border-left: 2px solid var(--accent-terracotta);
+      width: 33%;
+    }
+
+    /* ==================== P4 & P5 & P6 流程图与分层 ==================== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      background: var(--bg-subtle);
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+    }
+
+    .flow-node {
+      flex: 1;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 9px 10px;
+      text-align: center;
+    }
+
+    .flow-node.active-node {
+      border-color: var(--accent-terracotta);
+      background: #FDF2F0;
+    }
+
+    .flow-node.green-node {
+      border-color: var(--accent-emerald);
+      background: #EEF7F4;
+    }
+
+    .flow-node .fn-code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--accent-navy);
+      display: block;
+    }
+
+    .flow-node .fn-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-top: 2px;
+    }
+
+    .flow-node .fn-sub {
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    .flow-arrow {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink-muted);
+    }
+
+    .layer-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .layer-bar {
+      display: grid;
+      grid-template-columns: 120px 190px 1fr;
+      align-items: center;
+      padding: 8px 14px;
+      background: var(--bg-subtle);
+      border-radius: 7px;
+      border-left: 4px solid var(--accent-navy);
+      font-size: 14px;
+    }
+
+    .layer-bar.highlight {
+      background: #FDF2F0;
+      border-left-color: var(--accent-terracotta);
+    }
+
+    .layer-bar .l-idx {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--accent-navy);
+      font-size: 12.5px;
+    }
+
+    .layer-bar.highlight .l-idx { color: var(--accent-terracotta); }
+
+    .layer-bar .l-name {
+      font-weight: 800;
+      color: var(--ink-primary);
+    }
+
+    .layer-bar .l-desc {
+      color: var(--ink-secondary);
+      font-size: 13.5px;
+    }
+
+    .mini-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .mini-kpi {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .mini-kpi strong {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-navy);
+    }
+
+    .mini-kpi strong.red { color: var(--accent-terracotta); }
+    .mini-kpi strong.green { color: var(--accent-emerald); }
+
+    .mini-kpi span {
+      font-size: 13px;
+      color: var(--ink-secondary);
+      font-weight: 600;
+    }
+
+    /* ==================== P7 愿景路线图 ==================== */
+    .vision-banner {
+      background: var(--bg-dark);
+      color: #FFFFFF;
+      padding: 18px 26px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-left: 7px solid var(--accent-emerald);
+      flex-shrink: 0;
+    }
+
+    .vision-banner h3 {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .vision-banner p {
+      font-size: 15.5px;
+      color: #CBD5E1;
+      margin-top: 4px;
+    }
+
+    /* ==================== 悬浮演讲控制栏与提词器 ==================== */
+    .hud-controls {
+      position: fixed;
+      bottom: 14px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(20, 32, 48, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .hud-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      border: none;
+      padding: 5px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 700;
+      transition: background 0.15s;
+    }
+
+    .hud-btn:hover { background: rgba(255, 255, 255, 0.24); }
+    .hud-btn.active { background: var(--accent-terracotta); }
+
+    .teleprompter {
+      position: fixed;
+      bottom: 62px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1160px, 92vw);
+      background: rgba(20, 32, 48, 0.95);
+      color: #F8FAFC;
+      padding: 18px 26px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 99;
+      display: none;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+    }
+
+    .teleprompter.open { display: block; }
+
+    .teleprompter .tp-head {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: #F59E0B;
+      margin-bottom: 6px;
+    }
+
+    .teleprompter .tp-text {
+      font-size: 17.5px;
+      line-height: 1.55;
+      font-weight: 500;
+    }
+
+    body.export-mode .hud-controls,
+    body.export-mode .teleprompter {
+      display: none !important;
     }
 
     @media print {
-      body {
-        background: #FFFFFF;
+      @page {
+        size: 1920px 1080px;
+        margin: 0;
+      }
+      html, body {
+        width: 1920px;
         height: auto;
-        overflow: visible;
-        display: block;
+        overflow: visible !important;
+        background: var(--bg-paper);
       }
       .deck-viewport {
-        width: 100%;
+        display: block;
+        width: 1920px;
         height: auto;
-        box-shadow: none;
-        border-radius: 0;
+        overflow: visible !important;
+      }
+      .slide-stage {
+        width: 1920px;
+        height: auto;
+        transform: none !important;
+        box-shadow: none !important;
       }
       .slide {
-        position: relative;
+        position: relative !important;
         display: flex !important;
-        opacity: 1 !important;
-        width: 100vw;
-        height: 100vh;
+        width: 1920px !important;
+        height: 1080px !important;
         page-break-after: always;
         break-after: page;
       }
-      .presenter-bar,
-      .teleprompter {
+      .hud-controls, .teleprompter {
         display: none !important;
       }
     }
   </style>
 </head>
 <body>
+  <div class="deck-viewport">
+    <div class="slide-stage" id="slideStage">
 
-  <div class="deck-viewport" id="deck">
-
-    <!-- ==================== SLIDE 1: 封面与核心主旨 ==================== -->
-    <section class="slide active" data-time="0:00 - 0:12 (12秒)" data-script="各位评委老师好！今天为大家展示【莱森购 Retail Intelligence Agent】——一套受契约约束的无人零售经营智能决策平台。我们的核心主旨只有一句话：终结无人零售中“看表猜原因、AI乱算账、分析无闭环”的痛点，让每一次经营诊断都有据可查，让每一次异常告警都形成可复核的行动闭环。">
-      <div class="slide-header">
-        <div class="header-left">
-          <div class="eyebrow"><span class="eyebrow-dot"></span>LAISEN RETAIL INTELLIGENCE AGENT · 2分钟项目路演</div>
+      <!-- ==================== SLIDE 1: 封面与中心主旨 ==================== -->
+      <section class="slide active" data-index="0" data-time="00:00 - 00:12 (12秒)" data-script="各位评委老师好！今天用两分钟为您汇报《莱森购 Retail Intelligence Agent——无人零售经营智能决策平台》。我们的中心主旨只有一句话：把门店大盘、规则审计、同城对标、区域选址、Agent 顾问、主动监控与任务复核融进同一条契约闭环，让无人零售经营从“看报表猜原因”进化到“给证据、派动作、验结果”！">
+        <div class="slide-topbar">
+          <div class="topbar-left">
+            <span class="section-tag terracotta">PITCH DECK // 01</span>
+            <span class="topbar-category">项目总览与中心主旨 · EXECUTIVE SUMMARY</span>
+          </div>
+          <div class="topbar-right">
+            <span class="time-pill">⏱ 建议用时：12 秒 (00:00 - 00:12)</span>
+            <span>PAGE 01 / 07</span>
+          </div>
         </div>
-        <div class="time-pill">⏱ 路演计时：<strong>0:00 - 0:12</strong>（第 1 / 6 页）</div>
-      </div>
 
-      <div class="cover-layout">
-        <div class="cover-hero">
-          <div class="cover-kicker">无人零售经营智能决策平台 · Contract-First Domain Agent</div>
-          <h1 class="cover-title">
-            莱森购智能决策平台
-            <span>从“看图猜原因”到“可审计的行动闭环”</span>
-          </h1>
-          <p class="cover-thesis">
-            <strong>中心主旨：</strong>面向无人零售高密度点位运营，将<strong>确定性指标与规则引擎</strong>、<strong>LangGraph 7层受控 Agent</strong> 与 <strong>IoT 主动监控 Loop</strong> 深度耦合，解决传统报表“只展示不归因”与通用大模型“口径幻觉、不可落地”的现实鸿沟。
-          </p>
+        <div class="hero-layout">
+          <div class="hero-left">
+            <div>
+              <div class="hero-kicker">UNMANNED RETAIL DECISION INTELLIGENCE · 契约优先（Contract-First）智能经营平台</div>
+              <h1 class="hero-title" style="margin-top: 16px;">莱森购 Retail<br/>Intelligence Agent</h1>
+              <div class="hero-subtitle">五位一体经营工作台 × 确定性规则与数据层 × 七层受控 LangGraph 智能体</div>
+            </div>
 
-          <div class="cover-pills">
-            <div class="cover-pill-card">
-              <span class="num">01 / APPLICATION SCENARIO</span>
-              <span class="lbl">多城多店无人零售高频运营</span>
-              <span class="desc">覆盖周会问数、单店异常审计、设备离线告警、新点位 ROI 测算</span>
+            <div class="thesis-banner">
+              <span class="thesis-label">CENTRAL THESIS // 中心主旨与三大核心经营追问</span>
+              <p>拒绝“只画图不归因”与“大模型算错账”——围绕 <span style="color:#FCD34D;">① 哪些门店/区域需关注？ ② 差距来自哪、证据是什么？ ③ 现在做什么、何时复核有效？</span> 打造零幻觉闭环。</p>
             </div>
-            <div class="cover-pill-card">
-              <span class="num">02 / PARADIGM SHIFT</span>
-              <span class="lbl">契约优先 · 零 SQL 幻觉</span>
-              <span class="desc">代码做确定性计算与规则判定，Agent 仅做白名单工具编排与证据表达</span>
+
+            <div>
+              <div class="card-eyebrow" style="margin-bottom: 6px;">END-TO-END CLOSED LOOP // 端到端七步经营决策闭环</div>
+              <div class="loop-ribbon">
+                <div class="loop-step"><strong>1. 提出经营问题</strong><span>自然语言 / 监控唤醒</span></div>
+                <span class="loop-arrow">→</span>
+                <div class="loop-step"><strong>2. 白名单工具规划</strong><span>7 个受控只读/写工具</span></div>
+                <span class="loop-arrow">→</span>
+                <div class="loop-step"><strong>3. 指标/对标/选址</strong><span>先聚合后比率·中位数</span></div>
+                <span class="loop-arrow">→</span>
+                <div class="loop-step"><strong>4. 证据校验与重规划</strong><span>四值防呆·缺失熔断</span></div>
+                <span class="loop-arrow">→</span>
+                <div class="loop-step"><strong>5. 人工确认任务</strong><span>Human-in-the-Loop</span></div>
+                <span class="loop-arrow">→</span>
+                <div class="loop-step"><strong>6. 下一周期复核</strong><span>达标关闭 / 未达标升级</span></div>
+              </div>
             </div>
-            <div class="cover-pill-card">
-              <span class="num">03 / DUAL-LOOP ENGINE</span>
-              <span class="lbl">被动问数 + IoT 主动监控唤醒</span>
-              <span class="desc">5分钟超时告警、15分钟升级、自动唤醒 Agent 预审计与多渠道通知</span>
+
+            <div class="hero-metrics">
+              <div class="metric-tile">
+                <div class="num">¥105.4万</div>
+                <div class="lbl">7日营收大盘 (利润21.8万 / 42台设备)</div>
+              </div>
+              <div class="metric-tile">
+                <div class="num green">21店×42天</div>
+                <div class="lbl">长春5区全量流水 + Supabase 4表Wiki</div>
+              </div>
+              <div class="metric-tile">
+                <div class="num red">7层×7节点</div>
+                <div class="lbl">LangGraph 受控编排 + KV Cache 六铁律</div>
+              </div>
+              <div class="metric-tile">
+                <div class="num">0 数值幻觉</div>
+                <div class="lbl">白名单数值核验 + S004 缺失数据熔断</div>
+              </div>
             </div>
-            <div class="cover-pill-card">
-              <span class="num">04 / VERIFIABLE ACTION</span>
-              <span class="lbl">人机协同 · 下一周期自动复核</span>
-              <span class="desc">生成带负责人与复核指标的行动卡，达标自动结案、未达标自动升级</span>
+          </div>
+
+          <div class="hero-right">
+            <div class="preview-frame" style="flex: 1.05;">
+              <div class="preview-frame-header">
+                <div class="preview-dots"><span></span><span></span><span></span></div>
+                <span>五大共享视图：驾驶舱 · 智能审计 · 区域选址 · 行动中心 · 莱财顾问 & 检测台</span>
+                <span style="font-family: var(--font-mono); color: var(--accent-terracotta);">API Contract v0.1</span>
+              </div>
+              <div class="preview-img-wrap">
+                <img src="imagegen/01-paper-navy.png" alt="莱森购全局驾驶舱与风险地图界面" />
+              </div>
+            </div>
+            <div class="preview-frame" style="flex: 0.95;">
+              <div class="preview-frame-header">
+                <div class="preview-dots"><span></span><span></span><span></span></div>
+                <span>受控 Agent 诊断抽屉：思考步骤可视化 · 证据锚定 · 人机协同审批卡</span>
+                <span style="font-family: var(--font-mono); color: var(--accent-emerald);">TRACEABLE</span>
+              </div>
+              <div class="preview-img-wrap">
+                <img src="imagegen/03-ivory-terracotta-v2.png" alt="莱森购智能体证据卡片与行动闭环" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="cover-visual">
-          <div>
-            <div style="font-size:11.5px; color:#93C5FD; font-weight:700; letter-spacing:0.06em; margin-bottom:6px;">CORE CLOSED-LOOP ARCHITECTURE</div>
-            <div style="font-size:18px; font-weight:800; color:#FFFFFF; margin-bottom:14px;">一条全链路可追溯的经营决策闭环</div>
+        <div class="slide-footer">
+          <span class="footer-brand">莱森购 Retail Intelligence Agent · 无人零售经营智能决策平台</span>
+          <span>核心定位：契约优先（Contract-First）· 规则引擎算准事实 · Agent 负责调度与表达 · 人工确认执行与复核</span>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 2: 应用场景与现实痛点 ==================== -->
+      <section class="slide" data-index="1" data-time="00:12 - 00:30 (18秒)" data-script="在无人零售高密度运营中，区域经理每天都在面对五大高频场景：全域风险巡检、异常门店同城对标、新商区选址测算、设备离线抢修与整改复核。但现实中存在三大致命痛点：第一，传统 BI 只给图表不给归因，平均值掩盖斜坡下滑，甚至把数据断报误判为正常；第二，通用大模型自由写 SQL 极易算错比率、编造幻觉数字；第三，分析与执行割裂，聊完即止，没人盯设备心跳、更没有下一周期的复核闭环。">
+        <div class="slide-topbar">
+          <div class="topbar-left">
+            <span class="section-tag terracotta">SCENARIOS &amp; PAIN POINTS // 02</span>
+            <span class="topbar-category">五大高频业务场景与三大现实痛点 · WHY WE BUILT THIS</span>
+          </div>
+          <div class="topbar-right">
+            <span class="time-pill">⏱ 建议用时：18 秒 (00:12 - 00:30)</span>
+            <span>PAGE 02 / 07</span>
+          </div>
+        </div>
+
+        <div class="slide-headline">
+          <h2>高频无人零售场景下，<span class="hl-red">“看图猜原因、AI 乱算账、建议无复核”</span>是三大核心痛点</h2>
+          <p>覆盖长春 5 大城区（朝阳 / 南关 / 宽城 / 二道 / 绿园）、5 家核心标杆店与 21 家全量门店 × 42 天日经营流水与设备心跳</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="scenario-strip">
+            <div class="scenario-item">
+              <span class="sc-tag">SCENE 01 // 驾驶舱与风险地图</span>
+              <h4>全域点位态势感知</h4>
+              <p>实时掌握 <code>105.4万</code> 营收、<code>95.2%</code> 设备在线率、42天日销售斜坡与长春 GIS 风险地图。</p>
+            </div>
+            <div class="scenario-item">
+              <span class="sc-tag">SCENE 02 // 异常审计与同城对标</span>
+              <h4>单店多指标共振归因</h4>
+              <p>如 <strong>A店/S001</strong> 退款率飙至 <code>7.0%</code>（同城中位数 <code>2.1%</code>）、订单跌 <code>31%</code>，需快速定位症结。</p>
+            </div>
+            <div class="scenario-item">
+              <span class="sc-tag">SCENE 03 // 区域选址与 ROI 测算</span>
+              <h4>新商圈投放科学评估</h4>
+              <p>对比朝阳区（<code>86.5分</code> / 回本 <code>8.4月</code>）与南关区（租金缺失不瞎猜），严控选址投资风险。</p>
+            </div>
+            <div class="scenario-item">
+              <span class="sc-tag">SCENE 04 // IoT 心跳主动巡检</span>
+              <h4>无人设备离线秒级响应</h4>
+              <p>冷柜断网、温控失联或支付掉线时，无需人工盯盘即可触发告警、升级并唤醒审计。</p>
+            </div>
+            <div class="scenario-item">
+              <span class="sc-tag">SCENE 05 // 整改派单与周期复核</span>
+              <h4>经营动作闭环验效</h4>
+              <p>派发“24h内抽查20笔退款单”任务，并在下一周期自动核验 <code>refund_rate</code> 是否达标回落。</p>
+            </div>
           </div>
 
-          <div style="display:flex; flex-direction:column; gap:9px;">
-            <div class="loop-step">
-              <div class="loop-step-idx">1</div>
+          <div class="grid-3">
+            <div class="card accent-top-red">
+              <div class="card-eyebrow">PAIN POINT 01 // 传统 BI 报表的局限</div>
+              <div class="card-title">“只给图表，不给归因与缺失保护”</div>
+              <ul class="bullet-list">
+                <li><strong>聚合抹平斜坡趋势</strong>：只给周期汇总，看不出 <code>S001</code> 自 10月6日起连续 3 天渐进式滑坡。</li>
+                <li><strong>规模与效率混为一谈</strong>：销售额下滑未拆解为<strong>订单数 × 客单价</strong>双因子，误把客流波动当客单问题。</li>
+                <li><strong>最危险的“假阴性”</strong>：如 <code>S004</code> 退款字段断报（空值率 <code>33%</code>），传统报表直接算作 0 异常，掩盖严重故障。</li>
+              </ul>
+              <div class="card-footer-box" style="background:#FDF2F0; color:var(--accent-terracotta); font-weight:700;">
+                ❌ 症结：有数字无洞察，数据断报时产生致命“假阴性”误导
+              </div>
+            </div>
+
+            <div class="card accent-top-amber">
+              <div class="card-eyebrow">PAIN POINT 02 // 通用大模型 / Text-to-SQL 的风险</div>
+              <div class="card-title">“口径幻觉、乱算比率与强行归因”</div>
+              <ul class="bullet-list">
+                <li><strong>比率口径算错</strong>：LLM 自由写 SQL 经常直接 <code>AVG(daily_ratio)</code> 平均每日比率，违背“先 SUM 聚合再算比率”铁律。</li>
+                <li><strong>样本不足强行定论</strong>：当同业态可比门店 <code>&lt; 3 家</code> 或南关区缺租金数据时，通用 AI 仍会编造回本周期与根因。</li>
+                <li><strong>越权与数值幻觉</strong>：易受 Prompt 注入诱导修改阈值，或在总结中凭空捏造未查询到的财务数字。</li>
+              </ul>
+              <div class="card-footer-box" style="background:#FEF7EC; color:var(--accent-amber); font-weight:700;">
+                ❌ 症结：黑盒自由生成不可信、不可复现，业务与财务不敢用
+              </div>
+            </div>
+
+            <div class="card accent-top-navy">
+              <div class="card-eyebrow">PAIN POINT 03 // 传统问答与工单的断层</div>
+              <div class="card-title">“被动问答聊完即止，无执行复核闭环”</div>
+              <ul class="bullet-list">
+                <li><strong>被动等待“人找数据”</strong>：凌晨设备心跳中断或连续离线时，若无人主动提问，AI 永远沉默。</li>
+                <li><strong>分析与工单两张皮</strong>：聊天窗口给出“建议核查退款”，但缺负责人角色（<code>owner_role</code>）、缺 <code>24h</code> 时限与证据绑定。</li>
+                <li><strong>缺少下一周期验效</strong>：任务勾掉就算完，没人对比下一周期退款率是否回到同城中位数 <code>+2pt</code> 以内。</li>
+              </ul>
+              <div class="card-footer-box" style="background:#EFF4FA; color:var(--accent-navy); font-weight:700;">
+                ❌ 症结：停留在“嘴上建议”，无法把诊断转化为真实经营改善
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span class="footer-brand">莱森购 Retail Intelligence Agent</span>
+          <span>核心洞察：无人零售真正需要的不是“会聊天的图表”，而是“懂口径防呆、守安全边界、能主动盯盘并复核结果”的契约型系统</span>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 3: 与传统方案的本质不同 ==================== -->
+      <section class="slide" data-index="2" data-time="00:30 - 00:50 (20秒)" data-script="莱森购与传统方案的本质不同，可以用“餐厅后厨”架构隐喻来概括：我们绝不让大模型进后厨自己炒菜算账，而是由冻结的 API Contract v0.1 与确定性领域服务担任“后厨”，大模型只做“服务员”，在 7 个白名单工具内做意图编排与证据解读。叠加四值防呆熔断、双向数值核验、KV Cache 六大铁律以及主动监控引擎，实现了五大维度的代际跨越！">
+        <div class="slide-topbar">
+          <div class="topbar-left">
+            <span class="section-tag navy">KEY DIFFERENTIATORS // 03</span>
+            <span class="topbar-category">核心差异：为什么我们和传统 BI / 通用大模型完全不同？</span>
+          </div>
+          <div class="topbar-right">
+            <span class="time-pill">⏱ 建议用时：20 秒 (00:30 - 00:50)</span>
+            <span>PAGE 03 / 07</span>
+          </div>
+        </div>
+
+        <div class="slide-headline">
+          <h2>核心哲学：<span class="hl-navy">确定性引擎做“后厨”算准事实</span>，<span class="hl-red">受控 Agent 做“服务员”编排与表达</span></h2>
+          <p>A（前端五视图）/ B（确定性数据与规则层）/ C（LangGraph 智能体与 API）基于冻结契约 <code>API Contract v0.1</code> 并行解耦协作</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="compare-layout">
+            <div class="card metaphor-box">
               <div>
-                <strong>双源触发：自然语言问数 / IoT 心跳异常</strong>
-                <span>区域经理提问“为什么A店表现差” 或 设备离线 5min 自动唤醒</span>
+                <div class="card-eyebrow">ARCHITECTURAL PARADIGM // 四重架构护城河</div>
+                <div class="card-title" style="margin-top:4px;">把确定性留给代码，把交互留给 Agent</div>
+              </div>
+
+              <div class="metaphor-stage">
+                <h4>1. 标准化后厨（B 层：确定性指标与四值规则引擎）</h4>
+                <p>先聚合后算比率、<code>NULLIF</code> 零保护、按门店中位数算区域 ROI；严格执行 <code>unavailable → insufficient → possible → none</code> 判定序，彻底消灭假阴性。</p>
+              </div>
+
+              <div class="metaphor-stage waiter">
+                <h4>2. 受控服务员（C 层：7 工具白名单 + 双向防幻觉护栏）</h4>
+                <p>严禁写 SQL 或改阈值！输出护栏通过 <code>collectAllowedNumbers</code> 逐字比对工具证据池，出现任何未授权数字立即熔断回退，保障 <strong>100% 零数值幻觉</strong>。</p>
+              </div>
+
+              <div class="metaphor-stage cache">
+                <h4>3. 高性能上下文（KV Cache 六大铁律 + 三层记忆）</h4>
+                <p>静态前缀 <code>deepFreeze</code> 零插值、Append-Only 消息轨迹、禁滑动窗口截断、采用 SHA-256 持久化摘要压缩，兼顾高缓存命中率与跨轮次指代消解。</p>
+              </div>
+
+              <div class="metaphor-stage loop">
+                <h4>4. 全天候巡检员（IoT 主动监控 + 人机协同复核）</h4>
+                <p>设备离线 5 分钟自动告警并唤醒 Agent 审计，15 分钟未确认自动升级；经营动作需人工确认并在下一周期复核指标。</p>
               </div>
             </div>
-            <div class="loop-step">
-              <div class="loop-step-idx">2</div>
-              <div>
-                <strong>受控编排：LangGraph 调度 7 大白名单工具</strong>
-                <span>意图解析 → 权限与参数护栏 → 严禁自由写 SQL 或心算比率</span>
-              </div>
-            </div>
-            <div class="loop-step">
-              <div class="loop-step-idx">3</div>
-              <div>
-                <strong>确定性引擎：差距拆解 + 规则命中 + 同店对标</strong>
-                <span>销售额拆解为订单量×客单价；不足 3 家可比门店强制输出降级结论</span>
-              </div>
-            </div>
-            <div class="loop-step">
-              <div class="loop-step-idx">4</div>
-              <div>
-                <strong>证据成案：生成结构化行动卡（人工确认护栏）</strong>
-                <span>绑定 <code>evidence_id</code> 与 <code>trace_id</code>，明确区域经理、24h期限与复核目标</span>
-              </div>
-            </div>
-            <div class="loop-step" style="border-color:#22C55E; background:rgba(20, 83, 45, 0.35);">
-              <div class="loop-step-idx" style="background:#16A34A;">5</div>
-              <div>
-                <strong>周期复核：<code>verify_task</code> 自动验证指标闭环</strong>
-                <span>下一周期退款率回落则 <code>closed</code>，未达标则自动 <code>escalated</code> 升级</span>
-              </div>
-            </div>
-          </div>
 
-          <div style="display:flex; justify-content:space-between; font-size:11px; color:#94A3B8; padding-top:8px; border-top:1px solid #334155;">
-            <span>数据底座：Supabase (PostgreSQL + pgvector)</span>
-            <span>数据批次：changchun_demo_v1</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="slide-footer">
-        <div class="footer-brand">莱森购 Retail Intelligence Agent <span class="footer-tag">P1 · 项目总览</span></div>
-        <div>按 <strong>→ / 空格</strong> 翻页 · 按 <strong>T</strong> 开启/关闭演讲词提词器 · 按 <strong>S</strong> 启动2分钟倒计时</div>
-      </div>
-    </section>
-
-    <!-- ==================== SLIDE 2: 应用场景与现实痛点 ==================== -->
-    <section class="slide" data-time="0:12 - 0:35 (23秒)" data-script="先看我们的应用场景与现实痛点。在无人零售智能柜和连锁门店运营中，区域经理每天面对高频交易与设备状态数据。但现实中存在三大痛点：第一，传统BI报表“只给图不给结论”，比如朝阳A店销售额跌了28%，店长要在几张表里翻找是订单量跌了还是客单价跌了；第二，通用大模型“乱写SQL、幻觉归因”，经常把每日比率直接平均、漏扣员工测试单，甚至看单指标下滑就武断甩锅；第三，“诊断停留在聊天框”，发现异常后没有派单、没有SLA时限，更没有下一周期的效果复核。">
-      <div class="slide-header">
-        <div class="header-left">
-          <div class="eyebrow"><span class="eyebrow-dot"></span>01 · APPLICATION SCENARIOS & REAL-WORLD PAIN POINTS</div>
-          <h2 class="slide-title">应用场景与中心主旨：直击无人零售经营的“三大现实痛点”</h2>
-          <p class="slide-subtitle">中心主旨：解决“看得见海量经营数据，却做不出可信、可追责、可复核决策”的业务断层</p>
-        </div>
-        <div class="time-pill">⏱ 路演计时：<strong>0:12 - 0:35</strong>（23秒）</div>
-      </div>
-
-      <div class="slide-body">
-        <!-- 四大核心应用场景横幅 -->
-        <div class="scenario-banner">
-          <div>
-            <div style="font-size:12px; color:#93C5FD; font-weight:700; text-transform:uppercase; margin-bottom:4px;">核心落地应用场景（谁在什么时候用？）</div>
-            <div style="font-size:16.5px; font-weight:800;">区域经理 / 运营督导 / 选址团队的高频决策工作台（以长春 5 大城区无人零售网络为样本）</div>
-          </div>
-          <div class="scenario-tags">
-            <span class="scenario-tag">① 周会经营问数与同城对标</span>
-            <span class="scenario-tag">② 门店业绩异动与退款激增审计</span>
-            <span class="scenario-tag">③ 7×24h 设备心跳离线主动告警</span>
-            <span class="scenario-tag">④ 新商圈点位投放与回本周期测算</span>
-          </div>
-        </div>
-
-        <!-- 三大痛点卡片 -->
-        <div class="grid-3">
-          <div class="card card-terracotta">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="badge badge-pain">现实痛点 01 · 传统看表困境</span>
-              <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); font-weight:600;">BI 报表疲劳</span>
-            </div>
-            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">“只给图表，不给归因与证据”</h3>
-            <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">
-              运营人员面对几十张分散的销售、订单、盘点与设备表，看到门店销售额下跌时，需手动跨表排查根因，耗时极长且易误判：
-            </p>
-            <ul style="font-size:13.5px; color:var(--text-secondary); line-height:1.65; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
-              <li><strong>双因子盲区：</strong>分不清是<strong>客流订单萎缩</strong>还是<strong>客单价下滑</strong>主导。</li>
-              <li><strong>缺乏同城标尺：</strong>分不清是单店经营失误，还是<strong>全区域同步降温</strong>。</li>
-              <li><strong>排查链路割裂：</strong>销售表、退款表與设备心跳表彼此孤立，无法一键串联。</li>
-            </ul>
-            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
-              <strong>真实案例：</strong>朝阳 A 店本周销售额突降 <code>-28.0%</code>，传统报表仅标红数字，店长无法一眼识别是订单量暴跌（<code>-31.0%</code>）叠加退款率激增（<code>7.0%</code>）所致。
-            </div>
-          </div>
-
-          <div class="card card-terracotta">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="badge badge-pain">现实痛点 02 · 通用 AI 问数之坑</span>
-              <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); font-weight:600;">口径失真与幻觉</span>
-            </div>
-            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">“AI 自由写 SQL 算错账、武断下结论”</h3>
-            <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">
-              直接让通用 LLM 自由生成 SQL 或心算指标，在严肃零售经营场景下会引发三大致命口径事故：
-            </p>
-            <ul style="font-size:13.5px; color:var(--text-secondary); line-height:1.65; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
-              <li><strong>比率均值陷阱：</strong>把每日客单价直接取平均，导致大店与小店权重错乱。</li>
-              <li><strong>脏数据混入：</strong>漏扣已退款订单、漏筛员工测试单，把未满30天新店纳入同比。</li>
-              <li><strong>强行幻觉甩锅：</strong>可比门店不足 3 家或缺失成本时，依然<strong>强行编造根因</strong>。</li>
-            </ul>
-            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
-              <strong>致命风险：</strong>财务与运营口径不一致，仅靠软 Prompt 约束不住 AI 跳步调用，企业根本不敢用于真实周会决策。
-            </div>
-          </div>
-
-          <div class="card card-terracotta">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="badge badge-pain">现实痛点 03 · 落地执行断层</span>
-              <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); font-weight:600;">有报告无闭环</span>
-            </div>
-            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">“分析停留在报告，无人跟进与复核”</h3>
-            <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">
-              无论是周会 PPT 还是传统 AI 聊天框，往往止步于“建议加强管理”的空洞套话，缺乏工程化执行闭环：
-            </p>
-            <ul style="font-size:13.5px; color:var(--text-secondary); line-height:1.65; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
-              <li><strong>无人主动值守：</strong>设备离线或退款激增时，若无人主动提问便被长期搁置。</li>
-              <li><strong>缺乏责任契约：</strong>没有明确<strong>谁去核查、几小时内完成（SLA）、看哪条证据</strong>。</li>
-              <li><strong>没有结果验收：</strong>派单后缺乏下一周期的指标自动复核，同类问题反复重演。</li>
-            </ul>
-            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
-              <strong>管理黑洞：</strong>从“发现问题”到“确认修好”之间缺失状态机追踪，导致数据分析无法真正转化为单店利润恢复。
+            <div class="compare-table-wrap">
+              <table class="compare-table">
+                <thead>
+                  <tr>
+                    <th>核心对比维度</th>
+                    <th>传统 BI 报表系统</th>
+                    <th>传统通用 AI (Text-to-SQL)</th>
+                    <th class="col-laisen">莱森购 Retail Intelligence Agent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="dim-col">1. 口径与计算准确性</td>
+                    <td class="bad-col">静态 SQL 聚合，易掩盖斜坡下滑，无双因子自动拆解</td>
+                    <td class="bad-col">LLM 自由写 SQL 易平均每日比率、算错口径，结果不可复现</td>
+                    <td class="good-col"><strong>Contract-First 确定性计算</strong>：先 SUM 再算比率，区域利润/回本取门店中位数，0 算账幻觉</td>
+                  </tr>
+                  <tr>
+                    <td class="dim-col">2. 数据缺失与可比防呆</td>
+                    <td class="bad-col">字段断报常显示为 0，造成“无异常”的致命假阴性</td>
+                    <td class="bad-col">样本不足或缺成本时仍强行编造回本周期与确定性根因</td>
+                    <td class="good-col"><strong>S004 缺失熔断 + 两层逐指标可比准入</strong>：少于 3 家返回 <code>insufficient</code>，缺租金返回 <code>null</code></td>
+                  </tr>
+                  <tr>
+                    <td class="dim-col">3. 安全边界与防幻觉</td>
+                    <td class="bad-col">无自然语言交互，仅支持固定筛选器查询</td>
+                    <td class="bad-col">易受 Prompt 注入越权，总结文本常夹带未查询的幻觉数字</td>
+                    <td class="good-col"><strong>7 白名单工具 + 双向护栏</strong>：拦截 SQL 注入/改阈值，<code>collectAllowedNumbers</code> 零幻觉校验</td>
+                  </tr>
+                  <tr>
+                    <td class="dim-col">4. 记忆与上下文工程</td>
+                    <td class="bad-col">无上下文记忆，每次筛选互不关联</td>
+                    <td class="bad-col">系统提示词插值破坏缓存，用 <code>slice(-N)</code> 截断丢失历史</td>
+                    <td class="good-col"><strong>KV Cache 六铁律 + 三层记忆</strong>：静态前缀冻结、SHA-256 压缩复用、支持“帮它派单”指代消解</td>
+                  </tr>
+                  <tr>
+                    <td class="dim-col">5. 触发方式与执行闭环</td>
+                    <td class="bad-col">纯被动看图，无任务派发与效果追踪</td>
+                    <td class="bad-col">被动一问一答，聊完即止，无 SLA 升级与复核机制</td>
+                    <td class="good-col"><strong>主动监控 Loop + 人机复核闭环</strong>：心跳离线唤醒 Agent 审计，人工确认派单并按周期复核关闭/升级</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="slide-footer">
-        <div class="footer-brand">莱森购 Retail Intelligence Agent <span class="footer-tag">P2 · 场景与痛点</span></div>
-        <div>核心命题：不缺展示图表的看板，缺的是<strong>受契约约束、带证据链、能转化为闭环行动</strong>的智能决策系统</div>
-      </div>
-    </section>
-
-    <!-- ==================== SLIDE 3: 与传统方案的核心差异 ==================== -->
-    <section class="slide" data-time="0:35 - 1:00 (25秒)" data-script="那我们和传统的BI看板、以及传统的Text-to-SQL聊天机器人到底有什么不一样？我们采用了独创的“餐厅点菜”契约架构：把确定性规则引擎当“后厨”，把Agent当“服务员”。Agent绝不自己进后厨写SQL、绝不心算比率，只负责听懂问题、调用7个白名单工具；当可比门店少于3家或缺失成本数据时，系统强制输出“证据不足降级”，绝不不懂装懂；更重要的是，我们从“人找数”升级为“IoT主动监控+人机确认复核”的完整闭环。">
-      <div class="slide-header">
-        <div class="header-left">
-          <div class="eyebrow"><span class="eyebrow-dot"></span>02 · KEY DIFFERENTIATION VS. TRADITIONAL SOLUTIONS</div>
-          <h2 class="slide-title">核心差异化：我们与传统 BI 及传统 AI 问数哪里不一样？</h2>
-          <p class="slide-subtitle">核心设计哲学：人守住“契约”与“验收”，确定性代码当“后厨”，大模型当“受控服务员”</p>
+        <div class="slide-footer">
+          <span class="footer-brand">莱森购 Retail Intelligence Agent</span>
+          <span>差异化总结：不是“给大模型接个数据库”，而是用冻结契约、规则状态机、安全护栏与主动闭环重塑企业级 Agent 工程标准</span>
         </div>
-        <div class="time-pill">⏱ 路演计时：<strong>0:35 - 1:00</strong>（25秒）</div>
-      </div>
+      </section>
 
-      <div class="slide-body">
-        <!-- 餐厅点菜比喻条 -->
-        <div class="metaphor-bar">
-          <div class="metaphor-item">
-            <span class="metaphor-role">菜单 = 指标契约库</span>
-            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">预定义公式、同店口径、扣退规则，拒绝临时拼凑</div>
+      <!-- ==================== SLIDE 4: 核心重点（一）A+B 端 ==================== -->
+      <section class="slide" data-index="3" data-time="00:50 - 01:10 (20秒)" data-script="下面看最核心的三大技术模块。首先是前端五合一工作台与确定性数据底座：前端将驾驶舱、审计对标、区域选址、行动中心与“莱财”AI顾问融为一体；后端数据层不仅锁定了先聚合后算比率、订单乘客单价双因子拆解，还独创了“两层逐指标可比准入”与“四值规则状态机”——例如 S004 退款断报时自动触发 unavailable 熔断，同时保留其完整销售数据参与同区对标；配合 Supabase 四表与结构化 Wiki，支持三路径无缝切换！">
+        <div class="slide-topbar">
+          <div class="topbar-left">
+            <span class="section-tag emerald">CORE ARCHITECTURE PART 1 // 04</span>
+            <span class="topbar-category">核心重点（一）：五位一体前端工作台 + 确定性数据层与结构化 Wiki（A &amp; B 层）</span>
           </div>
-          <div class="metaphor-item">
-            <span class="metaphor-role">服务员 = 受控 Agent</span>
-            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">只做意图解析与白名单点单，<strong>0 SQL、0 心算</strong></div>
-          </div>
-          <div class="metaphor-item">
-            <span class="metaphor-role">厨师长 = 规则引擎</span>
-            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">代码级确定性判定（如至少满足2项异常才建案）</div>
-          </div>
-          <div class="metaphor-item">
-            <span class="metaphor-role">小票 = Trace 证据链</span>
-            <div style="font-size:13px; color:var(--text-secondary); line-height:1.4;">每个数字绑定 <code>evidence_id</code> 与 <code>trace_id</code> 可回放</div>
+          <div class="topbar-right">
+            <span class="time-pill">⏱ 建议用时：20 秒 (00:50 - 01:10)</span>
+            <span>PAGE 04 / 07</span>
           </div>
         </div>
 
-        <!-- 三方对比矩阵 -->
-        <table class="comp-table">
-          <thead>
-            <tr>
-              <th style="width:15%;">核心维度</th>
-              <th style="width:23%;">传统 BI 报表 / 数据看板</th>
-              <th style="width:26%;">传统 AI Agent / Text-to-SQL</th>
-              <th class="highlight-col" style="width:36%;">✦ 莱森购 Retail Intelligence Agent（本项目）</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>1. 指标计算与口径</strong></td>
-              <td>固定图表展示，跨维拆解需人工导出 Excel 计算</td>
-              <td><span style="color:var(--terracotta); font-weight:700;">LLM 现场写 SQL 或心算</span>，易把每日比率简单平均、混淆含税/扣退口径</td>
-              <td class="highlight-col"><span style="color:var(--navy);">先聚合再算比率</span>（<code>SUM(sales)/NULLIF(SUM(orders),0)</code>），自动拆解订单量与客单价双因子，100% 财务口径对齐</td>
-            </tr>
-            <tr>
-              <td><strong>2. 异常判定与归因</strong></td>
-              <td>仅提供红绿阈值高亮，靠运营人员凭经验猜原因</td>
-              <td><span style="color:var(--terracotta); font-weight:700;">单指标下滑即武断定性</span>，甚至编造输入数据中不存在的根因与责任人</td>
-              <td class="highlight-col"><span style="color:var(--navy);">多条件确定性规则判定</span>（<code>store_anomaly_v1</code> 至少命中2项）+ 全区域同步波动识别 + 挂载结构化 SOP 知识库</td>
-            </tr>
-            <tr>
-              <td><strong>3. 数据缺失与边界护栏</strong></td>
-              <td>直接显示空值 <code>NaN</code> 或报错图表</td>
-              <td><span style="color:var(--terracotta); font-weight:700;">靠提示词软约束，极易强行幻觉作答</span>，无视样本量不足</td>
-              <td class="highlight-col"><span style="color:var(--sage);">硬核降级机制：</span>可比门店 <code>&lt; 3家</code> 或缺 CAPEX 成本时（如南关区），强制返回 <code>insufficient</code> 拒算回本期，诚实守界</td>
-            </tr>
-            <tr>
-              <td><strong>4. 触发模式</strong></td>
-              <td>纯被动：人打开网页看表</td>
-              <td>纯被动：人输入问题才回复</td>
-              <td class="highlight-col"><span style="color:var(--navy);">双轮驱动：</span>人主动自然语言问数 + <strong>IoT 心跳主动监控 Loop</strong>（离线 5min 告警并自动唤醒 Agent 预审计）</td>
-            </tr>
-            <tr>
-              <td><strong>5. 决策落地与闭环</strong></td>
-              <td>止步于图表浏览，无任务系统</td>
-              <td>止步于聊天框建议，甚至危险地自动执行写操作</td>
-              <td class="highlight-col"><span style="color:var(--sage);">人机协同状态机：</span>生成结构化行动卡 → <strong>人工确认护栏</strong> → 派单限办 → 下一周期 <code>verify_task</code> 自动核验关闭/升级</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="slide-footer">
-        <div class="footer-brand">莱森购 Retail Intelligence Agent <span class="footer-tag">P3 · 核心差异化</span></div>
-        <div>牺牲“无边界自由闲聊”的虚假灵活，换取企业级经营决策<strong>100% 可信、可审计、可复核</strong>的确定性价值</div>
-      </div>
-    </section>
-
-    <!-- ==================== SLIDE 4: 最核心部分展示（一）业务与数据引擎 ==================== -->
-    <section class="slide" data-time="1:00 - 1:25 (25秒)" data-script="接下来只展示我们最核心的两大板块。第一板块是“确定性业务引擎与双模感知”：以长春5大城区真实场景为例，当朝阳A店出现异常，系统自动拆解出订单量下滑31%、退款率高达7.0%（远超同城中位数2.1%），并联动区域投放模型测算ROI；同时，后台主动监控Loop实时监听设备心跳，一旦B店冰柜离线满5分钟自动触发告警并唤醒Agent生成核查证据，15分钟未确认自动升级。">
-      <div class="slide-header">
-        <div class="header-left">
-          <div class="eyebrow"><span class="eyebrow-dot"></span>03 · CORE SHOWCASE PART I — DETERMINISTIC ENGINE & PROACTIVE LOOP</div>
-          <h2 class="slide-title">核心部分展示（一）：确定性审计对标引擎 + IoT 主动监控闭环</h2>
-          <p class="slide-subtitle">以长春 5 店真实切片数据（<code>demo_v1</code>）为例：从全局态势、单店归因、区域 ROI 到毫秒级心跳告警</p>
+        <div class="slide-headline">
+          <h2>五位一体交互工作台 × <span class="hl-green">四值规则防呆引擎</span> × <span class="hl-navy">Supabase 结构化知识 Wiki</span></h2>
+          <p>所有金额与数量先聚合再算比率，每个指标、排名与异常结论均携带 <code>evidence_ids</code>、<code>data_version</code> 与 <code>trace_id</code></p>
         </div>
-        <div class="time-pill">⏱ 路演计时：<strong>1:00 - 1:25</strong>（25秒）</div>
-      </div>
 
-      <div class="slide-body">
-        <div class="grid-2">
-          <!-- 左侧：三大核心业务硬核数据实证 -->
-          <div style="display:flex; flex-direction:column; gap:14px; min-height:0;">
-            <div class="metric-strip">
-              <div class="metric-box">
-                <div class="m-label">长春全市 7日总销额</div>
-                <div class="m-val">¥105.4万</div>
-                <div class="m-sub" style="color:var(--sage);">利润 ¥21.8万 · 5城区</div>
-              </div>
-              <div class="metric-box" style="border-color:var(--terracotta-border); background:var(--terracotta-light);">
-                <div class="m-label" style="color:var(--terracotta);">朝阳 A店 · 高危异常</div>
-                <div class="m-val" style="color:var(--terracotta);">退款率 7.0%</div>
-                <div class="m-sub" style="color:#9A3412;">同城中位 2.1% | 订单 -31%</div>
-              </div>
-              <div class="metric-box">
-                <div class="m-label">朝阳区 · 投放评分榜首</div>
-                <div class="m-val" style="color:var(--navy);">81.9 分</div>
-                <div class="m-sub" style="color:var(--text-secondary);">回本 8.4个月 (月利4.28万)</div>
-              </div>
-              <div class="metric-box" style="border-color:#FDE68A; background:var(--amber-light);">
-                <div class="m-label" style="color:var(--amber);">南关区 · 数据缺失降级</div>
-                <div class="m-val" style="color:var(--amber);">回本期 NULL</div>
-                <div class="m-sub" style="color:#92400E;">缺 CAPEX 强制拒算防幻觉</div>
-              </div>
-            </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <!-- 左卡：A端五合一工作台 + 区域选址模型 -->
+            <div class="card accent-top-navy">
+              <div class="card-eyebrow">FRONTEND &amp; LOCATION SCORING // 五大共享视图与四维选址模型</div>
+              <div class="card-title">1. 五页共享同一数据契约 + 区域四维加权 ROI 测算</div>
 
-            <div class="card card-navy" style="padding:16px 20px; flex:1.15;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="badge badge-navy">核心能力 A · 确定性差距拆解与区域 ROI 模型</span>
-                <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">metric_service + rule_engine</span>
-              </div>
-              <div style="font-size:13.8px; color:var(--text-secondary); line-height:1.65; display:flex; flex-direction:column; gap:6px;">
-                <div>• <strong>双因子精准归因：</strong>朝阳 A 店销售额较基线跌 <code>-28.0%</code>（¥23.89万 → ¥17.20万），系统自动拆解为<strong>订单量暴跌 -31.0%（3101→2140单）</strong>主导，排除客单价干扰。</div>
-                <div>• <strong>多维复合规则定级：</strong>同时命中“销额跌 &gt;15%”、“订单跌 &gt;15%”、“退款率高于同城中位数 2.1% 达 4.9pct”，确定性判定为 <code>high_risk</code>。</div>
-                <div>• <strong>区域投放公式锁定：</strong><code>Score = w1·需求 + w2·竞品 + w3·毛利 - w4·成本</code>，权重写入配置表，杜绝大模型自由心算。</div>
-              </div>
-            </div>
-
-            <div class="card card-sage" style="padding:16px 20px; flex:1;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="badge badge-sage">核心能力 B · Agent 主动监控 Loop（无需人提问自动唤醒）</span>
-                <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">src/agent/monitorLoop.js</span>
-              </div>
-              <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
-                后台定时扫描门店冷柜/终端心跳，驱动 4 态升级状态机，并通过 <code>agentWakeupBridge</code> 自动唤醒 Agent 预生成审计证据链：
-              </p>
-              <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:auto; font-size:12.5px;">
-                <div style="background:var(--bg-paper); padding:9px 10px; border-radius:6px; border:1px solid var(--border);">
-                  <strong style="color:var(--text-primary); display:block; margin-bottom:2px;">1. 心跳检测</strong>
-                  <span>2min 无心跳判离线 <code>detected</code></span>
+              <div class="mini-kpi-grid">
+                <div class="mini-kpi">
+                  <strong>¥1,054,000</strong>
+                  <span>7日总销售额 (利润 ¥21.8万)</span>
                 </div>
-                <div style="background:var(--terracotta-light); padding:9px 10px; border-radius:6px; border:1px solid var(--terracotta-border);">
-                  <strong style="color:var(--terracotta); display:block; margin-bottom:2px;">2. 5min 告警唤醒</strong>
-                  <span>转 <code>alerted</code> + 异步唤醒 Agent 审计</span>
+                <div class="mini-kpi">
+                  <strong class="red">7.0% vs 2.1%</strong>
+                  <span>A店/S001 退款率 vs 同城中位数</span>
                 </div>
-                <div style="background:var(--amber-light); padding:9px 10px; border-radius:6px; border:1px solid #FDE68A;">
-                  <strong style="color:var(--amber); display:block; margin-bottom:2px;">3. 15min 升级</strong>
-                  <span>未确认转 <code>escalated</code> 邮件/Webhook</span>
-                </div>
-                <div style="background:var(--sage-light); padding:9px 10px; border-radius:6px; border:1px solid var(--sage-border);">
-                  <strong style="color:var(--sage); display:block; margin-bottom:2px;">4. 恢复结案</strong>
-                  <span>心跳恢复记时长转 <code>resolved</code></span>
+                <div class="mini-kpi">
+                  <strong class="green">86.5分 / 8.4月</strong>
+                  <span>朝阳区评分与回本 (南关区 null)</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- 右侧：真实产品高保真概念界面展示（上下双图 16:9 完整无裁切展示） -->
-          <div class="mockup-pair">
-            <div class="mockup-frame">
-              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:700; color:var(--text-secondary);">
-                <span>📊 经营驾驶舱与四态审计分布（全局态势 + 风险排行榜）</span>
-                <span class="footer-tag">Page 1 · Overview</span>
-              </div>
-              <img src="./imagegen/01-paper-navy.png" alt="经营概览界面" />
-            </div>
-            <div class="mockup-frame">
-              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:700; color:var(--text-secondary);">
-                <span>🔍 门店审计工作台与可比门店对标（差距拆解 + 证据链抽屉）</span>
-                <span class="footer-tag">Page 2 · Store Audit</span>
-              </div>
-              <img src="./imagegen/03-ivory-terracotta-v2.png" alt="门店审计工作台界面" />
-            </div>
-          </div>
-        </div>
-      </div>
+              <ul class="bullet-list navy-bullets">
+                <li><strong>五大核心页面 + 双顾问入口</strong>：① 经营驾驶舱（含 42 天日销售斜坡序列与长春 Leaflet GIS 风险地图） ② 智能审计与同城对标 ③ 区域投放决策 ④ 经营行动中心 ⑤ <strong>“莱财”AI 经营顾问气泡 &amp; Agent 检测工作台</strong>（实时检视规划合同、KV Cache 与 API 健康度）。</li>
+                <li><strong>销售额双因子拆解</strong>：强制将销售额波动拆解为 <code>order_change_pct</code>（订单数）与 <code>aov_change_pct</code>（客单价），避免把规模波动误判为效率问题。</li>
+                <li><strong>区域四维评分与中位数 ROI 模型</strong>：按 <code>Score = 0.35×需求 + 0.25×竞争 + 0.25×毛利 - 0.15×成本</code> 归一化评分；区域月利润与回本周期取区域内门店<strong>中位数</strong>（防止沦为门店数量比较）；南关区缺长租成本时强制返回 <code>estimatedPaybackMonths = null</code>。</li>
+              </ul>
 
-      <div class="slide-footer">
-        <div class="footer-brand">莱森购 Retail Intelligence Agent <span class="footer-tag">P4 · 核心展示（上）</span></div>
-        <div>区分四类严谨审计状态：<code>正常</code> / <code>疑似异常</code> / <code>证据不足 (insufficient)</code> / <code>无法判断 (unavailable)</code></div>
-      </div>
-    </section>
-
-    <!-- ==================== SLIDE 5: 最核心部分展示（二）7层受控Agent与行动闭环 ==================== -->
-    <section class="slide" data-time="1:25 - 1:45 (20秒)" data-script="第二大核心板块是“LangGraph 7层受控Agent架构与行动复核闭环”。我们杜绝开放式裸答，将Agent严格限制在7个白名单工具和固定拓扑顺序内运行。当诊断出A店退款异常后，系统生成结构化行动卡——指定区域经理在24小时内抽查最近20笔退款订单，经人工确认后派发；到了下一周期，系统自动调用verify_task核验退款率是否回落到同城中位数+2%以内，实现真正的管理闭环！">
-      <div class="slide-header">
-        <div class="header-left">
-          <div class="eyebrow"><span class="eyebrow-dot"></span>04 · CORE SHOWCASE PART II — 7-LAYER LANGGRAPH AGENT & ACTION VERIFICATION</div>
-          <h2 class="slide-title">核心部分展示（二）：LangGraph 7层受控编排与“行动—复核”闭环</h2>
-          <p class="slide-subtitle">严禁脱离工具自由裸答（<code>disallowOpenEndedDirectAnswer = true</code>），高风险写操作强制人工确认</p>
-        </div>
-        <div class="time-pill">⏱ 路演计时：<strong>1:25 - 1:45</strong>（20秒）</div>
-      </div>
-
-      <div class="slide-body">
-        <div class="grid-2">
-          <!-- 左栏：7层受控 Agent 架构 -->
-          <div class="card card-navy" style="padding:16px 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="badge badge-navy">LangGraph 7层工程化受控架构</span>
-              <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted); font-weight:600;">7 Whitelisted Tools Only</span>
-            </div>
-            <div class="layer-stack">
-              <div class="layer-row">
-                <strong>1. 定义层 Definition</strong>
-                <span>冻结身份边界、State Schema 与 7 大白名单工具映射</span>
-                <span class="l-code">definition.js</span>
-              </div>
-              <div class="layer-row">
-                <strong>2. 模式层 Pattern</strong>
-                <span>意图分类枚举（审计 / 区域对比 / 驾驶舱 / 综合 / 复核）</span>
-                <span class="l-code">pattern.js</span>
-              </div>
-              <div class="layer-row">
-                <strong>3. 组件层 Component</strong>
-                <span>意图解析、上下文构建、工具适配、证据总结器</span>
-                <span class="l-code">components/*</span>
-              </div>
-              <div class="layer-row">
-                <strong>4. 机制层 Mechanism</strong>
-                <span>固定拓扑序执行、重试退避、云端超时本地内存兜底</span>
-                <span class="l-code">mechanisms.js</span>
-              </div>
-              <div class="layer-row" style="border-left-color:var(--terracotta); background:var(--terracotta-light);">
-                <strong style="color:var(--terracotta);">5. 安全层 Safety</strong>
-                <span style="color:#9A3412; font-weight:600;">防 Prompt 注入、防越权写操作、禁止编造未返回数值</span>
-                <span class="l-code">safety.js</span>
-              </div>
-              <div class="layer-row">
-                <strong>6. 编排层 Orchestrator</strong>
-                <span>LangGraph 状态图流转与主动监控 Loop 唤醒桥接</span>
-                <span class="l-code">orchestrator.js</span>
-              </div>
-              <div class="layer-row">
-                <strong>7. 工程层 Engineering</strong>
-                <span>REST API 契约网关、幂等键控制、全链路 Trace 落库</span>
-                <span class="l-code">api.js / traceLogger</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 右栏：行动卡结构与复核状态机 -->
-          <div style="display:flex; flex-direction:column; gap:14px; min-height:0;">
-            <div class="card card-navy" style="padding:16px 20px; flex:1.3;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="badge badge-sage">可执行行动卡契约（Action Card Schema）</span>
-                <span style="font-family:var(--font-mono); font-size:12px; color:var(--sage); font-weight:700;">需人工点击确认后触发 create_task</span>
-              </div>
-
-              <div style="background:var(--bg-dark); color:#E2E8F0; border-radius:8px; padding:16px 18px; font-family:var(--font-mono); font-size:13px; line-height:1.72; flex:1; display:flex; flex-direction:column; justify-content:center;">
-                <div><span style="color:#93C5FD;">"task_id"</span>: <span style="color:#86EFAC;">"task_chaoyang_A_001"</span>,</div>
-                <div><span style="color:#93C5FD;">"problem"</span>: <span style="color:#FDE047;">"朝阳A店退款率(7.0%)显著高于同城中位数(2.1%)，订单跌31%"</span>,</div>
-                <div><span style="color:#93C5FD;">"evidence_ids"</span>: [<span style="color:#86EFAC;">"ev_audit_A_refund"</span>, <span style="color:#86EFAC;">"ev_peer_changchun"</span>],</div>
-                <div><span style="color:#93C5FD;">"action"</span>: <span style="color:#FFFFFF; font-weight:700;">"抽查最近 20 笔退款订单，核查冷链温控与商品临期状态"</span>,</div>
-                <div><span style="color:#93C5FD;">"owner_role"</span>: <span style="color:#86EFAC;">"长春朝阳区域经理"</span>, <span style="color:#93C5FD;">"due_hours"</span>: <span style="color:#FBA94C;">24</span>,</div>
-                <div><span style="color:#93C5FD;">"verify_metric"</span>: <span style="color:#86EFAC;">"refund_rate"</span>,</div>
-                <div><span style="color:#93C5FD;">"verify_target"</span>: <span style="color:#86EFAC;">"下一周期回落至同城中位数 + 2.0%（即 ≤ 4.1%）以内"</span></div>
-              </div>
-
-              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; font-size:12px;">
-                <div style="background:var(--bg-paper); padding:7px 10px; border-radius:6px; border:1px solid var(--border);">
-                  <strong>🔒 写操作护栏：</strong>未确认前仅生成草案
-                </div>
-                <div style="background:var(--bg-paper); padding:7px 10px; border-radius:6px; border:1px solid var(--border);">
-                  <strong>🔑 幂等防重：</strong><code>idempotency_key</code> 防重复建单
-                </div>
-                <div style="background:var(--bg-paper); padding:7px 10px; border-radius:6px; border:1px solid var(--border);">
-                  <strong>🧾 全程留痕：</strong>绑定 <code>trace_id</code> 审计回放
-                </div>
+              <div class="card-footer-box" style="background:#EFF4FA; border:1px solid #BDD0E8; color:var(--accent-navy);">
+                <strong>前端零私算原则</strong>：React 前端只渲染后端契约返回的数值、单位、证据与状态标签，绝不在前端复制公式或篡改风险等级。
               </div>
             </div>
 
-            <div class="card card-sage" style="padding:16px 20px; flex:0.7;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="font-size:14.5px; font-weight:800; color:var(--text-primary);">
-                  任务生命周期与下一周期自动复核（<code>verify_task</code>）
+            <!-- 右卡：B端四值规则引擎 + 两层可比准入 + Supabase Wiki -->
+            <div class="card accent-top-green">
+              <div class="card-eyebrow">DETERMINISTIC DATA LAYER &amp; WIKI // 规则状态机与三路径数据层</div>
+              <div class="card-title">2. 四值防呆状态机 + 两层可比准入 + Supabase 4表 Wiki</div>
+
+              <div class="flow-diagram">
+                <div class="flow-node active-node">
+                  <span class="fn-code">PRIORITY 01</span>
+                  <div class="fn-name">unavailable</div>
+                  <div class="fn-sub">有效天&lt;5 或空值&gt;20%</div>
                 </div>
-                <span style="font-size:12px; color:var(--text-muted);">闭环验收准则</span>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node">
+                  <span class="fn-code">PRIORITY 02</span>
+                  <div class="fn-name">insufficient</div>
+                  <div class="fn-sub">可比店&lt;3 或仅中1条</div>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node active-node">
+                  <span class="fn-code">PRIORITY 03</span>
+                  <div class="fn-name">possible</div>
+                  <div class="fn-sub">命中≥2条且样本充足</div>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node green-node">
+                  <span class="fn-code">PRIORITY 04</span>
+                  <div class="fn-name">none</div>
+                  <div class="fn-sub">数据完整且无异常</div>
+                </div>
               </div>
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; text-align:center; margin-top:auto; margin-bottom:auto;">
-                <div style="flex:1; background:var(--bg-paper); padding:12px 8px; border-radius:7px; border:1px solid var(--border);">
-                  <strong style="display:block; color:var(--navy); font-size:14px; margin-bottom:3px;">open</strong>
-                  <span style="font-size:11.5px; color:var(--text-muted);">审计生成草案</span>
-                </div>
-                <span style="font-weight:900; color:var(--text-muted); font-size:16px;">→</span>
-                <div style="flex:1; background:var(--navy-light); padding:12px 8px; border-radius:7px; border:1px solid var(--navy-border);">
-                  <strong style="display:block; color:var(--navy); font-size:14px; margin-bottom:3px;">assigned</strong>
-                  <span style="font-size:11.5px; color:var(--text-secondary);">人工确认派单</span>
-                </div>
-                <span style="font-weight:900; color:var(--text-muted); font-size:16px;">→</span>
-                <div style="flex:1; background:var(--amber-light); padding:12px 8px; border-radius:7px; border:1px solid #FDE68A;">
-                  <strong style="display:block; color:var(--amber); font-size:14px; margin-bottom:3px;">verifying</strong>
-                  <span style="font-size:11.5px; color:#92400E;">读取下周期指标</span>
-                </div>
-                <span style="font-weight:900; color:var(--text-muted); font-size:16px;">→</span>
-                <div style="flex:1.25; background:var(--sage-light); padding:12px 8px; border-radius:7px; border:1px solid var(--sage-border);">
-                  <strong style="display:block; color:var(--sage); font-size:14px; margin-bottom:3px;">closed / escalated</strong>
-                  <span style="font-size:11.5px; color:var(--sage);">达标结案 / 未改善升级</span>
-                </div>
+
+              <ul class="bullet-list green-bullets">
+                <li><strong>S004 缺失熔断与“两层逐指标可比准入”</strong>：<code>S004</code> 自 10月6日起退款字段断报（空值率 <code>33% &gt; 20%</code>），单店审计严格触发 <code>unavailable</code> 熔断保护；但在同区对标时按<strong>逐指标准入</strong>保留其完整的销售/订单数据，防止朝阳区可比池跌破 <code>min_peers = 3</code> 临界值。</li>
+                <li><strong>防误伤单店规则</strong>：当同区域 <code>≥40%</code> 门店同步异常且离散度低时，自动标记为<strong>“区域性波动”</strong>，严禁直接归咎于单店店长。</li>
+                <li><strong>三路径无缝切换 + Supabase 4张核心表</strong>：支持 <strong>前端内存夹具 / Python 离线服务 (<code>--offline</code>) / Supabase PostgreSQL</strong> 三路径；云端内置 <code>store_operations_daily</code>、<code>region_market_inputs</code>、<code>tasks_and_traces</code> 及 <strong><code>knowledge_wiki</code></strong>（统一承载语义规则 <code>semantic_rule</code>、处置剧本 <code>sop_playbook</code>、商圈档案 <code>region_profile</code> 与预留 1536 维向量的历史案例）。</li>
+              </ul>
+
+              <div class="card-footer-box" style="background:#EEF7F4; border:1px solid #B6DFD1; color:var(--accent-emerald);">
+                <strong>确定性验证保障</strong>：提供 <code>python tools/verify_local.py</code> 与 <code>npm run validate:contracts</code> 自动化校验全量指标与契约 Fixture。
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="slide-footer">
-        <div class="footer-brand">莱森购 Retail Intelligence Agent <span class="footer-tag">P5 · 核心展示（下）</span></div>
-        <div>7 大白名单工具：<code>get_dashboard</code> · <code>run_audit</code> · <code>compare_regions</code> · <code>estimate_region_roi</code> · <code>create_task</code> · <code>verify_task</code> · <code>write_report</code></div>
-      </div>
-    </section>
-
-    <!-- ==================== SLIDE 6: 未来扩展愿景 ==================== -->
-    <section class="slide" data-time="1:45 - 2:00 (15秒)" data-script="最后是我们的未来扩展愿景。第一阶段，我们将从模拟切片无缝对接到企业级实时数仓、真实IoT边缘网关与企微/钉钉审批流；第二阶段，横向扩展库存、会员、供应链维度，并引入多模态视觉巡检，自动识别冰柜缺货与开柜防损；第三阶段，基于Supabase已开启的pgvector向量能力，用历史案件的真实复核效果反向调优风险排序权重，构建自演进的无人零售全域自治大脑。谢谢大家！">
-      <div class="slide-header">
-        <div class="header-left">
-          <div class="eyebrow"><span class="eyebrow-dot"></span>05 · FUTURE EXPANSION VISION & ROADMAP</div>
-          <h2 class="slide-title">未来扩展愿景：从“单域智能审计”迈向“全域自治零售大脑”</h2>
-          <p class="slide-subtitle">架构预留标准化契约与 <code>pgvector</code> 扩展底座，支持三阶段平滑演进</p>
+        <div class="slide-footer">
+          <span class="footer-brand">莱森购 Retail Intelligence Agent</span>
+          <span>核心代码映射：src/services/{metric_service,rule_engine,benchmark_service,region_score}.ts · data_layer/{domain_services,rule_engine,wiki}.py</span>
         </div>
-        <div class="time-pill">⏱ 路演计时：<strong>1:45 - 2:00</strong>（15秒）</div>
-      </div>
+      </section>
 
-      <div class="slide-body">
-        <div class="grid-3">
-          <div class="card card-navy">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="badge badge-navy">阶段一 · 连接真实世界 (近期)</span>
-              <span style="font-family:var(--font-mono); font-size:12px; color:var(--navy); font-weight:700;">Production Ready</span>
-            </div>
-            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">实时数仓与边缘 IoT 网关全面接轨</h3>
-            <ul style="font-size:14px; color:var(--text-secondary); line-height:1.7; padding-left:18px; display:flex; flex-direction:column; gap:10px;">
-              <li><strong>生产级数据接入：</strong>从 CSV/Supabase 种子切片平滑切换至实时 POS 流水、ERP 库存与外部地理/客流 API 适配器。</li>
-              <li><strong>真实 IoT 边缘网关：</strong>将主动监控 Loop 接入智能冰柜温控、门磁与电压传感器，实现秒级硬件故障预判。</li>
-              <li><strong>企业级协同触达：</strong>打通企业微信、飞书与钉钉卡片审批，店长在手机端一键确认行动卡并上传整改照片。</li>
-            </ul>
-            <div class="card-footer-box" style="background:var(--navy-light); border:1px solid var(--navy-border); color:var(--navy);">
-              <strong>架构优势：</strong>当前前后端 API 契约与模块化单体已完全解耦，替换底层数据源零需重写前端与 Agent 编排层。
-            </div>
+      <!-- ==================== SLIDE 5: 核心重点（二）C 端智能体内核 ==================== -->
+      <section class="slide" data-index="4" data-time="01:10 - 01:30 (20秒)" data-script="第二大核心重点是 C 端的 LangGraph 七层智能体架构与高性能上下文工程。我们将智能体解耦为定义、模式、组件、机制、安全、编排、工程七层，组装了包含单次有界重规划的 7 节点状态机；同时严格落地《上下文与 KV Cache 约束》六大铁律与三层记忆体系，支持像“那帮它创建整改任务”这样的多轮指代消解；再配合输入越权拦截与输出数值白名单校验，实现了真正的工业级可靠受控！">
+        <div class="slide-topbar">
+          <div class="topbar-left">
+            <span class="section-tag purple">CORE ARCHITECTURE PART 2 // 05</span>
+            <span class="topbar-category">核心重点（二）：LangGraph 七层受控编排 + KV Cache 六铁律 + 三层记忆与双向护栏</span>
           </div>
-
-          <div class="card card-terracotta">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="badge badge-pain">阶段二 · 多模态与全域扩维 (中期)</span>
-              <span style="font-family:var(--font-mono); font-size:12px; color:var(--terracotta); font-weight:700;">Multimodal & Supply</span>
-            </div>
-            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">多模态视觉巡检 + 业财供应链全链路</h3>
-            <ul style="font-size:14px; color:var(--text-secondary); line-height:1.7; padding-left:18px; display:flex; flex-direction:column; gap:10px;">
-              <li><strong>多模态视觉审计：</strong>融合智能柜摄像头图像识别，自动检测<strong>货架缺货率、陈列合规度、异常拿取防损</strong>，生成视觉证据 ID。</li>
-              <li><strong>经营维度扩展：</strong>在销售额/退款率基础上，纳入<strong>商品保质期损耗、会员复购率、营销活动归因与补货人效</strong>指标库。</li>
-              <li><strong>跨城多租户治理：</strong>引入 RBAC 区域权限隔离、多级审批流与 SLA 考核看板，支撑千店级规模化运营。</li>
-            </ul>
-            <div class="card-footer-box" style="background:var(--terracotta-light); border:1px solid var(--terracotta-border); color:#9A3412;">
-              <strong>演进原则：</strong>视觉与预测模型同样遵循“只输出带置信度的结构化证据，由确定性规则定级”的安全边界。
-            </div>
-          </div>
-
-          <div class="card card-sage">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="badge badge-sage">阶段三 · 自演进决策飞轮 (远期)</span>
-              <span style="font-family:var(--font-mono); font-size:12px; color:var(--sage); font-weight:700;">Self-Evolving Brain</span>
-            </div>
-            <h3 style="font-size:20px; font-weight:800; color:var(--text-primary); line-height:1.3;">基于复核结果反哺的自治零售大脑</h3>
-            <ul style="font-size:14px; color:var(--text-secondary); line-height:1.7; padding-left:18px; display:flex; flex-direction:column; gap:10px;">
-              <li><strong>历史案件向量检索（<code>pgvector</code>）：</strong>将每一次结案的异常特征、处置动作与复核改善幅度存入向量库，新发异常自动匹配历史最优 SOP。</li>
-              <li><strong>策略权重动态校准：</strong>根据历史任务复核通过率（Closed vs Escalated），自动评估哪些行动建议真正有效，反哺风险排序模型。</li>
-              <li><strong>受控多 Agent 协同：</strong>在契约稳定后，由审计 Agent、选址 Agent 与供应链补货 Agent 协同推演全局利润最大化方案。</li>
-            </ul>
-            <div class="card-footer-box" style="background:var(--sage-light); border:1px solid var(--sage-border); color:var(--sage);">
-              <strong>终极愿景：</strong>让每一家无人零售小店都拥有一位“算得准、守规矩、盯得住结果”的 AI 首席运营官。
-            </div>
+          <div class="topbar-right">
+            <span class="time-pill">⏱ 建议用时：20 秒 (01:10 - 01:30)</span>
+            <span>PAGE 05 / 07</span>
           </div>
         </div>
 
-        <!-- 底部总结金句 -->
-        <div class="scenario-banner" style="padding:14px 22px;">
-          <div style="font-size:15.5px; font-weight:700; color:#F8FAFC;">
-            🎯 总结：莱森购不是又一个“会聊天的报表插件”，而是用<strong>确定性工程契约</strong>驯服大模型、打通<strong>感知→归因→行动→复核</strong>的新一代智能经营范式。
-          </div>
-          <div style="font-family:var(--font-mono); font-size:13px; color:#93C5FD; white-space:nowrap;">
-            THANK YOU · Q&amp;A
+        <div class="slide-headline">
+          <h2>LangGraph 七层状态机 × <span class="hl-navy">KV Cache 极致优化</span> × <span class="hl-red">三层记忆与双向防幻觉护栏</span></h2>
+          <p>兼容 OpenAI / Anthropic 双协议，无外部模型密钥或断网时自动无缝切换至 100% 确定性规划与总结回退引擎</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <!-- 左卡：7层架构 + 7节点状态机 + 7白名单工具 -->
+            <div class="card accent-top-navy">
+              <div class="card-eyebrow">7-LAYER ARCHITECTURE &amp; STATEGRAPH // 七层解耦与有界重规划</div>
+              <div class="card-title">1. 七层架构 + 7节点受控图 (含 Bounded Re-plan)</div>
+
+              <div class="flow-diagram" style="padding: 9px 10px;">
+                <div class="flow-node"><span class="fn-code">N1</span><div class="fn-name">InputGuard</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node"><span class="fn-code">N2</span><div class="fn-name">Planner</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node active-node"><span class="fn-code">N3</span><div class="fn-name">ToolExec</div></div>
+                <span class="flow-arrow">⇄</span>
+                <div class="flow-node active-node"><span class="fn-code">N4</span><div class="fn-name">Verifier</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node"><span class="fn-code">N5A/5B</span><div class="fn-name">Synthesizer</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node green-node"><span class="fn-code">N6</span><div class="fn-name">OutputGuard</div></div>
+              </div>
+
+              <div class="layer-stack">
+                <div class="layer-bar"><span class="l-idx">L1 定义层</span><span class="l-name">definition.js</span><span class="l-desc">冻结身份原则、7工具契约、全局 <code>AgentStateAnnotation</code></span></div>
+                <div class="layer-bar"><span class="l-idx">L2 模式层</span><span class="l-name">pattern.js</span><span class="l-desc">受控 Plan-and-Execute 状态图拓扑与条件路由规则</span></div>
+                <div class="layer-bar"><span class="l-idx">L3 组件层</span><span class="l-name">components/*</span><span class="l-desc">意图解析、工具适配、<code>contextBuilder</code>、<code>memoryManager</code></span></div>
+                <div class="layer-bar highlight"><span class="l-idx">L4 机制层</span><span class="l-name">mechanisms.js</span><span class="l-desc">发现高风险且未对标时触发 <strong>单次有界重规划 (Bounded Re-plan)</strong></span></div>
+                <div class="layer-bar highlight"><span class="l-idx">L5 安全层</span><span class="l-name">safety.js</span><span class="l-desc">防注入拦截、Schema 归一化、<code>collectAllowedNumbers</code> 防幻觉</span></div>
+                <div class="layer-bar"><span class="l-idx">L6 编排层</span><span class="l-name">orchestrator.js</span><span class="l-desc">组装编译官方 <code>StateGraph</code>，挂载 Checkpointer 与 Store</span></div>
+                <div class="layer-bar"><span class="l-idx">L7 工程层</span><span class="l-name">api.js &amp; traceLogger</span><span class="l-desc">统一 <code>/api/v1/*</code> 网关、全链路 Trace 回放与契约自检</span></div>
+              </div>
+
+              <div class="pill-row">
+                <span class="badge navy">只读: get_dashboard</span>
+                <span class="badge navy">只读: run_audit</span>
+                <span class="badge navy">只读: compare_regions</span>
+                <span class="badge navy">只读: estimate_region_roi</span>
+                <span class="badge red">受控写: create_task</span>
+                <span class="badge red">受控写: verify_task</span>
+                <span class="badge red">受控写: write_report</span>
+              </div>
+            </div>
+
+            <!-- 右卡：KV Cache 六大铁律 + 三层记忆 + 双向安全护栏 -->
+            <div class="card accent-top-purple">
+              <div class="card-eyebrow">KV CACHE, 3-TIER MEMORY &amp; GUARDRAILS // 上下文工程与安全防线</div>
+              <div class="card-title">2. KV Cache 六大铁律 + 三层记忆 + 双向防幻觉护栏</div>
+
+              <ul class="bullet-list">
+                <li><strong>严格遵守《上下文与 KV Cache 约束》六大铁律</strong>：
+                  <br/>① <code>STATIC_SYSTEM_MESSAGE</code> 与固定顺序 7 工具 Schema <code>deepFreeze</code> 字节级锁定，零运行时变量插值；
+                  <br/>② 动态信息（<code>query</code>、窗口、记忆、工具结果）一律 Append-Only 追加至消息尾部；
+                  <br/>③ 严格使用 <code>system / user / assistant / tool</code> 四角色与 <code>tool_call_id</code>；
+                  <br/>④ <strong>严禁滑动窗口 <code>.slice(-N)</code> 截断历史</strong>！超阈值时调用 <code>compactMessagesIfNeeded</code> 生成确定性 SHA-256 哈希摘要并持久化逐字节复用，实时统计 <code>cached_tokens</code> 命中率。</li>
+                <li><strong>LangGraph 官方三层记忆体系与多轮指代消解</strong>：
+                  <br/>融合 <strong>短期工作记忆</strong>（单轮图状态）+ <strong>会话线程记忆</strong>（<code>MemorySaver</code> + 焦点实体槽位 <code>lastDeviceId / lastRegionIds / lastTaskId</code>，支持第 2 轮说“<strong>那帮它创建一个整改任务</strong>”自动锁定上轮门店）+ <strong>跨会话长期记忆</strong>（<code>InMemoryStore</code> 持久化门店风险档案与历史任务）。</li>
+                <li><strong>双向安全护栏与业务脱敏铁律</strong>：
+                  <br/>• <strong>输入护栏</strong>：拦截 <code>DROP TABLE</code>、修改阈值、绕过白名单等越权注入指令，降级在只读沙箱内完成合法查询；
+                  <br/>• <strong>输出护栏</strong>：自动提取证据池合法数字白名单（<code>hasHallucinatedNumbers</code>），发现未授权数字立即用确定性模板回退；同时<strong>严禁向用户暴露内部函数名/变量名</strong>，输出 Antigravity 风格业务化思考步骤（<code>thinkingSteps</code>）。</li>
+              </ul>
+
+              <div class="card-footer-box" style="background:#F3F0FA; border:1px solid #D2C7EC; color:var(--accent-purple);">
+                <strong>自动化回归脚本</strong>：<code>npm run test:agent</code> 全量验证 7 层架构、规划合同、KV Cache 前缀字节恒等与防幻觉门禁。
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="slide-footer">
-        <div class="footer-brand">莱森购 Retail Intelligence Agent <span class="footer-tag">P6 · 未来扩展愿景</span></div>
-        <div>2分钟核心路演结束 · 支持现场切换至 Live Demo 演示（朝阳 A 店审计闭环 &amp; 主动监控 Loop）</div>
-      </div>
-    </section>
+        <div class="slide-footer">
+          <span class="footer-brand">莱森购 Retail Intelligence Agent</span>
+          <span>核心代码映射：src/agent/{definition,pattern,mechanisms,safety,orchestrator}.js · src/agent/components/{contextBuilder,memoryManager,llmClient}.js</span>
+        </div>
+      </section>
 
-    <!-- 演讲提词器浮窗 -->
-    <div class="teleprompter show" id="teleprompter">
-      <div class="teleprompter-head">
-        <span id="tp-time">⏱ 当前页建议用时：0:00 - 0:12 (12秒)</span>
-        <span>演讲逐字稿提词器（按 T 键隐藏/显示）</span>
-      </div>
-      <div class="teleprompter-text" id="tp-script"></div>
+      <!-- ==================== SLIDE 6: 核心重点（三）双闭环引擎 ==================== -->
+      <section class="slide" data-index="5" data-time="01:30 - 01:48 (18秒)" data-script="第三大核心重点是我们的“双闭环落地引擎”：左边是人机协同经营行动闭环，Agent 生成带决策依据和预期收益的待确认提案，人工确认后创建幂等任务，经历从 open 到 verifying 的状态机流转，并在下一周期根据复核指标自动关闭或升级；右边是独立运行的 IoT 主动监控 Loop，2 分钟心跳超时自动检测离线、5 分钟通知负责人并唤醒 Agent 异步审计、15 分钟未确认自动升级，真正做到无人值守也有据可查！">
+        <div class="slide-topbar">
+          <div class="topbar-left">
+            <span class="section-tag terracotta">DUAL CLOSED-LOOP ENGINES // 06</span>
+            <span class="topbar-category">核心重点（三）：人机协同任务复核闭环 + IoT 事件驱动主动监控 Loop</span>
+          </div>
+          <div class="topbar-right">
+            <span class="time-pill">⏱ 建议用时：18 秒 (01:30 - 01:48)</span>
+            <span>PAGE 06 / 07</span>
+          </div>
+        </div>
+
+        <div class="slide-headline">
+          <h2>从“被动问答”到<span class="hl-red">“人机协同派单复核”</span>与<span class="hl-green">“设备心跳主动唤醒审计”</span>双闭环</h2>
+          <p>不仅能回答用户提问，更能在设备异常时主动唤醒 Agent 补充审计证据，并追踪每一次整改动作在下一周期的真实指标改善</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <!-- 左卡：人机协同任务复核闭环 -->
+            <div class="card accent-top-red">
+              <div class="card-eyebrow">HUMAN-IN-THE-LOOP ACTION CENTER // 经营行动中心与周期复核</div>
+              <div class="card-title">1. 待确认决策提案 → 6态任务流转 → 下一周期指标复核</div>
+
+              <div class="flow-diagram">
+                <div class="flow-node"><span class="fn-code">STEP 1</span><div class="fn-name">open</div><div class="fn-sub">人工确认建单</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node"><span class="fn-code">STEP 2</span><div class="fn-name">assigned</div><div class="fn-sub">分派区域经理</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node"><span class="fn-code">STEP 3</span><div class="fn-name">investigating</div><div class="fn-sub">现场核查举证</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node active-node"><span class="fn-code">STEP 4</span><div class="fn-name">verifying</div><div class="fn-sub">下一周期验效</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node green-node"><span class="fn-code">STEP 5</span><div class="fn-name">closed / escalated</div><div class="fn-sub">达标结案/未达标升级</div></div>
+              </div>
+
+              <ul class="bullet-list">
+                <li><strong>人机协同审批门禁（<code>decisionProposal</code>）</strong>：高风险经营动作（门店整改、新区域投放）严禁由 LLM 自动执行，必须先生成包含 <code>decisionBasis</code>（同行分位证据）、<code>expectedImpact</code>（预期收益/回本周期）、<code>ownerRole</code>（区域经理）与 <code>dueHours</code>（24h）的审批卡片，由人工点击“确认采纳方案”后才触发 <code>create_task</code> 幂等落库。</li>
+                <li><strong>量化指标驱动的周期复核（<code>verify_task</code>）</strong>：每张行动卡绑定明确的复核指标（如 <code>verify_metric: "refund_rate"</code>，目标“回落至同类中位数 +2 个百分点以内”）。</li>
+                <li><strong>自动关闭与升级分流</strong>：进入下一观察窗口后，系统自动对比复核指标——若达标（<code>improved-task</code>）则保存复核证据并流转为 <code>closed</code>；若未改善或命中 3 条红线（<code>unresolved-task</code>）则自动升级为 <code>escalated</code> 提级督办。</li>
+              </ul>
+
+              <div class="card-footer-box" style="background:#FDF2F0; border:1px solid #F5C6BD; color:var(--accent-terracotta);">
+                <strong>核心价值</strong>：消灭“只提建议不看结果”的假闭环，让每一条 AI 建议都有责任人、截止时限与下一周期的量化验收单。
+              </div>
+            </div>
+
+            <!-- 右卡：IoT 主动监控 Loop -->
+            <div class="card accent-top-green">
+              <div class="card-eyebrow">PROACTIVE IOT MONITOR LOOP // 事件驱动主动巡检与告警升级</div>
+              <div class="card-title">2. 设备心跳监控 → 自动唤醒 Agent 审计 → 多渠道 SLA 升级</div>
+
+              <div class="flow-diagram">
+                <div class="flow-node"><span class="fn-code">T = +2min</span><div class="fn-name">detected</div><div class="fn-sub">心跳超时检测去重</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node active-node"><span class="fn-code">T = +5min</span><div class="fn-name">alerted</div><div class="fn-sub">通知+唤醒Agent审计</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node"><span class="fn-code">人工响应</span><div class="fn-name">acknowledged</div><div class="fn-sub">负责人确认接手</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node active-node"><span class="fn-code">T = +15min</span><div class="fn-name">escalated</div><div class="fn-sub">超时未确认升级</div></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node green-node"><span class="fn-code">心跳恢复</span><div class="fn-name">resolved</div><div class="fn-sub">记录时长自动结案</div></div>
+              </div>
+
+              <ul class="bullet-list green-bullets">
+                <li><strong>独立于问答链路的后台事件引擎</strong>：通过 <code>/api/v1/agent/monitor/heartbeat</code> 持续接收设备心跳，连续 <strong>2 分钟</strong>无心跳即判定离线，并按 <code>device-offline:{deviceId}</code> 唯一键幂等去重，防止告警风暴。</li>
+                <li><strong>SLA 阶梯升级与自动唤醒 Agent 审计</strong>：离线满 <strong>5 分钟</strong>进入 <code>alerted</code> 阶段，发送首条负责人通知并<strong>异步调用 Agent 审计链路</strong>，将门店近期经营异常与证据自动挂载至告警单（<code>agentSummary</code> / <code>agentFindings</code> / <code>agentTraceId</code>）；满 <strong>15 分钟</strong>仍未确认则自动流转为 <code>escalated</code> 发送升级督办通知。</li>
+                <li><strong>多渠道通知适配与断点持久化</strong>：内置站内通知列表、外部 <strong>Webhook JSON 推送</strong>（<code>AGENT_NOTIFY_WEBHOOK_URL</code>）以及 <strong>QQ 邮箱 SSL SMTP（465端口）</strong>异步邮件告警；全量状态实时持久化至 <code>tmp/agent-monitor-state.json</code>，服务重启不丢状态。</li>
+              </ul>
+
+              <div class="card-footer-box" style="background:#EEF7F4; border:1px solid #B6DFD1; color:var(--accent-emerald);">
+                <strong>自动化回归脚本</strong>：<code>npm run test:monitor-loop</code> 完整覆盖去重、5m通知、15m升级、确认、恢复结案与重启恢复。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span class="footer-brand">莱森购 Retail Intelligence Agent</span>
+          <span>核心代码映射：src/agent/{monitorLoop,notificationEmail}.js · src/AgentLoopPanel.jsx · src/pages/Actions.jsx · data_layer/tasks.py</span>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 7: 未来扩展愿景 ==================== -->
+      <section class="slide" data-index="6" data-time="01:48 - 02:00 (12秒)" data-script="最后来看未来扩展愿景。我们将分三步演进：第一阶段落地生产级多租户权限隔离，打通真实 IoT 边缘网关与 ERP 实时数仓；第二阶段横向扩展库存、会员、排班人效与边缘多模态视觉识别，实现缺货与陈列自动巡检；第三阶段全面激活 Supabase 预留的 pgvector 1536 维向量列，用每次任务复核的真实改善率反哺风险权重，演进为自进化的多 Agent 无人零售经营大脑。谢谢各位老师！">
+        <div class="slide-topbar">
+          <div class="topbar-left">
+            <span class="section-tag emerald">FUTURE VISION // 07</span>
+            <span class="topbar-category">未来扩展愿景：从端到端受控原型迈向“自进化零售经营大脑”</span>
+          </div>
+          <div class="topbar-right">
+            <span class="time-pill">⏱ 建议用时：12 秒 (01:48 - 02:00)</span>
+            <span>PAGE 07 / 07</span>
+          </div>
+        </div>
+
+        <div class="slide-headline">
+          <h2>三阶段演进蓝图：从<span class="hl-navy">模块化单体闭环</span>走向<span class="hl-green">多模态感知与自进化零售大脑</span></h2>
+          <p>当前架构已预留完整的共享类型契约、外部数据适配器接口与 PostgreSQL <code>pgvector(1536)</code> 向量检索扩展能力</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="card accent-top-navy">
+              <div class="card-eyebrow">PHASE 01 // 生产级底座与实时物联</div>
+              <div class="card-title">真实数仓、边缘网关与多租户安全</div>
+              <div class="pill-row">
+                <span class="badge navy">MQTT 边缘网关</span>
+                <span class="badge navy">OIDC / RBAC 鉴权</span>
+                <span class="badge navy">多租户 RLS 隔离</span>
+              </div>
+              <ul class="bullet-list navy-bullets">
+                <li><strong>真实 IoT 与实时数仓接入</strong>：将模拟心跳升级为鉴权后的边缘设备网关（智能冷柜温控、门锁、支付终端流式事件），对接企业 ERP/POS 准实时数仓。</li>
+                <li><strong>生产级多租户与行级权限</strong>：基于 OIDC/OAuth2 注入 <code>tenant_id</code>、角色与区域权限，結合 PostgreSQL RLS 与 Redis 分布式幂等锁保障高并发安全。</li>
+                <li><strong>企业级 IM 深度协同</strong>：Webhook 适配层直接对接企业微信 / 飞书交互卡片，支持移动端一键确认告警与审批任务。</li>
+              </ul>
+              <div class="card-footer-box" style="background:var(--bg-subtle); font-weight:700; color:var(--accent-navy);">
+                🎯 里程碑：从单机/云端原型平滑升级为生产级多租户 SaaS 平台
+              </div>
+            </div>
+
+            <div class="card accent-top-red">
+              <div class="card-eyebrow">PHASE 02 // 多模态视觉与全域协同</div>
+              <div class="card-title">视觉陈列巡检 + 供应链/会员全域扩展</div>
+              <div class="pill-row">
+                <span class="badge red">多模态视觉巡检</span>
+                <span class="badge red">智能补货与动销</span>
+                <span class="badge red">会员与人效域</span>
+              </div>
+              <ul class="bullet-list">
+                <li><strong>多模态视觉大模型巡检</strong>：接入货柜摄像头与门店监控快照，自动识别核心 SKU 排面空缺、价签错放、设备污损与异常拿取行为，生成视觉证据 ID。</li>
+                <li><strong>库存、会员、营销与人效域扩展</strong>：在现有经营契约上扩展 SKU 级库存周转、临期损耗、会员复购率与运维补货员排班人效指标。</li>
+                <li><strong>外部实时地理与客流 API</strong>：接入真实商圈客流热力、天气与竞品动态数据，驱动区域选址模型动态校准。</li>
+              </ul>
+              <div class="card-footer-box" style="background:#FDF2F0; font-weight:700; color:var(--accent-terracotta);">
+                🎯 里程碑：实现“经营财务数据 + IoT 传感 + 视觉图像 + 供应链”四维融合
+              </div>
+            </div>
+
+            <div class="card accent-top-green">
+              <div class="card-eyebrow">PHASE 03 // 向量记忆与自进化大脑</div>
+              <div class="card-title">pgvector 案例检索 + 策略自进化网络</div>
+              <div class="pill-row">
+                <span class="badge green">pgvector 混合检索</span>
+                <span class="badge green">策略强化自优化</span>
+                <span class="badge green">多 Agent 协同</span>
+              </div>
+              <ul class="bullet-list green-bullets">
+                <li><strong>激活 <code>knowledge_wiki</code> 向量混合检索</strong>：启用已预留的 <code>embedding vector(1536)</code> 列，将每次结案的异常特征、处置动作与复核结果向量化入库，实现“相似历史疑难案例”毫秒级召回。</li>
+                <li><strong>复核效果驱动的闭环自优化</strong>：统计不同区域、不同 SOP 动作在 <code>verify_task</code> 阶段的真实达标率与利润挽回额，动态优化风险排序权重与推荐策略。</li>
+                <li><strong>按需演进多 Agent 专职协同</strong>：在审计契约稳定后，拆分为审计 Agent、选址 Agent、供应链补货 Agent 与巡检督办 Agent 协同网络。</li>
+              </ul>
+              <div class="card-footer-box" style="background:#EEF7F4; font-weight:700; color:var(--accent-emerald);">
+                🎯 里程碑：沉淀企业专属经营记忆，成为越用越准的自进化无人零售大脑
+              </div>
+            </div>
+          </div>
+
+          <div class="vision-banner">
+            <div>
+              <h3>莱森购 Retail Intelligence Agent · 让每一次无人零售经营决策都有据可查、有果必验</h3>
+              <p>Contract-First 确定性底座 × 四值防呆规则引擎 × LangGraph 七层受控编排 × KV Cache 六铁律 × 主动监控与人工复核双闭环</p>
+            </div>
+            <div style="text-align:right; font-family:var(--font-mono);">
+              <div style="font-size:20px; font-weight:800; color:#34D399;">THANK YOU // Q&amp;A</div>
+              <div style="font-size:13px; color:#94A3B8; margin-top:4px;">npm run dev · PORT=4173 npm start</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span class="footer-brand">莱森购 Retail Intelligence Agent · 2 分钟项目路演汇报完毕</span>
+          <span>一键验证命令：npm run validate:contracts | npm run test:agent | npm run test:monitor-loop | python tools/verify_local.py</span>
+        </div>
+      </section>
+
     </div>
-
   </div>
 
-  <!-- 底部演示控制栏 -->
-  <div class="presenter-bar">
-    <div class="ctrl-group">
-      <button class="ctrl-btn" id="prevBtn">← 上一页</button>
-      <span id="pageIndicator" style="font-family:var(--font-mono); font-weight:700; padding:0 8px;">1 / 6</span>
-      <button class="ctrl-btn" id="nextBtn">下一页 →</button>
-      <button class="ctrl-btn active-btn" id="tpBtn">💬 提词器 (T)</button>
-      <button class="ctrl-btn" id="fsBtn">⛶ 全屏演示 (F)</button>
+  <!-- 底部提词器 -->
+  <div class="teleprompter open" id="teleprompter">
+    <div class="tp-head">
+      <span id="tpSlideInfo">SLIDE 01 / 07 · 建议时长：00:00 - 00:12 (12秒)</span>
+      <span>快捷键：[←/→] 翻页 · [S] 启动/重置2分钟倒计时 · [T] 开关提词器 · [F] 全屏</span>
     </div>
+    <div class="tp-text" id="tpText"></div>
+  </div>
 
-    <div class="ctrl-group">
-      <button class="ctrl-btn" id="timerBtn">▶ 启动 2:00 路演计时 (S)</button>
-      <span id="timerText" style="font-family:var(--font-mono); font-weight:700; min-width:95px; text-align:right;">00:00 / 02:00</span>
-      <div class="timer-progress">
-        <div class="timer-fill" id="timerFill"></div>
-      </div>
-    </div>
+  <!-- 悬浮控制条 -->
+  <div class="hud-controls">
+    <button class="hud-btn" id="prevBtn" title="上一页 (←)">◀</button>
+    <span id="pageIndicator">01 / 07</span>
+    <button class="hud-btn" id="nextBtn" title="下一页 (→)">▶</button>
+    <span style="opacity:0.35;">|</span>
+    <span id="timerDisplay" style="font-weight:800; color:#FCD34D;">02:00</span>
+    <button class="hud-btn" id="timerBtn" title="启动/重置 2 分钟倒计时 (S)">计时 (S)</button>
+    <button class="hud-btn active" id="tpBtn" title="显示/隐藏演讲提词器 (T)">提词器 (T)</button>
+    <button class="hud-btn" id="fsBtn" title="全屏演示 (F)">全屏 (F)</button>
   </div>
 
   <script>
-    const slides = Array.from(document.querySelectorAll('.slide'));
-    const pageIndicator = document.getElementById('pageIndicator');
-    const tpBox = document.getElementById('teleprompter');
-    const tpTime = document.getElementById('tp-time');
-    const tpScript = document.getElementById('tp-script');
-    const tpBtn = document.getElementById('tpBtn');
-    const timerBtn = document.getElementById('timerBtn');
-    const timerText = document.getElementById('timerText');
-    const timerFill = document.getElementById('timerFill');
-
-    let current = 0;
-    let timerInterval = null;
-    let elapsed = 0;
-    const totalSeconds = 120;
-
-    function updateSlide(idx) {
-      current = (idx + slides.length) % slides.length;
-      slides.forEach((s, i) => s.classList.toggle('active', i === current));
-      pageIndicator.textContent = `${current + 1} / ${slides.length}`;
-      tpTime.textContent = `⏱ 当前页建议用时：${slides[current].dataset.time}`;
-      tpScript.textContent = slides[current].dataset.script;
-    }
-
-    document.getElementById('prevBtn').addEventListener('click', () => updateSlide(current - 1));
-    document.getElementById('nextBtn').addEventListener('click', () => updateSlide(current + 1));
-
-    function toggleTeleprompter() {
-      tpBox.classList.toggle('show');
-      tpBtn.classList.toggle('active-btn', tpBox.classList.contains('show'));
-    }
-    tpBtn.addEventListener('click', toggleTeleprompter);
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('export') === '1') {
+        document.body.classList.add('export-mode');
       }
-    }
-    document.getElementById('fsBtn').addEventListener('click', toggleFullScreen);
 
-    function formatTime(sec) {
-      const m = String(Math.floor(sec / 60)).padStart(2, '0');
-      const s = String(sec % 60).padStart(2, '0');
-      return `${m}:${s}`;
-    }
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const stage = document.getElementById('slideStage');
+      const pageIndicator = document.getElementById('pageIndicator');
+      const tpSlideInfo = document.getElementById('tpSlideInfo');
+      const tpText = document.getElementById('tpText');
+      const teleprompter = document.getElementById('teleprompter');
+      const tpBtn = document.getElementById('tpBtn');
+      const timerDisplay = document.getElementById('timerDisplay');
+      const timerBtn = document.getElementById('timerBtn');
 
-    function toggleTimer() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        timerBtn.textContent = '▶ 继续计时 (S)';
-      } else {
-        if (elapsed >= totalSeconds) elapsed = 0;
-        timerBtn.textContent = '⏸ 暂停计时 (S)';
-        timerInterval = setInterval(() => {
-          elapsed++;
-          timerText.textContent = `${formatTime(elapsed)} / 02:00`;
-          timerFill.style.width = `${Math.min(100, (elapsed / totalSeconds) * 100)}%`;
-          // 根据时间自动高亮提醒换页节点：12s, 35s, 60s, 85s, 105s
-          if (elapsed >= totalSeconds) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            timerBtn.textContent = '↺ 重新计时 (S)';
-          }
-        }, 1000);
+      let currentIndex = 0;
+      const initialSlideParam = parseInt(params.get('slide'), 10);
+      if (!isNaN(initialSlideParam) && initialSlideParam >= 1 && initialSlideParam <= slides.length) {
+        currentIndex = initialSlideParam - 1;
       }
-    }
-    timerBtn.addEventListener('click', toggleTimer);
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
-        e.preventDefault();
-        updateSlide(current + 1);
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        e.preventDefault();
-        updateSlide(current - 1);
-      } else if (e.key.toLowerCase() === 't') {
-        toggleTeleprompter();
-      } else if (e.key.toLowerCase() === 'f') {
-        toggleFullScreen();
-      } else if (e.key.toLowerCase() === 's') {
-        toggleTimer();
+      function fitStage() {
+        if (document.body.classList.contains('export-mode')) {
+          stage.style.transform = 'none';
+          return;
+        }
+        const scaleX = window.innerWidth / 1920;
+        const scaleY = window.innerHeight / 1080;
+        const scale = Math.min(scaleX, scaleY) * 0.96;
+        stage.style.transform = `scale(${scale})`;
       }
-    });
 
-    updateSlide(0);
+      function showSlide(index) {
+        currentIndex = (index + slides.length) % slides.length;
+        slides.forEach((s, idx) => {
+          s.classList.toggle('active', idx === currentIndex);
+        });
+        const active = slides[currentIndex];
+        const pageNum = String(currentIndex + 1).padStart(2, '0');
+        const totalNum = String(slides.length).padStart(2, '0');
+        pageIndicator.textContent = `${pageNum} / ${totalNum}`;
+        tpSlideInfo.textContent = `SLIDE ${pageNum} / ${totalNum} · 建议时间轴：${active.dataset.time || ''}`;
+        tpText.textContent = active.dataset.script || '';
+      }
+
+      window.goToSlide = function (oneBasedIndex) {
+        showSlide(oneBasedIndex - 1);
+      };
+
+      document.getElementById('prevBtn').addEventListener('click', () => showSlide(currentIndex - 1));
+      document.getElementById('nextBtn').addEventListener('click', () => showSlide(currentIndex + 1));
+
+      tpBtn.addEventListener('click', () => {
+        teleprompter.classList.toggle('open');
+        tpBtn.classList.toggle('active', teleprompter.classList.contains('open'));
+      });
+
+      document.getElementById('fsBtn').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      let remainingSeconds = 120;
+      let timerId = null;
+
+      function updateTimerUI() {
+        const m = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+        const s = String(remainingSeconds % 60).padStart(2, '0');
+        timerDisplay.textContent = `${m}:${s}`;
+        timerDisplay.style.color = remainingSeconds <= 20 ? '#F87171' : '#FCD34D';
+      }
+
+      function toggleTimer() {
+        if (timerId) {
+          clearInterval(timerId);
+          timerId = null;
+          remainingSeconds = 120;
+          updateTimerUI();
+          timerBtn.textContent = '计时 (S)';
+          timerBtn.classList.remove('active');
+        } else {
+          remainingSeconds = 120;
+          updateTimerUI();
+          timerBtn.textContent = '重置 (S)';
+          timerBtn.classList.add('active');
+          timerId = setInterval(() => {
+            if (remainingSeconds > 0) {
+              remainingSeconds--;
+              updateTimerUI();
+            } else {
+              clearInterval(timerId);
+              timerId = null;
+            }
+          }, 1000);
+        }
+      }
+
+      timerBtn.addEventListener('click', toggleTimer);
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          showSlide(currentIndex + 1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          showSlide(currentIndex - 1);
+        } else if (e.key === 't' || e.key === 'T') {
+          tpBtn.click();
+        } else if (e.key === 's' || e.key === 'S') {
+          toggleTimer();
+        } else if (e.key === 'f' || e.key === 'F') {
+          document.getElementById('fsBtn').click();
+        }
+      });
+
+      window.addEventListener('resize', fitStage);
+      fitStage();
+      showSlide(currentIndex);
+    })();
   </script>
 </body>
 </html>

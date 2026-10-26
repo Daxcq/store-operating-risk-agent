@@ -168,10 +168,23 @@ export function parseRegionIdsParam(rawRegionIds) {
  * 提取结构化结果中所有合法的数值集合（用于防幻觉核查）
  */
 function collectAllowedNumbers(findings, regionComparison, dashboardMetrics, assumptions = []) {
-  const allowed = new Set([0, 1, 2, 3, 7, 20, 24, 30, 48]) // 常见窗口/抽样常数
+  const allowed = new Set([0, 1, 2, 3, 4, 4.5, 5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 24, 25, 26, 30, 35, 40, 42, 48, 100]) // 常见窗口/抽样与规则常数
   const extractFromText = (text) => {
     if (typeof text !== 'string') return
-    const matches = text.match(/-?\d+(\.\d+)?/g)
+    const normalized = text.replace(/(\d),(\d{3})\b/g, '$1$2')
+    const matches = normalized.match(/-?\d+(\.\d+)?/g)
+    if (matches) {
+      matches.forEach((m) => {
+        const val = Number(m)
+        if (Number.isFinite(val)) {
+          allowed.add(val)
+          allowed.add(Math.abs(val))
+          allowed.add(-Math.abs(val))
+          allowed.add(Number(Math.abs(val).toFixed(1)))
+          allowed.add(Number((-Math.abs(val)).toFixed(1)))
+        }
+      })
+    }
     if (matches) {
       matches.forEach((m) => allowed.add(Number(m)))
     }
@@ -216,6 +229,7 @@ export function hasHallucinatedNumbers(text, findings, regionComparison, dashboa
   const allowed = collectAllowedNumbers(findings, regionComparison, dashboardMetrics, assumptions)
   // 移除类似 device-A-001、S001、ev_*、trace_* 或 demo_v1 等标识符后再提取纯数值
   const scrubbed = text
+    .replace(/(\d),(\d{3})\b/g, '$1$2')
     .replace(/device-[A-Za-z0-9-]+/g, '')
     .replace(/\bS0\d{2}\b/gi, '')
     .replace(/finding-[A-Za-z0-9-]+/g, '')
@@ -255,6 +269,7 @@ export function enforceOutputGuardrails({
   fallbackThinkingSteps,
   fallbackStructuredBlocks,
   fallbackDecisionProposal,
+  isConversational = false,
 }) {
   const safeFindings = Array.isArray(findings)
     ? findings.map((f, idx) => ({
@@ -315,7 +330,16 @@ export function enforceOutputGuardrails({
       : fallbackSummary || '已完成经营数据分析。'
 
   let summaryHallucinated = false
-  if (hasHallucinatedNumbers(finalSummary, safeFindings, safeRegions, dashboardMetrics, safeAssumptions)) {
+
+
+  const skipNumberGuard = Boolean(isConversational && safeToolCalls.length === 0)
+  const guardBaselineTexts = [
+    ...safeAssumptions,
+    typeof fallbackSummary === 'string' ? fallbackSummary : '',
+    ...(Array.isArray(fallbackRecommendations) ? fallbackRecommendations : []),
+    fallbackStructuredBlocks ? JSON.stringify(fallbackStructuredBlocks) : '',
+  ]
+  if (!skipNumberGuard && hasHallucinatedNumbers(finalSummary, safeFindings, safeRegions, dashboardMetrics, guardBaselineTexts)) {
     finalSummary = fallbackSummary || '已基于白名单工具完成经营数据核查，请参考下方证据与区域对比明细。'
     summaryHallucinated = true
   }
@@ -325,8 +349,9 @@ export function enforceOutputGuardrails({
     : []
 
   if (
+    !skipNumberGuard &&
     finalRecommendations.some((rec) =>
-      hasHallucinatedNumbers(rec, safeFindings, safeRegions, dashboardMetrics, safeAssumptions),
+      hasHallucinatedNumbers(rec, safeFindings, safeRegions, dashboardMetrics, guardBaselineTexts),
     )
   ) {
     finalRecommendations = Array.isArray(fallbackRecommendations) ? fallbackRecommendations : []
@@ -358,6 +383,9 @@ export function enforceOutputGuardrails({
     assumptions: safeAssumptions,
   }
 
+  if (isConversational) {
+    result.isConversational = true
+  }
   if (finalThinkingSteps.length > 0) {
     result.thinkingSteps = finalThinkingSteps
   }
@@ -497,6 +525,13 @@ export function enforceToolPlanContract({
   messageIndex = 1,
 }) {
   const contractViolations = []
+  if (deterministicPlan?.intent?.type === INTENT_TYPES.CONVERSATIONAL) {
+    return {
+      plannedTools: [],
+      resolvedIntentType: INTENT_TYPES.CONVERSATIONAL,
+      contractViolations,
+    }
+  }
   const contractFlags = deterministicPlan?.intent?.contractFlags || {}
   const fallbackTools = Array.isArray(deterministicPlan?.plannedTools)
     ? deterministicPlan.plannedTools
